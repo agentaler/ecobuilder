@@ -29,6 +29,10 @@ async function writePage(path: string, html: string): Promise<void> {
 await rm(OUT, { recursive: true, force: true })
 await mkdir(OUT, { recursive: true })
 
+// Content-hash the stylesheet URL so redeploys bust long-lived asset caches —
+// stale CSS against fresh HTML renders the page broken.
+const css = await Bun.file(join(import.meta.dir, 'src', 'styles.css')).text()
+const cssHref = `/styles.css?v=${Bun.hash(css).toString(16).slice(0, 10)}`
 await cp(join(import.meta.dir, 'src', 'styles.css'), join(OUT, 'styles.css'))
 
 for (const [t, other] of [
@@ -36,9 +40,9 @@ for (const [t, other] of [
   [fr, en],
 ] as const) {
   const base = t.meta.basePath.slice(1)
-  await writePage(`${base}/index.html`, renderHome(t, other))
-  await writePage(`${base}/privacy/index.html`, renderLegalPage(t, 'privacy'))
-  await writePage(`${base}/imprint/index.html`, renderLegalPage(t, 'imprint'))
+  await writePage(`${base}/index.html`, renderHome(t, other, cssHref))
+  await writePage(`${base}/privacy/index.html`, renderLegalPage(t, 'privacy', cssHref))
+  await writePage(`${base}/imprint/index.html`, renderLegalPage(t, 'imprint', cssHref))
 }
 
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

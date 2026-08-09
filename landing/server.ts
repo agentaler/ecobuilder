@@ -53,7 +53,9 @@ async function serveFile(pathname: string): Promise<Response | null> {
       const isHtml = rel.endsWith('.html')
       return new Response(file, {
         headers: {
-          'cache-control': isHtml ? 'public, max-age=300' : 'public, max-age=86400',
+          // Assets are cache-busted via content-hash query params (build.ts),
+          // so they can cache long; HTML stays short so deploys show quickly.
+          'cache-control': isHtml ? 'public, max-age=300' : 'public, max-age=2592000, immutable',
           'x-content-type-options': 'nosniff',
         },
       })

@@ -208,7 +208,7 @@ function footer(t: Catalog): string {
 }
 
 /** Renders the full home page for one locale as a standalone HTML document. */
-export function renderHome(t: Catalog, other: Catalog): string {
+export function renderHome(t: Catalog, other: Catalog, cssHref: string): string {
   return `<!doctype html>
 <html lang="${t.meta.htmlLang}">
 <head>
@@ -226,7 +226,7 @@ export function renderHome(t: Catalog, other: Catalog): string {
 <meta property="og:type" content="website">
 <meta property="og:url" content="${SITE_ORIGIN}${t.meta.basePath}/">
 <link rel="icon" href="data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><defs><linearGradient id="g" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#2fa869"/><stop offset="1" stop-color="#155c38"/></linearGradient></defs><rect x="1" y="1" width="30" height="30" rx="8.5" fill="url(#g)"/><path d="M25.9 6.1C26.6 15.7 20.3 23.6 11 24.8 9.3 15.3 15.9 7.3 25.9 6.1Z" fill="#fff"/><path d="M6 27.2C8.9 26.9 11.6 25.9 14 24.2" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M13.2 21.9C17.6 20.4 21.6 16.4 23.2 11.5" stroke="#1c7047" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>`)}">
-<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="${cssHref}">
 <script type="application/ld+json">${JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',

@@ -24,7 +24,7 @@ const LEGAL_COPY = {
   },
 } as const
 
-export function renderLegalPage(t: Catalog, kind: 'privacy' | 'imprint'): string {
+export function renderLegalPage(t: Catalog, kind: 'privacy' | 'imprint', cssHref: string): string {
   const copy = LEGAL_COPY[t.meta.htmlLang as 'en' | 'fr']
   const title = kind === 'privacy' ? copy.privacyTitle : copy.imprintTitle
   const body = kind === 'privacy' ? copy.privacyBody : copy.imprintBody
@@ -35,7 +35,7 @@ export function renderLegalPage(t: Catalog, kind: 'privacy' | 'imprint'): string
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title} — Ecobuilder</title>
 <meta name="robots" content="noindex">
-<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="${cssHref}">
 </head>
 <body>
 <main class="section">
