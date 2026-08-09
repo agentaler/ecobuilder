@@ -13,12 +13,13 @@ function esc(value: string): string {
 }
 
 /**
- * The Ecobuilder mark: a builder's block with a sprout growing out of it —
- * "build" and "eco" in one shape. Single-color so it inherits context color;
- * the sprout is the memorable silhouette (reads down to favicon size).
+ * The Ecobuilder mark: a green app tile with a white leaf slicing through it
+ * diagonally. Fixed brand colors (not theme-dependent) so the mark is
+ * identical everywhere — nav, footer, favicon, app icon.
  */
-const MARK_PATHS = `<rect x="5" y="17" width="22" height="11" rx="3.5" fill="currentColor"/><path d="M16 18.5v-6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" fill="none"/><path d="M16.8 12.6C16.8 8.4 19.8 5.6 24.6 5.2c.3 4.8-2.6 7.8-7.8 7.4Z" fill="currentColor"/><path d="M15.2 15.4c0-3.1-2.2-5.2-5.8-5.5-.2 3.6 2 5.8 5.8 5.5Z" fill="currentColor"/>`
-const leafLogo = `<svg class="logo-mark" viewBox="0 0 32 32" width="27" height="27" aria-hidden="true">${MARK_PATHS}</svg>`
+const MARK_SVG = (size: number) =>
+  `<svg class="logo-mark" viewBox="0 0 32 32" width="${size}" height="${size}" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="9" fill="#1e7448"/><path d="M25.5 6.5C25.5 17 17 25.5 6.5 25.5 6.5 15 15 6.5 25.5 6.5Z" fill="#ffffff"/><path d="M10 22C14.5 20.8 20.8 14.5 22 10" stroke="#1e7448" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>`
+const leafLogo = MARK_SVG(28)
 
 function nav(t: Catalog): string {
   return `<header class="nav-wrap"><nav class="nav" aria-label="Main">
@@ -188,7 +189,7 @@ export function renderHome(t: Catalog, other: Catalog): string {
 <meta property="og:description" content="${esc(t.meta.description)}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${SITE_ORIGIN}${t.meta.basePath}/">
-<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><g style="color:#2f9e63">${MARK_PATHS}</g></svg>`)}">
+<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect x="1" y="1" width="30" height="30" rx="9" fill="#1e7448"/><path d="M25.5 6.5C25.5 17 17 25.5 6.5 25.5 6.5 15 15 6.5 25.5 6.5Z" fill="#fff"/><path d="M10 22C14.5 20.8 20.8 14.5 22 10" stroke="#1e7448" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>`)}">
 <link rel="stylesheet" href="/styles.css">
 <script type="application/ld+json">${JSON.stringify({
     '@context': 'https://schema.org',
