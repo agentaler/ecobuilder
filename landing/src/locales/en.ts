@@ -5,7 +5,7 @@ export const en: Catalog = {
     htmlLang: 'en',
     title: 'Ecobuilder — The eco-friendly website builder',
     description:
-      'The all-in-one eco-friendly alternative to Instapage: landing pages, websites, hosting, SEO and marketing in one package from €79/month. Clean static pages, EU hosting, no bloat.',
+      'The all-in-one eco-friendly website builder with AI: describe your page, publish in minutes — no web skills needed. Hosting, SEO and marketing included, from €29/month. EU hosting, clean static pages.',
     basePath: '/en',
     switchLabel: 'Français',
     switchPath: '/fr',
@@ -22,13 +22,13 @@ export const en: Catalog = {
     title: 'Build beautiful websites',
     titleAccent: 'that tread lightly.',
     subtitle:
-      'Ecobuilder is your all-in-one package: visual builder, hosting, SEO and marketing in one subscription from €79/month. Pages publish as clean, hand-quality static HTML — fast, high-ranking, and lighter on the planet with every visit.',
+      'Describe what you need and let the built-in AI draft it, then publish in minutes — no web knowledge required. Hosting, SEO and marketing are all included from €29/month, and every page ships as clean static HTML that treads lightly on the planet.',
     ctaPrimary: 'Start your 14-day free trial',
     ctaSecondary: 'See pricing',
     stats: [
       { value: '~50 KB', label: 'typical published page' },
-      { value: '0', label: 'framework runtimes shipped' },
-      { value: '100%', label: 'static-first output' },
+      { value: 'Minutes', label: 'from signup to live page' },
+      { value: '0', label: 'web skills required' },
     ],
   },
   eco: {
@@ -61,8 +61,16 @@ export const en: Catalog = {
   },
   features: {
     kicker: 'All-in-one',
-    title: 'Build, rank and convert — one subscription.',
+    title: 'AI does the heavy lifting. You stay in charge.',
     items: [
+      {
+        title: 'AI assistant built in',
+        body: 'Describe the page you need in plain words — the AI drafts the layout, writes the copy and adjusts the design. You review and approve every change before it goes live.',
+      },
+      {
+        title: 'Easy from the first minute',
+        body: 'No code, no hosting setup, no web jargon. Sign up, pick a starting point, publish — your site is live on a real domain in minutes.',
+      },
       {
         title: 'SEO built in',
         body: 'Semantic HTML, automatic sitemaps, full meta and Open Graph control, and pages fast enough to win Core Web Vitals — the ranking work is done at publish time.',
@@ -119,14 +127,14 @@ export const en: Catalog = {
   pricing: {
     kicker: 'Pricing',
     title: 'Simple plans that scale with you.',
-    body: 'One all-in-one package from €79/month: visual builder, hosting, SEO and marketing together — no add-ons, no per-feature upsells.',
+    body: 'One all-in-one package from €29/month: AI builder, hosting, SEO and marketing together — no add-ons, no per-feature upsells. Save 25% with annual billing.',
     note: 'All plans start with a 14-day free trial — no credit card required. Prices exclude VAT.',
     tiers: [
       {
         name: 'Create',
-        price: '€79',
+        price: '€29',
         period: '/month',
-        billingNote: 'billed annually — or €99 month-to-month',
+        billingNote: 'billed annually (save 25%) — or €39 month-to-month',
         description: 'Everything you need to launch high-converting, lightweight pages.',
         features: [
           'Unlimited published pages',
@@ -140,9 +148,9 @@ export const en: Catalog = {
       },
       {
         name: 'Optimize',
-        price: '€159',
+        price: '€59',
         period: '/month',
-        billingNote: 'billed annually — or €199 month-to-month',
+        billingNote: 'billed annually (save 25%) — or €79 month-to-month',
         description: 'For teams that iterate on conversion, at higher traffic.',
         features: [
           'Everything in Create',
@@ -184,6 +192,10 @@ export const en: Catalog = {
       {
         q: 'What makes a website “eco-friendly”?',
         a: 'Mostly weight and work: fewer bytes transferred and less computation per visit means less energy in data centres, networks and visitor devices. Ecobuilder minimises both by design.',
+      },
+      {
+        q: 'Do I need technical or web skills?',
+        a: 'None at all. Describe what you want and the AI assistant drafts it; the visual editor works like a design tool, and hosting, domains and SSL are handled for you. If you can write an email, you can publish a site.',
       },
       {
         q: 'Are SEO and marketing really included?',

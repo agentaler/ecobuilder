@@ -5,7 +5,7 @@ export const fr: Catalog = {
     htmlLang: 'fr',
     title: 'Ecobuilder — Le créateur de sites web éco-responsable',
     description:
-      'L’alternative tout-en-un et éco-responsable à Instapage : pages d’atterrissage, sites web, hébergement, SEO et marketing dans une seule offre dès 79 €/mois. Des pages statiques propres, hébergées en Europe, sans superflu.',
+      'Le créateur de sites tout-en-un, éco-responsable et dopé à l’IA : décrivez votre page, publiez en quelques minutes — aucune compétence web requise. Hébergement, SEO et marketing inclus, dès 29 €/mois.',
     basePath: '/fr',
     switchLabel: 'English',
     switchPath: '/en',
@@ -22,13 +22,13 @@ export const fr: Catalog = {
     title: 'Créez de beaux sites web',
     titleAccent: 'qui pèsent léger.',
     subtitle:
-      'Ecobuilder est votre offre tout-en-un : éditeur visuel, hébergement, SEO et marketing dans un seul abonnement dès 79 €/mois. Vos pages sont publiées en HTML statique propre et soigné — rapides, bien référencées, et plus légères pour la planète à chaque visite.',
+      'Décrivez ce dont vous avez besoin, l’IA intégrée le prépare, et vous publiez en quelques minutes — aucune connaissance web requise. Hébergement, SEO et marketing inclus dès 29 €/mois, et chaque page est livrée en HTML statique propre, léger pour la planète.',
     ctaPrimary: 'Essai gratuit de 14 jours',
     ctaSecondary: 'Voir les tarifs',
     stats: [
       { value: '~50 Ko', label: 'poids typique d’une page publiée' },
-      { value: '0', label: 'framework livré au visiteur' },
-      { value: '100 %', label: 'sortie statique en priorité' },
+      { value: 'Minutes', label: 'de l’inscription à la mise en ligne' },
+      { value: '0', label: 'compétence web requise' },
     ],
   },
   eco: {
@@ -61,8 +61,16 @@ export const fr: Catalog = {
   },
   features: {
     kicker: 'Tout-en-un',
-    title: 'Créer, référencer, convertir — un seul abonnement.',
+    title: 'L’IA fait le gros du travail. Vous gardez la main.',
     items: [
+      {
+        title: 'Assistant IA intégré',
+        body: 'Décrivez la page dont vous avez besoin avec vos mots — l’IA propose la mise en page, rédige les textes et ajuste le design. Vous validez chaque changement avant la mise en ligne.',
+      },
+      {
+        title: 'Simple dès la première minute',
+        body: 'Pas de code, pas de configuration d’hébergement, pas de jargon web. Inscrivez-vous, choisissez un point de départ, publiez — votre site est en ligne en quelques minutes.',
+      },
       {
         title: 'SEO intégré',
         body: 'HTML sémantique, sitemaps automatiques, contrôle complet des méta-données et d’Open Graph, et des pages assez rapides pour exceller aux Core Web Vitals — le travail de référencement se fait à la publication.',
@@ -119,14 +127,14 @@ export const fr: Catalog = {
   pricing: {
     kicker: 'Tarifs',
     title: 'Des offres simples qui grandissent avec vous.',
-    body: 'Une offre tout-en-un dès 79 €/mois : éditeur visuel, hébergement, SEO et marketing réunis — sans options payantes, sans suppléments à la carte.',
+    body: 'Une offre tout-en-un dès 29 €/mois : créateur IA, hébergement, SEO et marketing réunis — sans options payantes, sans suppléments à la carte. Économisez 25 % avec la facturation annuelle.',
     note: 'Toutes les offres commencent par un essai gratuit de 14 jours — sans carte bancaire. Prix hors TVA.',
     tiers: [
       {
         name: 'Create',
-        price: '79 €',
+        price: '29 €',
         period: '/mois',
-        billingNote: 'facturation annuelle — ou 99 €/mois sans engagement',
+        billingNote: 'facturation annuelle (−25 %) — ou 39 €/mois sans engagement',
         description: 'Tout ce qu’il faut pour lancer des pages légères qui convertissent.',
         features: [
           'Pages publiées illimitées',
@@ -140,9 +148,9 @@ export const fr: Catalog = {
       },
       {
         name: 'Optimize',
-        price: '159 €',
+        price: '59 €',
         period: '/mois',
-        billingNote: 'facturation annuelle — ou 199 €/mois sans engagement',
+        billingNote: 'facturation annuelle (−25 %) — ou 79 €/mois sans engagement',
         description: 'Pour les équipes qui itèrent sur la conversion, à plus fort trafic.',
         features: [
           'Tout ce qui est inclus dans Create',
@@ -184,6 +192,10 @@ export const fr: Catalog = {
       {
         q: 'Qu’est-ce qui rend un site web « éco-responsable » ?',
         a: 'Surtout le poids et le travail : moins d’octets transférés et moins de calcul par visite, c’est moins d’énergie dans les centres de données, les réseaux et les appareils des visiteurs. Ecobuilder minimise les deux dès la conception.',
+      },
+      {
+        q: 'Faut-il des compétences techniques ou web ?',
+        a: 'Aucune. Décrivez ce que vous voulez et l’assistant IA le prépare ; l’éditeur visuel fonctionne comme un outil de design, et l’hébergement, les domaines et le SSL sont gérés pour vous. Si vous savez écrire un e-mail, vous savez publier un site.',
       },
       {
         q: 'Le SEO et le marketing sont-ils vraiment inclus ?',

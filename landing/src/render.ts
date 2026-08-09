@@ -191,7 +191,7 @@ export function renderHome(t: Catalog, other: Catalog): string {
     applicationCategory: 'DesignApplication',
     operatingSystem: 'Web',
     url: SITE_ORIGIN,
-    offers: { '@type': 'Offer', price: '79', priceCurrency: 'EUR' },
+    offers: { '@type': 'Offer', price: '29', priceCurrency: 'EUR' },
   })}</script>
 </head>
 <body>
