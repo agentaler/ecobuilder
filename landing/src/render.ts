@@ -80,10 +80,25 @@ function hero(t: Catalog): string {
   const stats = t.hero.stats
     .map((s) => `<div class="stat"><div class="stat-value">${esc(s.value)}</div><div class="stat-label">${esc(s.label)}</div></div>`)
     .join('')
+  let dustSeed = 0xd05e77e
+  const dustRand = () => {
+    dustSeed = (dustSeed * 1664525 + 1013904223) >>> 0
+    return dustSeed / 0xffffffff
+  }
+  const dust = Array.from({ length: 14 }, () => {
+    const x = 38 + dustRand() * 24
+    const s = (1.5 + dustRand() * 2.5).toFixed(1)
+    const dur = (7 + dustRand() * 9).toFixed(1)
+    const d = (dustRand() * 10).toFixed(1)
+    const drift = ((dustRand() - 0.5) * 70).toFixed(0)
+    return `<i style="--x:${x.toFixed(1)}%;--s:${s}px;--dur:${dur}s;--d:${d}s;--drift:${drift}px"></i>`
+  }).join('')
   return `<section class="hero">
   <div class="hero-aurora" aria-hidden="true"></div>
   ${letterRain()}
   <div class="hero-beam" aria-hidden="true"></div>
+  <div class="hero-dust" aria-hidden="true">${dust}</div>
+  <div class="hero-vignette" aria-hidden="true"></div>
   <div class="hero-flare" aria-hidden="true"></div>
   <p class="badge intro intro-1">${esc(t.hero.badge)}</p>
   <h1 class="intro intro-2">${esc(t.hero.title)}<br><em>${esc(t.hero.titleAccent)}</em></h1>
