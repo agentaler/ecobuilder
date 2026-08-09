@@ -72,11 +72,24 @@ h3 { font-size: 1.1rem; }
   display: flex; align-items: center; gap: 1.5rem;
 }
 .brand { display: inline-flex; align-items: center; gap: 0.6rem; }
-.logo-mark { flex: none; border-radius: 8px; box-shadow: 0 0 18px -4px rgba(76, 194, 131, 0.55); }
+.logo-mark {
+  flex: none; border-radius: 9px;
+  box-shadow: 0 0 20px -4px rgba(76, 194, 131, 0.6);
+  transition: transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 300ms ease;
+}
+.brand:hover .logo-mark { transform: rotate(-6deg) scale(1.06); box-shadow: 0 0 30px -2px rgba(123, 255, 185, 0.75); }
 .brand-word { font-size: 1.38rem; font-weight: 600; letter-spacing: -0.045em; color: var(--text); line-height: 1; }
 .brand-word b { font-weight: 800; color: var(--accent); }
 .nav-links { display: flex; gap: 1.25rem; margin-inline: auto; }
-.nav-links a { color: var(--text-soft); font-size: 0.95rem; transition: color 150ms ease; }
+.nav-links a {
+  position: relative; color: var(--text-soft); font-size: 0.95rem; transition: color 150ms ease;
+}
+.nav-links a::after {
+  content: ""; position: absolute; left: 0; bottom: -4px; height: 1px; width: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-bright));
+  transform: scaleX(0); transform-origin: left; transition: transform 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.nav-links a:hover::after { transform: scaleX(1); }
 .nav-links a:hover { color: var(--text); }
 .nav-actions { display: flex; align-items: center; gap: 1rem; }
 .lang-switch { color: var(--text-soft); font-size: 0.9rem; text-decoration: underline; text-underline-offset: 3px; }
@@ -278,16 +291,51 @@ h3 { font-size: 1.1rem; }
 @keyframes beam-orbit { to { --beam-angle: 360deg; } }
 
 /* ── Sections ────────────────────────────────────── */
-.section { max-width: var(--maxw); margin: 0 auto; padding: 5rem 1.25rem; }
+.section { position: relative; max-width: var(--maxw); margin: 0 auto; padding: 5rem 1.25rem; }
+/* glowing hairline divider at the top of each section */
+.section::before {
+  content: ""; position: absolute; top: 0; left: 50%; translate: -50% 0;
+  width: min(48rem, 86%); height: 1px; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(76, 194, 131, 0.45), transparent);
+}
+/* drifting ambient orb per section */
+.section:not(.section-tinted)::after {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  width: 40rem; height: 40rem; max-width: 120vw;
+  left: 50%; top: 0; translate: -50% -28%;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(76, 194, 131, 0.09), transparent 70%);
+  filter: blur(46px);
+  animation: orb-drift 18s ease-in-out infinite alternate;
+}
+@keyframes orb-drift {
+  from { transform: translate(-8%, 0) scale(1); }
+  to   { transform: translate(8%, 5%) scale(1.15); }
+}
+
+/* cursor-following spotlight on interactive cards */
+.spot::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  opacity: 0; transition: opacity 260ms ease;
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgba(123, 255, 185, 0.14), transparent 72%);
+}
+.spot:hover::after { opacity: 1; }
 .section-tinted {
   max-width: none; background: var(--surface-tint);
   border-block: 1px solid rgba(76, 194, 131, 0.12);
   padding: 5rem max(1.25rem, calc((100% - var(--maxw)) / 2));
 }
 .kicker {
+  position: relative; display: inline-block;
   font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em;
   color: var(--accent-bright); margin-bottom: 0.75rem;
 }
+.kicker::before {
+  content: ""; position: absolute; left: -3.2rem; top: 50%; height: 1px; width: 2.4rem;
+  background: linear-gradient(90deg, transparent, var(--accent));
+  transform: scaleX(0); transform-origin: right; transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s;
+}
+.kicker.visible::before { transform: scaleX(1); }
+@media (max-width: 900px) { .kicker::before { display: none; } }
 .section-body { max-width: 44rem; color: var(--text-soft); margin-top: 1rem; font-size: 1.05rem; }
 
 /* ── Eco comparison ──────────────────────────────── */
@@ -408,7 +456,18 @@ h3 { font-size: 1.1rem; }
   padding: 1rem 1.25rem; transition: border-color 200ms ease;
 }
 .faq-item:hover { border-color: rgba(76, 194, 131, 0.4); }
-.faq-item summary { cursor: pointer; font-weight: 600; }
+.faq-item summary {
+  cursor: pointer; font-weight: 600; list-style: none;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+  content: "+"; flex: none; font-size: 1.35rem; font-weight: 400; line-height: 1;
+  color: var(--accent); transition: transform 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.faq-item[open] summary::after { transform: rotate(135deg); }
+.faq-item[open] p { animation: faq-open 0.35s ease both; }
+@keyframes faq-open { from { opacity: 0; translate: 0 -6px; } to { opacity: 1; translate: 0 0; } }
 .faq-item[open] summary { color: var(--accent-bright); }
 .faq-item p { margin-top: 0.6rem; color: var(--text-soft); }
 
@@ -447,6 +506,8 @@ h3 { font-size: 1.1rem; }
 
 /* ── Scroll reveal ───────────────────────────────── */
 .reveal { opacity: 0; translate: 0 26px; transition: opacity 0.7s ease, translate 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); }
+h2.reveal { transition-delay: 0.06s; }
+.section-body.reveal { transition-delay: 0.13s; }
 .reveal.visible { opacity: 1; translate: 0 0; }
 .card-grid .reveal:nth-child(2), .point-grid .reveal:nth-child(2), .tier-grid .reveal:nth-child(2),
 .step-grid .reveal:nth-child(2), .svc-grid .reveal:nth-child(2) { transition-delay: 0.09s; }
@@ -464,7 +525,8 @@ h3 { font-size: 1.1rem; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .btn, .card, .tier, .faq-item, .step, .svc { transition: none; }
-  .intro, .hero-aurora, .cta-band::before, h1 em, .border-beam::after, .hero-beam, .hero-beam::after, .hero-flare, .lcol, .lcol b, .hero-dust i { animation: none; }
+  .intro, .hero-aurora, .cta-band::before, h1 em, .border-beam::after, .hero-beam, .hero-beam::after, .hero-flare, .lcol, .lcol b, .hero-dust i, .section::after, .faq-item[open] p { animation: none; }
+  .spot::after, .nav-links a::after, .kicker::before, .logo-mark { transition: none; }
   .intro { opacity: 1; transform: none; }
   .reveal { opacity: 1; translate: none; transition: none; }
   .bar-fill { transition: none; width: var(--w); min-width: 0.9rem; }

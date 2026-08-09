@@ -19,7 +19,7 @@ function esc(value: string): string {
  * `id` must be unique per inline instance (SVG gradient ids are global).
  */
 const MARK_SVG = (size: number, id: string) =>
-  `<svg class="logo-mark" viewBox="0 0 32 32" width="${size}" height="${size}" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#2fa869"/><stop offset="1" stop-color="#155c38"/></linearGradient></defs><rect x="1" y="1" width="30" height="30" rx="8.5" fill="url(#${id})"/><path d="M25.9 6.1C26.6 15.7 20.3 23.6 11 24.8 9.3 15.3 15.9 7.3 25.9 6.1Z" fill="#ffffff"/><path d="M6 27.2C8.9 26.9 11.6 25.9 14 24.2" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M13.2 21.9C17.6 20.4 21.6 16.4 23.2 11.5" stroke="#1c7047" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>`
+  `<svg class="logo-mark" viewBox="0 0 32 32" width="${size}" height="${size}" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0.55" y2="1"><stop offset="0" stop-color="#39b877"/><stop offset="1" stop-color="#125433"/></linearGradient><linearGradient id="${id}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.28"/><stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/></linearGradient></defs><rect x="1" y="1" width="30" height="30" rx="9" fill="url(#${id})"/><rect x="1" y="1" width="30" height="30" rx="9" fill="url(#${id}s)"/><path d="M24.8 7.2C25.7 16.2 19.3 23.4 10.2 24.4 9.3 15.4 15.7 8.2 24.8 7.2Z" fill="#ffffff"/><path d="M11.6 23C15.9 21.3 20.2 17 21.9 12.6" stroke="#14603a" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>`
 const brandLockup = (id: string) =>
   `${MARK_SVG(30, id)}<span class="brand-word"><b>eco</b>builder</span>`
 
@@ -128,8 +128,8 @@ function eco(t: Catalog): string {
     .join('')
   return `<section class="section" id="eco">
   <p class="kicker reveal">${esc(t.eco.kicker)}</p>
-  <h2>${esc(t.eco.title)}</h2>
-  <p class="section-body">${esc(t.eco.body)}</p>
+  <h2 class="reveal">${esc(t.eco.title)}</h2>
+  <p class="section-body reveal">${esc(t.eco.body)}</p>
   <div class="compare-card reveal">
     <h3>${esc(t.eco.comparison.title)}</h3>
     <div class="bars">${bars}</div>
@@ -142,7 +142,7 @@ function eco(t: Catalog): string {
 function howItWorks(t: Catalog): string {
   const steps = t.howItWorks.steps
     .map(
-      (s, i) => `<div class="step reveal">
+      (s, i) => `<div class="step spot reveal">
       <span class="step-n">${i + 1}</span>
       <h3>${esc(s.title)}</h3>
       <p>${esc(s.body)}</p>
@@ -151,8 +151,8 @@ function howItWorks(t: Catalog): string {
     .join('')
   return `<section class="section" id="how">
   <p class="kicker reveal">${esc(t.howItWorks.kicker)}</p>
-  <h2>${esc(t.howItWorks.title)}</h2>
-  <p class="section-body">${esc(t.howItWorks.body)}</p>
+  <h2 class="reveal">${esc(t.howItWorks.title)}</h2>
+  <p class="section-body reveal">${esc(t.howItWorks.body)}</p>
   <div class="step-grid">${steps}</div>
 </section>`
 }
@@ -163,8 +163,8 @@ function aiOutcomes(t: Catalog): string {
     .join('')
   return `<section class="section section-tinted" id="ai">
   <p class="kicker reveal">${esc(t.aiOutcomes.kicker)}</p>
-  <h2>${esc(t.aiOutcomes.title)}</h2>
-  <p class="section-body">${esc(t.aiOutcomes.body)}</p>
+  <h2 class="reveal">${esc(t.aiOutcomes.title)}</h2>
+  <p class="section-body reveal">${esc(t.aiOutcomes.body)}</p>
   <div class="point-grid">${items}</div>
 </section>`
 }
@@ -172,7 +172,7 @@ function aiOutcomes(t: Catalog): string {
 function services(t: Catalog): string {
   const cols = t.services.columns
     .map(
-      (c) => `<div class="svc reveal">
+      (c) => `<div class="svc spot reveal">
       <span class="svc-tag">${esc(c.tag)}</span>
       <h3>${esc(c.name)}</h3>
       <ul class="svc-list">${c.items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>
@@ -181,8 +181,8 @@ function services(t: Catalog): string {
     .join('')
   return `<section class="section" id="services">
   <p class="kicker reveal">${esc(t.services.kicker)}</p>
-  <h2>${esc(t.services.title)}</h2>
-  <p class="section-body">${esc(t.services.body)}</p>
+  <h2 class="reveal">${esc(t.services.title)}</h2>
+  <p class="section-body reveal">${esc(t.services.body)}</p>
   <div class="svc-grid">${cols}</div>
   <p class="pricing-note">${esc(t.services.note)}</p>
 </section>`
@@ -190,11 +190,11 @@ function services(t: Catalog): string {
 
 function features(t: Catalog): string {
   const cards = t.features.items
-    .map((f) => `<div class="card reveal"><h3>${esc(f.title)}</h3><p>${esc(f.body)}</p></div>`)
+    .map((f) => `<div class="card spot reveal"><h3>${esc(f.title)}</h3><p>${esc(f.body)}</p></div>`)
     .join('')
   return `<section class="section" id="features">
   <p class="kicker reveal">${esc(t.features.kicker)}</p>
-  <h2>${esc(t.features.title)}</h2>
+  <h2 class="reveal">${esc(t.features.title)}</h2>
   <div class="card-grid">${cards}</div>
 </section>`
 }
@@ -205,8 +205,8 @@ function europe(t: Catalog): string {
     .join('')
   return `<section class="section section-tinted" id="europe">
   <p class="kicker reveal">${esc(t.europe.kicker)}</p>
-  <h2>${esc(t.europe.title)}</h2>
-  <p class="section-body">${esc(t.europe.body)}</p>
+  <h2 class="reveal">${esc(t.europe.title)}</h2>
+  <p class="section-body reveal">${esc(t.europe.body)}</p>
   <div class="point-grid">${points}</div>
 </section>`
 }
@@ -229,8 +229,8 @@ function pricing(t: Catalog): string {
     .join('')
   return `<section class="section" id="pricing">
   <p class="kicker reveal">${esc(t.pricing.kicker)}</p>
-  <h2>${esc(t.pricing.title)}</h2>
-  <p class="section-body">${esc(t.pricing.body)}</p>
+  <h2 class="reveal">${esc(t.pricing.title)}</h2>
+  <p class="section-body reveal">${esc(t.pricing.body)}</p>
   <div class="tier-grid">${tiers}</div>
   <p class="pricing-note">${esc(t.pricing.note)}</p>
 </section>`
@@ -244,14 +244,14 @@ function faq(t: Catalog): string {
     .join('')
   return `<section class="section" id="faq">
   <p class="kicker reveal">${esc(t.faq.kicker)}</p>
-  <h2>${esc(t.faq.title)}</h2>
+  <h2 class="reveal">${esc(t.faq.title)}</h2>
   <div class="faq-list">${items}</div>
 </section>`
 }
 
 function ctaBand(t: Catalog): string {
   return `<section class="cta-band reveal">
-  <h2>${esc(t.ctaBand.title)}</h2>
+  <h2 class="reveal">${esc(t.ctaBand.title)}</h2>
   <p>${esc(t.ctaBand.body)}</p>
   <a class="btn btn-inverse" href="${APP_URL}">${esc(t.ctaBand.cta)}</a>
 </section>`
@@ -327,7 +327,7 @@ ${ctaBand(t)}
 </main>
 ${footer(t)}
 <noscript><style>.reveal{opacity:1;translate:none}</style></noscript>
-<script>const io=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}},{threshold:.15});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));</script>
+<script>document.addEventListener('pointermove',e=>{const c=e.target.closest&&e.target.closest('.spot');if(!c)return;const r=c.getBoundingClientRect();c.style.setProperty('--mx',(e.clientX-r.left)+'px');c.style.setProperty('--my',(e.clientY-r.top)+'px')},{passive:true});const io=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}},{threshold:.15});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));</script>
 </body>
 </html>
 `
