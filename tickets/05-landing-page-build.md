@@ -39,7 +39,7 @@ Headline positioning Ecobuilder as the eco-friendly Webflow/Framer/WordPress alt
 **Covers:** R-004
 **Depends on:** E04-T02
 
-Sections: visual editor (real screenshots), clean-output proof (page-weight / CO₂-per-view comparison vs typical WP/Webflow page — sourced methodology, e.g. Website Carbon-style model), plugin system, self-host vs cloud, EU data residency. Each section is a reusable block component.
+Sections: visual editor (real screenshots), clean-output proof (page-weight / CO₂-per-view comparison vs typical WP/Webflow page — sourced methodology, e.g. Website Carbon-style model), features grid, Instapage-parity pricing tiers (Create/Optimize/Convert per open question 5), EU data residency. No open-source/self-host positioning (user directive: closed-source commercial SaaS). Each section is a reusable block component.
 
 **Acceptance criteria:**
 - All sections responsive down to 360px; images lazy-loaded with dimensions set (no CLS).

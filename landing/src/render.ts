@@ -1,7 +1,7 @@
 import type { Catalog } from './locales/types'
 
 const APP_URL = 'https://app.ecobuilder.ai/admin'
-const GITHUB_URL = 'https://github.com/agentaler/ecobuilder'
+const SALES_URL = 'mailto:hello@ecobuilder.ai'
 const SITE_ORIGIN = 'https://ecobuilder.ai'
 
 function esc(value: string): string {
@@ -20,7 +20,7 @@ function nav(t: Catalog): string {
   <div class="nav-links">
     <a href="#features">${esc(t.nav.features)}</a>
     <a href="#eco">${esc(t.nav.eco)}</a>
-    <a href="#open-source">${esc(t.nav.openSource)}</a>
+    <a href="#pricing">${esc(t.nav.pricing)}</a>
     <a href="#faq">${esc(t.nav.faq)}</a>
   </div>
   <div class="nav-actions">
@@ -40,7 +40,7 @@ function hero(t: Catalog): string {
   <p class="hero-sub">${esc(t.hero.subtitle)}</p>
   <div class="cta-row">
     <a class="btn btn-primary" href="${APP_URL}">${esc(t.hero.ctaPrimary)}</a>
-    <a class="btn btn-ghost" href="${GITHUB_URL}">${esc(t.hero.ctaSecondary)}</a>
+    <a class="btn btn-ghost" href="#pricing">${esc(t.hero.ctaSecondary)}</a>
   </div>
   <div class="stat-strip">${stats}</div>
 </section>`
@@ -95,15 +95,28 @@ function europe(t: Catalog): string {
 </section>`
 }
 
-function openSource(t: Catalog): string {
-  return `<section class="section" id="open-source">
-  <p class="kicker">${esc(t.openSource.kicker)}</p>
-  <h2>${esc(t.openSource.title)}</h2>
-  <p class="section-body">${esc(t.openSource.body)}</p>
-  <div class="cta-row">
-    <a class="btn btn-ghost" href="${GITHUB_URL}">${esc(t.openSource.ctaGithub)}</a>
-    <a class="btn btn-primary" href="${APP_URL}">${esc(t.openSource.ctaCloud)}</a>
-  </div>
+function pricing(t: Catalog): string {
+  const tiers = t.pricing.tiers
+    .map((tier) => {
+      const features = tier.features.map((f) => `<li>${esc(f)}</li>`).join('')
+      const ctaHref = tier.custom ? SALES_URL : APP_URL
+      const ctaClass = tier.highlight ? 'btn-primary' : 'btn-ghost'
+      return `<div class="tier${tier.highlight ? ' tier-highlight' : ''}">
+      <h3>${esc(tier.name)}</h3>
+      <p class="tier-desc">${esc(tier.description)}</p>
+      <p class="tier-price">${esc(tier.price)}<span>${esc(tier.period)}</span></p>
+      <p class="tier-billing">${esc(tier.billingNote)}</p>
+      <ul class="tier-features">${features}</ul>
+      <a class="btn ${ctaClass}" href="${ctaHref}">${esc(tier.cta)}</a>
+    </div>`
+    })
+    .join('')
+  return `<section class="section" id="pricing">
+  <p class="kicker">${esc(t.pricing.kicker)}</p>
+  <h2>${esc(t.pricing.title)}</h2>
+  <p class="section-body">${esc(t.pricing.body)}</p>
+  <div class="tier-grid">${tiers}</div>
+  <p class="pricing-note">${esc(t.pricing.note)}</p>
 </section>`
 }
 
@@ -138,7 +151,7 @@ function footer(t: Catalog): string {
     <div>
       <h4>${esc(t.footer.product)}</h4>
       <a href="#features">${esc(t.nav.features)}</a>
-      <a href="${GITHUB_URL}">GitHub</a>
+      <a href="#pricing">${esc(t.nav.pricing)}</a>
       <a href="${APP_URL}">${esc(t.nav.openApp)}</a>
     </div>
     <div>
@@ -178,7 +191,7 @@ export function renderHome(t: Catalog, other: Catalog): string {
     applicationCategory: 'DesignApplication',
     operatingSystem: 'Web',
     url: SITE_ORIGIN,
-    offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+    offers: { '@type': 'Offer', price: '79', priceCurrency: 'EUR' },
   })}</script>
 </head>
 <body>
@@ -188,7 +201,7 @@ ${hero(t)}
 ${eco(t)}
 ${features(t)}
 ${europe(t)}
-${openSource(t)}
+${pricing(t)}
 ${faq(t)}
 ${ctaBand(t)}
 </main>

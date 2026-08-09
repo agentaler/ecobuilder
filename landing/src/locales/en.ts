@@ -5,7 +5,7 @@ export const en: Catalog = {
     htmlLang: 'en',
     title: 'Ecobuilder — The eco-friendly website builder',
     description:
-      'Build beautiful websites that tread lightly. Ecobuilder is the open-source, eco-friendly alternative to Webflow, Framer and WordPress — clean static pages, EU hosting, no bloat.',
+      'Build beautiful landing pages and websites that tread lightly. Ecobuilder is the eco-friendly alternative to Instapage, Webflow and WordPress — clean static pages, EU hosting, no bloat.',
     basePath: '/en',
     switchLabel: 'Français',
     switchPath: '/fr',
@@ -13,18 +13,18 @@ export const en: Catalog = {
   nav: {
     features: 'Features',
     eco: 'Why eco',
-    openSource: 'Open source',
+    pricing: 'Pricing',
     faq: 'FAQ',
     openApp: 'Open the app',
   },
   hero: {
-    badge: 'Open source · Hosted in the EU',
+    badge: 'Built for Europe · Hosted in the EU',
     title: 'Build beautiful websites',
     titleAccent: 'that tread lightly.',
     subtitle:
       'Ecobuilder is a visual website builder that publishes clean, hand-quality static HTML and CSS. No framework runtime, no megabytes of JavaScript — just fast pages that cost less energy on every single visit.',
-    ctaPrimary: 'Start building — it’s free',
-    ctaSecondary: 'View on GitHub',
+    ctaPrimary: 'Start your 14-day free trial',
+    ctaSecondary: 'See pricing',
     stats: [
       { value: '~50 KB', label: 'typical published page' },
       { value: '0', label: 'framework runtimes shipped' },
@@ -108,20 +108,70 @@ export const en: Catalog = {
       },
     ],
   },
-  openSource: {
-    kicker: 'Open source',
-    title: 'Use our cloud, or run it yourself.',
-    body: 'Ecobuilder is open source. Host it on your own server with Docker and own every byte, or let us run it for you at app.ecobuilder.ai — same product, your choice of control.',
-    ctaGithub: 'Star on GitHub',
-    ctaCloud: 'Try Ecobuilder Cloud',
+  pricing: {
+    kicker: 'Pricing',
+    title: 'Simple plans that scale with you.',
+    body: 'Every plan includes the visual editor, real-time co-editing, EU hosting with SSL, and pages that publish featherweight by design.',
+    note: 'All plans start with a 14-day free trial — no credit card required. Prices exclude VAT.',
+    tiers: [
+      {
+        name: 'Create',
+        price: '€79',
+        period: '/month',
+        billingNote: 'billed annually — or €99 month-to-month',
+        description: 'Everything you need to launch high-converting, lightweight pages.',
+        features: [
+          'Unlimited published pages',
+          '30,000 unique visitors / month',
+          'Connect your custom domain',
+          'Real-time co-editing',
+          'Forms & lead capture',
+          'EU hosting & SSL included',
+        ],
+        cta: 'Start 14-day free trial',
+      },
+      {
+        name: 'Optimize',
+        price: '€159',
+        period: '/month',
+        billingNote: 'billed annually — or €199 month-to-month',
+        description: 'For teams that iterate on conversion, at higher traffic.',
+        features: [
+          'Everything in Create',
+          '100,000 unique visitors / month',
+          'Multiple sites & workspaces',
+          'Buy domains directly from us',
+          'Team roles & permissions',
+          'Priority support',
+        ],
+        cta: 'Start 14-day free trial',
+        highlight: true,
+      },
+      {
+        name: 'Convert',
+        price: 'Custom',
+        period: '',
+        billingNote: 'annual contract, tailored to your volume',
+        description: 'For agencies and enterprises publishing at scale.',
+        features: [
+          'Everything in Optimize',
+          'Unlimited visitors & sites',
+          'Dedicated onboarding & migration',
+          'SLA & dedicated support',
+          'Custom contracts & invoicing',
+        ],
+        cta: 'Talk to sales',
+        custom: true,
+      },
+    ],
   },
   faq: {
     kicker: 'FAQ',
     title: 'Questions, answered.',
     items: [
       {
-        q: 'How is Ecobuilder different from Webflow or Framer?',
-        a: 'Ecobuilder publishes plain static HTML and CSS with no framework runtime, is fully open source, and can be self-hosted. You keep your content, your code and your independence.',
+        q: 'How is Ecobuilder different from Instapage or Webflow?',
+        a: 'You get the same class of visual building and publishing power — but your pages ship as featherweight static HTML with no framework runtime, hosted in the EU. Faster pages, better ad-spend efficiency, and a dramatically smaller carbon footprint.',
       },
       {
         q: 'What makes a website “eco-friendly”?',
@@ -132,8 +182,8 @@ export const en: Catalog = {
         a: 'Yes — connect a domain you already own in a few clicks, or buy one directly from us and we configure everything automatically.',
       },
       {
-        q: 'Is it really free to start?',
-        a: 'Yes. Self-hosting is free forever under the open-source license, and Ecobuilder Cloud has a free tier to build and publish your first site.',
+        q: 'Is there a free trial?',
+        a: 'Yes — every plan starts with a 14-day free trial, no credit card required. Build and publish a real page before you decide.',
       },
       {
         q: 'Can my team edit together?',
@@ -144,10 +194,10 @@ export const en: Catalog = {
   ctaBand: {
     title: 'Ready to build lighter?',
     body: 'Publish a site you’re proud of — and one the planet barely notices.',
-    cta: 'Start building free',
+    cta: 'Start your free trial',
   },
   footer: {
-    tagline: 'The eco-friendly, open-source website builder.',
+    tagline: 'The eco-friendly landing page & website builder.',
     product: 'Product',
     legal: 'Legal',
     privacy: 'Privacy policy',

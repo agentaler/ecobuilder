@@ -5,7 +5,7 @@ export const fr: Catalog = {
     htmlLang: 'fr',
     title: 'Ecobuilder — Le créateur de sites web éco-responsable',
     description:
-      'Créez de beaux sites web qui pèsent léger. Ecobuilder est l’alternative open source et éco-responsable à Webflow, Framer et WordPress — des pages statiques propres, hébergées en Europe, sans superflu.',
+      'Créez de belles pages d’atterrissage et de beaux sites web qui pèsent léger. Ecobuilder est l’alternative éco-responsable à Instapage, Webflow et WordPress — des pages statiques propres, hébergées en Europe, sans superflu.',
     basePath: '/fr',
     switchLabel: 'English',
     switchPath: '/en',
@@ -13,18 +13,18 @@ export const fr: Catalog = {
   nav: {
     features: 'Fonctionnalités',
     eco: 'Pourquoi éco',
-    openSource: 'Open source',
+    pricing: 'Tarifs',
     faq: 'FAQ',
     openApp: 'Ouvrir l’app',
   },
   hero: {
-    badge: 'Open source · Hébergé dans l’UE',
+    badge: 'Pensé pour l’Europe · Hébergé dans l’UE',
     title: 'Créez de beaux sites web',
     titleAccent: 'qui pèsent léger.',
     subtitle:
       'Ecobuilder est un créateur de sites visuel qui publie du HTML et du CSS statiques, propres, dignes d’un travail artisanal. Pas de framework embarqué, pas de mégaoctets de JavaScript — seulement des pages rapides qui consomment moins d’énergie à chaque visite.',
-    ctaPrimary: 'Commencer gratuitement',
-    ctaSecondary: 'Voir sur GitHub',
+    ctaPrimary: 'Essai gratuit de 14 jours',
+    ctaSecondary: 'Voir les tarifs',
     stats: [
       { value: '~50 Ko', label: 'poids typique d’une page publiée' },
       { value: '0', label: 'framework livré au visiteur' },
@@ -108,20 +108,70 @@ export const fr: Catalog = {
       },
     ],
   },
-  openSource: {
-    kicker: 'Open source',
-    title: 'Notre cloud, ou votre serveur.',
-    body: 'Ecobuilder est open source. Hébergez-le sur votre propre serveur avec Docker et gardez la maîtrise de chaque octet, ou laissez-nous l’exploiter pour vous sur app.ecobuilder.ai — le même produit, le niveau de contrôle en plus.',
-    ctaGithub: 'Étoile sur GitHub',
-    ctaCloud: 'Essayer Ecobuilder Cloud',
+  pricing: {
+    kicker: 'Tarifs',
+    title: 'Des offres simples qui grandissent avec vous.',
+    body: 'Chaque offre inclut l’éditeur visuel, la co-édition en temps réel, l’hébergement européen avec SSL, et des pages publiées ultra-légères par conception.',
+    note: 'Toutes les offres commencent par un essai gratuit de 14 jours — sans carte bancaire. Prix hors TVA.',
+    tiers: [
+      {
+        name: 'Create',
+        price: '79 €',
+        period: '/mois',
+        billingNote: 'facturation annuelle — ou 99 €/mois sans engagement',
+        description: 'Tout ce qu’il faut pour lancer des pages légères qui convertissent.',
+        features: [
+          'Pages publiées illimitées',
+          '30 000 visiteurs uniques / mois',
+          'Connexion de votre nom de domaine',
+          'Co-édition en temps réel',
+          'Formulaires et capture de contacts',
+          'Hébergement UE et SSL inclus',
+        ],
+        cta: 'Essai gratuit de 14 jours',
+      },
+      {
+        name: 'Optimize',
+        price: '159 €',
+        period: '/mois',
+        billingNote: 'facturation annuelle — ou 199 €/mois sans engagement',
+        description: 'Pour les équipes qui itèrent sur la conversion, à plus fort trafic.',
+        features: [
+          'Tout ce qui est inclus dans Create',
+          '100 000 visiteurs uniques / mois',
+          'Plusieurs sites et espaces de travail',
+          'Achat de domaines directement chez nous',
+          'Rôles et permissions d’équipe',
+          'Support prioritaire',
+        ],
+        cta: 'Essai gratuit de 14 jours',
+        highlight: true,
+      },
+      {
+        name: 'Convert',
+        price: 'Sur mesure',
+        period: '',
+        billingNote: 'contrat annuel, adapté à votre volume',
+        description: 'Pour les agences et les entreprises qui publient à grande échelle.',
+        features: [
+          'Tout ce qui est inclus dans Optimize',
+          'Visiteurs et sites illimités',
+          'Accompagnement et migration dédiés',
+          'SLA et support dédié',
+          'Contrats et facturation personnalisés',
+        ],
+        cta: 'Parler à un conseiller',
+        custom: true,
+      },
+    ],
   },
   faq: {
     kicker: 'FAQ',
     title: 'Vos questions, nos réponses.',
     items: [
       {
-        q: 'En quoi Ecobuilder diffère-t-il de Webflow ou Framer ?',
-        a: 'Ecobuilder publie du HTML et du CSS statiques sans framework embarqué, est entièrement open source et peut être auto-hébergé. Vous gardez votre contenu, votre code et votre indépendance.',
+        q: 'En quoi Ecobuilder diffère-t-il d’Instapage ou de Webflow ?',
+        a: 'Vous retrouvez la même puissance de création visuelle et de publication — mais vos pages sont livrées en HTML statique ultra-léger, sans framework embarqué, et hébergées dans l’UE. Des pages plus rapides, un meilleur rendement publicitaire et une empreinte carbone radicalement réduite.',
       },
       {
         q: 'Qu’est-ce qui rend un site web « éco-responsable » ?',
@@ -132,8 +182,8 @@ export const fr: Catalog = {
         a: 'Oui — connectez un domaine que vous possédez déjà en quelques clics, ou achetez-en un directement chez nous et nous configurons tout automatiquement.',
       },
       {
-        q: 'Est-ce vraiment gratuit pour commencer ?',
-        a: 'Oui. L’auto-hébergement est gratuit pour toujours grâce à la licence open source, et Ecobuilder Cloud propose une offre gratuite pour créer et publier votre premier site.',
+        q: 'Y a-t-il un essai gratuit ?',
+        a: 'Oui — chaque offre commence par un essai gratuit de 14 jours, sans carte bancaire. Créez et publiez une vraie page avant de vous décider.',
       },
       {
         q: 'Mon équipe peut-elle éditer à plusieurs ?',
@@ -144,10 +194,10 @@ export const fr: Catalog = {
   ctaBand: {
     title: 'Prêt à construire plus léger ?',
     body: 'Publiez un site dont vous êtes fier — et que la planète remarque à peine.',
-    cta: 'Commencer gratuitement',
+    cta: 'Démarrer l’essai gratuit',
   },
   footer: {
-    tagline: 'Le créateur de sites web open source et éco-responsable.',
+    tagline: 'Le créateur éco-responsable de pages d’atterrissage et de sites web.',
     product: 'Produit',
     legal: 'Mentions',
     privacy: 'Politique de confidentialité',

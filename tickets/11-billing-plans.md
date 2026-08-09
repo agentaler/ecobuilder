@@ -11,7 +11,7 @@ Out of scope for this epic: usage-based metering beyond plan limits; invoicing l
 **Covers:** R-003
 **Depends on:** —
 
-ADR with the user: free/pro/agency (proposal), and which dimensions are limited per plan — sites/tenant? pages? storage/media GB? custom domains? team seats? AI usage? Sets the vocabulary every enforcement point uses.
+Plan names and prices are set by user directive (Instapage parity): **Create** €79/mo annual (€99 monthly), **Optimize** €159/mo annual (€199 monthly), **Convert** custom — all with a 14-day free trial. This ADR confirms the limit dimensions per tier already advertised on the landing page (Create: 1 site, 30k visitors/mo; Optimize: multiple sites/workspaces, 100k visitors/mo, domain purchase, team roles, priority support; Convert: unlimited + onboarding/SLA) and any additional enforcement dimensions (storage GB, AI usage).
 
 **Acceptance criteria:**
 - Signed-off plan matrix with concrete numbers; limit dimensions enumerated as typed constants.

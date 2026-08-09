@@ -19,7 +19,7 @@ export interface Catalog {
   nav: {
     features: string
     eco: string
-    openSource: string
+    pricing: string
     faq: string
     openApp: string
   }
@@ -54,12 +54,23 @@ export interface Catalog {
     body: string
     points: { title: string; body: string }[]
   }
-  openSource: {
+  pricing: {
     kicker: string
     title: string
     body: string
-    ctaGithub: string
-    ctaCloud: string
+    note: string
+    tiers: {
+      name: string
+      price: string
+      period: string
+      billingNote: string
+      description: string
+      features: string[]
+      cta: string
+      highlight?: boolean
+      /** Custom-priced tier: CTA links to sales contact instead of the app */
+      custom?: boolean
+    }[]
   }
   faq: {
     kicker: string
