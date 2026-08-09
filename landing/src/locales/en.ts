@@ -23,7 +23,7 @@ export const en: Catalog = {
     titleAccent: 'that tread lightly.',
     subtitle:
       'Describe what you need and let the built-in AI draft it, then publish in minutes — no web knowledge required. Hosting, SEO and marketing are all included from €29/month, and every page ships as clean static HTML that treads lightly on the planet.',
-    ctaPrimary: 'Start your 14-day free trial',
+    ctaPrimary: 'Start your 7-day free trial',
     ctaSecondary: 'See pricing',
     stats: [
       { value: '~50 KB', label: 'typical published page' },
@@ -128,7 +128,7 @@ export const en: Catalog = {
     kicker: 'Pricing',
     title: 'Simple plans that scale with you.',
     body: 'One all-in-one package from €29/month: AI builder, hosting, SEO and marketing together — no add-ons, no per-feature upsells. Save 25% with annual billing.',
-    note: 'All plans start with a 14-day free trial — no credit card required. Prices exclude VAT.',
+    note: 'All plans start with a 7-day free trial — no credit card required. Prices exclude VAT.',
     tiers: [
       {
         name: 'Create',
@@ -144,7 +144,7 @@ export const en: Catalog = {
           'Forms & lead capture',
           'EU hosting & SSL included',
         ],
-        cta: 'Start 14-day free trial',
+        cta: 'Start 7-day free trial',
       },
       {
         name: 'Optimize',
@@ -160,7 +160,7 @@ export const en: Catalog = {
           'Buy domains directly from us',
           'Team roles & priority support',
         ],
-        cta: 'Start 14-day free trial',
+        cta: 'Start 7-day free trial',
         highlight: true,
       },
       {
@@ -207,7 +207,7 @@ export const en: Catalog = {
       },
       {
         q: 'Is there a free trial?',
-        a: 'Yes — every plan starts with a 14-day free trial, no credit card required. Build and publish a real page before you decide.',
+        a: 'Yes — every plan starts with a 7-day free trial, no credit card required. Build and publish a real page before you decide.',
       },
       {
         q: 'Can my team edit together?',

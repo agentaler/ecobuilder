@@ -23,7 +23,7 @@ export const fr: Catalog = {
     titleAccent: 'qui pèsent léger.',
     subtitle:
       'Décrivez ce dont vous avez besoin, l’IA intégrée le prépare, et vous publiez en quelques minutes — aucune connaissance web requise. Hébergement, SEO et marketing inclus dès 29 €/mois, et chaque page est livrée en HTML statique propre, léger pour la planète.',
-    ctaPrimary: 'Essai gratuit de 14 jours',
+    ctaPrimary: 'Essai gratuit de 7 jours',
     ctaSecondary: 'Voir les tarifs',
     stats: [
       { value: '~50 Ko', label: 'poids typique d’une page publiée' },
@@ -128,7 +128,7 @@ export const fr: Catalog = {
     kicker: 'Tarifs',
     title: 'Des offres simples qui grandissent avec vous.',
     body: 'Une offre tout-en-un dès 29 €/mois : créateur IA, hébergement, SEO et marketing réunis — sans options payantes, sans suppléments à la carte. Économisez 25 % avec la facturation annuelle.',
-    note: 'Toutes les offres commencent par un essai gratuit de 14 jours — sans carte bancaire. Prix hors TVA.',
+    note: 'Toutes les offres commencent par un essai gratuit de 7 jours — sans carte bancaire. Prix hors TVA.',
     tiers: [
       {
         name: 'Create',
@@ -144,7 +144,7 @@ export const fr: Catalog = {
           'Formulaires et capture de contacts',
           'Hébergement UE et SSL inclus',
         ],
-        cta: 'Essai gratuit de 14 jours',
+        cta: 'Essai gratuit de 7 jours',
       },
       {
         name: 'Optimize',
@@ -160,7 +160,7 @@ export const fr: Catalog = {
           'Achat de domaines directement chez nous',
           'Rôles d’équipe et support prioritaire',
         ],
-        cta: 'Essai gratuit de 14 jours',
+        cta: 'Essai gratuit de 7 jours',
         highlight: true,
       },
       {
@@ -207,7 +207,7 @@ export const fr: Catalog = {
       },
       {
         q: 'Y a-t-il un essai gratuit ?',
-        a: 'Oui — chaque offre commence par un essai gratuit de 14 jours, sans carte bancaire. Créez et publiez une vraie page avant de vous décider.',
+        a: 'Oui — chaque offre commence par un essai gratuit de 7 jours, sans carte bancaire. Créez et publiez une vraie page avant de vous décider.',
       },
       {
         q: 'Mon équipe peut-elle éditer à plusieurs ?',

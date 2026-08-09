@@ -12,7 +12,13 @@ function esc(value: string): string {
     .replaceAll('"', '&quot;')
 }
 
-const leafLogo = `<svg class="logo-mark" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="currentColor" d="M20 4c-8 0-14 3-15 11 0 2 .6 3.7 1.5 5l1.6-1.4C7 14 10 10.6 15 8.6c-4 2.6-7 6-8.6 9.9A8.6 8.6 0 0 0 11 20c8 0 9-8.5 9-16Z"/></svg>`
+/**
+ * The Ecobuilder mark: a builder's block with a sprout growing out of it —
+ * "build" and "eco" in one shape. Single-color so it inherits context color;
+ * the sprout is the memorable silhouette (reads down to favicon size).
+ */
+const MARK_PATHS = `<rect x="5" y="17" width="22" height="11" rx="3.5" fill="currentColor"/><path d="M16 18.5v-6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" fill="none"/><path d="M16.8 12.6C16.8 8.4 19.8 5.6 24.6 5.2c.3 4.8-2.6 7.8-7.8 7.4Z" fill="currentColor"/><path d="M15.2 15.4c0-3.1-2.2-5.2-5.8-5.5-.2 3.6 2 5.8 5.8 5.5Z" fill="currentColor"/>`
+const leafLogo = `<svg class="logo-mark" viewBox="0 0 32 32" width="27" height="27" aria-hidden="true">${MARK_PATHS}</svg>`
 
 function nav(t: Catalog): string {
   return `<header class="nav-wrap"><nav class="nav" aria-label="Main">
@@ -182,7 +188,7 @@ export function renderHome(t: Catalog, other: Catalog): string {
 <meta property="og:description" content="${esc(t.meta.description)}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${SITE_ORIGIN}${t.meta.basePath}/">
-<link rel="icon" href="data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#2f9e63" d="M20 4c-8 0-14 3-15 11 0 2 .6 3.7 1.5 5l1.6-1.4C7 14 10 10.6 15 8.6c-4 2.6-7 6-8.6 9.9A8.6 8.6 0 0 0 11 20c8 0 9-8.5 9-16Z"/></svg>')}">
+<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><g style="color:#2f9e63">${MARK_PATHS}</g></svg>`)}">
 <link rel="stylesheet" href="/styles.css">
 <script type="application/ld+json">${JSON.stringify({
     '@context': 'https://schema.org',
