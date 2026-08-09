@@ -24,20 +24,32 @@ const brandLockup = (id: string) =>
   `${MARK_SVG(30, id)}<span class="brand-word"><b>eco</b>builder</span>`
 
 function nav(t: Catalog): string {
+  const otherLang = t.meta.switchPath === '/fr' ? 'fr' : 'en'
+  const links = [
+    ['#how', t.nav.how],
+    ['#eco', t.nav.eco],
+    ['#features', t.nav.features],
+    ['#services', t.services.kicker],
+    ['#pricing', t.nav.pricing],
+    ['#faq', t.nav.faq],
+  ] as const
+  const linkList = (cls: string) =>
+    links.map(([href, label]) => `<a class="${cls}" href="${href}">${esc(label)}</a>`).join('')
   return `<header class="nav-wrap"><nav class="nav" aria-label="Main">
   <a class="brand" href="${t.meta.basePath}/">${brandLockup('nav-mark')}</a>
-  <div class="nav-links">
-    <a href="#how">${esc(t.nav.how)}</a>
-    <a href="#eco">${esc(t.nav.eco)}</a>
-    <a href="#features">${esc(t.nav.features)}</a>
-    <a href="#services">${esc(t.services.kicker)}</a>
-    <a href="#pricing">${esc(t.nav.pricing)}</a>
-    <a href="#faq">${esc(t.nav.faq)}</a>
-  </div>
+  <div class="nav-links">${linkList('')}</div>
   <div class="nav-actions">
-    <a class="lang-switch" href="${t.meta.switchPath}/" rel="alternate" hreflang="${t.meta.switchPath === '/fr' ? 'fr' : 'en'}">${esc(t.meta.switchLabel)}</a>
+    <a class="lang-switch" href="${t.meta.switchPath}/" rel="alternate" hreflang="${otherLang}">${esc(t.meta.switchLabel)}</a>
     <a class="btn btn-primary btn-sm" href="${APP_URL}">${esc(t.nav.openApp)}</a>
   </div>
+  <details class="mnav">
+    <summary aria-label="Menu"><span class="bars"><i></i><i></i><i></i></span></summary>
+    <div class="mnav-panel">
+      ${linkList('mnav-link')}
+      <a class="btn btn-primary mnav-cta" href="${APP_URL}">${esc(t.nav.openApp)}</a>
+      <a class="mnav-lang" href="${t.meta.switchPath}/" rel="alternate" hreflang="${otherLang}">${esc(t.meta.switchLabel)}</a>
+    </div>
+  </details>
 </nav></header>`
 }
 
@@ -327,7 +339,7 @@ ${ctaBand(t)}
 </main>
 ${footer(t)}
 <noscript><style>.reveal{opacity:1;translate:none}</style></noscript>
-<script>document.addEventListener('pointermove',e=>{const c=e.target.closest&&e.target.closest('.spot');if(!c)return;const r=c.getBoundingClientRect();c.style.setProperty('--mx',(e.clientX-r.left)+'px');c.style.setProperty('--my',(e.clientY-r.top)+'px')},{passive:true});const io=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}},{threshold:.15});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));</script>
+<script>document.addEventListener('click',e=>{const d=document.querySelector('.mnav[open]');if(d&&(e.target.closest('.mnav-panel a')||!e.target.closest('.mnav')))d.removeAttribute('open')});document.addEventListener('pointermove',e=>{const c=e.target.closest&&e.target.closest('.spot');if(!c)return;const r=c.getBoundingClientRect();c.style.setProperty('--mx',(e.clientX-r.left)+'px');c.style.setProperty('--my',(e.clientY-r.top)+'px')},{passive:true});const io=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}},{threshold:.15});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));</script>
 </body>
 </html>
 `
