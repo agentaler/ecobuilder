@@ -53,7 +53,7 @@ function hero(t: Catalog): string {
     <a class="btn btn-primary btn-glow" href="${APP_URL}">${esc(t.hero.ctaPrimary)}</a>
     <a class="btn btn-ghost" href="#pricing">${esc(t.hero.ctaSecondary)}</a>
   </div>
-  <div class="stat-strip intro intro-5">${stats}</div>
+  <div class="stat-strip border-beam intro intro-5">${stats}</div>
 </section>`
 }
 
@@ -112,7 +112,7 @@ function pricing(t: Catalog): string {
       const features = tier.features.map((f) => `<li>${esc(f)}</li>`).join('')
       const ctaHref = tier.custom ? SALES_URL : APP_URL
       const ctaClass = tier.highlight ? 'btn-primary' : 'btn-ghost'
-      return `<div class="tier reveal${tier.highlight ? ' tier-highlight' : ''}">
+      return `<div class="tier reveal${tier.highlight ? ' tier-highlight border-beam' : ''}">
       <h3>${esc(tier.name)}</h3>
       <p class="tier-desc">${esc(tier.description)}</p>
       <p class="tier-price">${esc(tier.price)}<span>${esc(tier.period)}</span></p>
@@ -183,6 +183,7 @@ export function renderHome(t: Catalog, other: Catalog): string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#060807">
 <title>${esc(t.meta.title)}</title>
 <meta name="description" content="${esc(t.meta.description)}">
 <link rel="canonical" href="${SITE_ORIGIN}${t.meta.basePath}/">
