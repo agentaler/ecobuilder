@@ -11,11 +11,103 @@ export const fr: Catalog = {
     switchPath: '/en',
   },
   nav: {
+    how: 'Comment ça marche',
     features: 'Fonctionnalités',
     eco: 'Pourquoi éco',
     pricing: 'Tarifs',
     faq: 'FAQ',
     openApp: 'Ouvrir l’app',
+  },
+  howItWorks: {
+    kicker: 'Comment ça marche',
+    title: 'D’une idée à un site qui vend — en quatre étapes.',
+    body: 'Pas de cahier des charges, pas d’agence, pas des semaines d’attente pour une première maquette. Vous décrivez votre activité ; on s’occupe du reste.',
+    steps: [
+      {
+        title: 'Parlez-nous de votre activité',
+        body: 'Ce que vous vendez, à qui, et ce qu’est une réussite pour vous — une réservation, une inscription, un achat. En quelques phrases, sans formulaire à remplir.',
+      },
+      {
+        title: 'L’IA crée votre site',
+        body: 'Pages, mise en page, textes, placement des images, formulaires de contact et de capture, plus les fondations SEO — un site complet et cohérent, pas une page blanche.',
+      },
+      {
+        title: 'Rendez-le vôtre',
+        body: 'Déplacez, modifiez et restylez tout ce que vous voulez dans l’éditeur visuel, ou demandez simplement à l’IA avec vos mots. Vous validez chaque changement avant la mise en ligne.',
+      },
+      {
+        title: 'Publiez et développez',
+        body: 'Un clic met le site en ligne sur votre nom de domaine, avec hébergement, SSL et pages ultra-rapides inclus. Ensuite, nous vous aidons à vous référencer et à convertir.',
+      },
+    ],
+  },
+  aiOutcomes: {
+    kicker: 'Une IA qui se rentabilise',
+    title: 'L’IA n’est pas un gadget : elle fait le travail qui vous rapporte.',
+    body: 'Chaque page qu’elle produit vise les deux choses qui décident de la rentabilité d’un site : être trouvé, et transformer les visiteurs en clients.',
+    items: [
+      {
+        title: 'Des textes écrits pour convertir',
+        body: 'Des titres orientés bénéfices, des offres claires et des appels à l’action rédigés pour votre audience et votre objectif — pas du texte de remplissage à réécrire.',
+      },
+      {
+        title: 'Le SEO traité à la publication',
+        body: 'Titres, méta-descriptions, Open Graph, sitemaps, structure sémantique et URLs propres générés pour chaque page : vous vous référencez sans recruter un spécialiste.',
+      },
+      {
+        title: 'Une page par campagne',
+        body: 'Créez une page dédiée pour chaque publicité, audience ou offre en quelques minutes. Plus de pages ciblées, c’est un budget publicitaire mieux utilisé et plus de contacts.',
+      },
+      {
+        title: 'Une vitesse qui fait convertir',
+        body: 'L’IA ne peut produire que des pages statiques ultra-légères : votre site satisfait les Core Web Vitals par construction, ce que les moteurs récompensent et les visiteurs encore plus.',
+      },
+    ],
+  },
+  services: {
+    kicker: 'SEO et marketing',
+    title: 'Ce que votre abonnement comprend vraiment.',
+    body: 'Ecobuilder n’est pas qu’un logiciel. Le SEO technique est intégré à chaque page publiée, et sur les offres supérieures notre équipe travaille votre croissance avec vous.',
+    note: 'Les services sont assurés par notre équipe en français et en anglais. Les offres supérieures incluent davantage d’accompagnement — voir les tarifs pour les limites.',
+    columns: [
+      {
+        name: 'Inclus dans toutes les offres',
+        tag: 'Automatique',
+        items: [
+          'SEO technique : HTML sémantique, URLs propres, balises canoniques',
+          'Sitemaps et robots.txt générés automatiquement',
+          'Contrôle complet des méta-données, d’Open Graph et des aperçus sociaux',
+          'Une vitesse au niveau des Core Web Vitals par construction',
+          'Redirections automatiques quand vous renommez ou déplacez une page',
+          'Formulaires de capture avec protection anti-spam',
+          'Hébergement UE, SSL et votre nom de domaine',
+        ],
+      },
+      {
+        name: 'Services de croissance',
+        tag: 'Offre Optimize',
+        items: [
+          'Audit SEO de votre site avec un plan d’action priorisé',
+          'Plan de mots-clés et de contenu pour votre marché',
+          'Analyse de conversion de vos pages clés',
+          'Pages de campagne construites avec vous',
+          'Plusieurs sites et espaces de travail en équipe',
+          'Support prioritaire assuré par ceux qui construisent le produit',
+        ],
+      },
+      {
+        name: 'Fait avec vous',
+        tag: 'Offre Convert',
+        items: [
+          'Un interlocuteur SEO et marketing dédié',
+          'Production continue de contenus et de campagnes',
+          'Migration de votre site existant, prise en charge',
+          'Rapports personnalisés : trafic, contacts et positions',
+          'Intégration et formation de votre équipe',
+          'SLA et contrats personnalisés',
+        ],
+      },
+    ],
   },
   hero: {
     badge: 'Propulsé par l’IA · Hébergé dans l’UE',

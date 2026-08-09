@@ -11,11 +11,103 @@ export const en: Catalog = {
     switchPath: '/fr',
   },
   nav: {
+    how: 'How it works',
     features: 'Features',
     eco: 'Why eco',
     pricing: 'Pricing',
     faq: 'FAQ',
     openApp: 'Open the app',
+  },
+  howItWorks: {
+    kicker: 'How it works',
+    title: 'From an idea to a site that sells — in four steps.',
+    body: 'No briefs, no agencies, no waiting weeks for a first draft. You describe the business; everything else is handled.',
+    steps: [
+      {
+        title: 'Tell us about your business',
+        body: 'What you sell, who you sell it to, and what a win looks like — a booking, a signup, a purchase. Plain sentences, no forms to fill in.',
+      },
+      {
+        title: 'The AI builds your site',
+        body: 'Pages, layout, copy, images placement, contact and lead forms, plus the SEO groundwork — a complete, on-brand site rather than a blank canvas.',
+      },
+      {
+        title: 'Make it yours',
+        body: 'Drag, edit and restyle anything in the visual editor, or just ask the AI in plain words. You approve every change before it goes live.',
+      },
+      {
+        title: 'Publish and grow',
+        body: 'One click puts it on your own domain with hosting, SSL and CDN-speed pages included. Then we help you rank and convert.',
+      },
+    ],
+  },
+  aiOutcomes: {
+    kicker: 'AI that pays for itself',
+    title: 'The AI is not a gimmick — it does the work that makes you money.',
+    body: 'Every page it produces is aimed at the two things that decide whether a website earns: getting found, and turning visitors into customers.',
+    items: [
+      {
+        title: 'Copy written to convert',
+        body: 'Benefit-led headlines, clear offers and calls to action written for your audience and your goal — not filler text you have to rewrite.',
+      },
+      {
+        title: 'SEO handled at publish time',
+        body: 'Titles, meta descriptions, Open Graph, sitemaps, semantic structure and clean URLs generated for every page, so you rank without hiring a specialist.',
+      },
+      {
+        title: 'A landing page per campaign',
+        body: 'Spin up a dedicated page for each ad, audience or offer in minutes. More targeted pages means better ad spend and more leads from the same budget.',
+      },
+      {
+        title: 'Speed that lifts conversion',
+        body: 'The AI can only produce featherweight static pages — so your site passes Core Web Vitals by construction, which search engines reward and visitors reward more.',
+      },
+    ],
+  },
+  services: {
+    kicker: 'SEO & marketing',
+    title: 'What you actually get for your subscription.',
+    body: 'Ecobuilder is not just software. Technical SEO is built into every published page, and on higher plans our team works on your growth with you.',
+    note: 'Services are delivered by our team in English and French. Higher plans include more hands-on time — see Pricing for limits.',
+    columns: [
+      {
+        name: 'Built into every plan',
+        tag: 'Automatic',
+        items: [
+          'Technical SEO: semantic HTML, clean URLs, canonical tags',
+          'Auto-generated sitemaps and robots.txt',
+          'Full meta, Open Graph and social preview control',
+          'Core Web Vitals-grade page speed by construction',
+          'Redirects when you rename or move a page',
+          'Lead capture forms with spam protection',
+          'EU hosting, SSL and your custom domain',
+        ],
+      },
+      {
+        name: 'Growth services',
+        tag: 'Optimize plan',
+        items: [
+          'SEO audit of your site with a prioritised action list',
+          'Keyword and content plan for your market',
+          'Conversion review of your key pages',
+          'Campaign landing pages built with you',
+          'Multi-site and team workspaces',
+          'Priority support from the people who build the product',
+        ],
+      },
+      {
+        name: 'Done with you',
+        tag: 'Convert plan',
+        items: [
+          'A dedicated SEO and marketing contact',
+          'Ongoing content and campaign production',
+          'Migration of your existing site, handled for you',
+          'Custom reporting on traffic, leads and rankings',
+          'Onboarding and training for your team',
+          'SLA and custom contracts',
+        ],
+      },
+    ],
   },
   hero: {
     badge: 'Powered by AI · Hosted in the EU',

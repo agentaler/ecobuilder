@@ -27,8 +27,10 @@ function nav(t: Catalog): string {
   return `<header class="nav-wrap"><nav class="nav" aria-label="Main">
   <a class="brand" href="${t.meta.basePath}/">${brandLockup('nav-mark')}</a>
   <div class="nav-links">
-    <a href="#features">${esc(t.nav.features)}</a>
+    <a href="#how">${esc(t.nav.how)}</a>
     <a href="#eco">${esc(t.nav.eco)}</a>
+    <a href="#features">${esc(t.nav.features)}</a>
+    <a href="#services">${esc(t.services.kicker)}</a>
     <a href="#pricing">${esc(t.nav.pricing)}</a>
     <a href="#faq">${esc(t.nav.faq)}</a>
   </div>
@@ -134,6 +136,55 @@ function eco(t: Catalog): string {
     <p class="compare-note">${esc(t.eco.comparison.note)}</p>
   </div>
   <div class="point-grid">${points}</div>
+</section>`
+}
+
+function howItWorks(t: Catalog): string {
+  const steps = t.howItWorks.steps
+    .map(
+      (s, i) => `<div class="step reveal">
+      <span class="step-n">${i + 1}</span>
+      <h3>${esc(s.title)}</h3>
+      <p>${esc(s.body)}</p>
+    </div>`,
+    )
+    .join('')
+  return `<section class="section" id="how">
+  <p class="kicker reveal">${esc(t.howItWorks.kicker)}</p>
+  <h2>${esc(t.howItWorks.title)}</h2>
+  <p class="section-body">${esc(t.howItWorks.body)}</p>
+  <div class="step-grid">${steps}</div>
+</section>`
+}
+
+function aiOutcomes(t: Catalog): string {
+  const items = t.aiOutcomes.items
+    .map((p) => `<div class="point reveal"><h3>${esc(p.title)}</h3><p>${esc(p.body)}</p></div>`)
+    .join('')
+  return `<section class="section section-tinted" id="ai">
+  <p class="kicker reveal">${esc(t.aiOutcomes.kicker)}</p>
+  <h2>${esc(t.aiOutcomes.title)}</h2>
+  <p class="section-body">${esc(t.aiOutcomes.body)}</p>
+  <div class="point-grid">${items}</div>
+</section>`
+}
+
+function services(t: Catalog): string {
+  const cols = t.services.columns
+    .map(
+      (c) => `<div class="svc reveal">
+      <span class="svc-tag">${esc(c.tag)}</span>
+      <h3>${esc(c.name)}</h3>
+      <ul class="svc-list">${c.items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>
+    </div>`,
+    )
+    .join('')
+  return `<section class="section" id="services">
+  <p class="kicker reveal">${esc(t.services.kicker)}</p>
+  <h2>${esc(t.services.title)}</h2>
+  <p class="section-body">${esc(t.services.body)}</p>
+  <div class="svc-grid">${cols}</div>
+  <p class="pricing-note">${esc(t.services.note)}</p>
 </section>`
 }
 
@@ -264,8 +315,11 @@ export function renderHome(t: Catalog, other: Catalog, cssHref: string): string 
 ${nav(t)}
 <main>
 ${hero(t)}
+${howItWorks(t)}
+${aiOutcomes(t)}
 ${eco(t)}
 ${features(t)}
+${services(t)}
 ${europe(t)}
 ${pricing(t)}
 ${faq(t)}

@@ -17,11 +17,31 @@ export interface Catalog {
     switchPath: string
   }
   nav: {
+    how: string
     features: string
     eco: string
     pricing: string
     faq: string
     openApp: string
+  }
+  howItWorks: {
+    kicker: string
+    title: string
+    body: string
+    steps: { title: string; body: string }[]
+  }
+  aiOutcomes: {
+    kicker: string
+    title: string
+    body: string
+    items: { title: string; body: string }[]
+  }
+  services: {
+    kicker: string
+    title: string
+    body: string
+    note: string
+    columns: { name: string; tag: string; items: string[] }[]
   }
   hero: {
     badge: string
