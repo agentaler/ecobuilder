@@ -74,7 +74,7 @@ function nav(t: Catalog): string {
     <a class="btn btn-primary btn-sm" href="${APP_URL}">${esc(t.nav.openApp)}</a>
   </div>
   <details class="mnav">
-    <summary aria-label="Menu"><span class="bars"><i></i><i></i><i></i></span></summary>
+    <summary aria-label="Menu"><span class="burger"><i></i><i></i><i></i></span></summary>
     <div class="mnav-panel">
       ${linkList('mnav-link')}
       <a class="btn btn-primary mnav-cta" href="${APP_URL}">${esc(t.nav.openApp)}</a>
