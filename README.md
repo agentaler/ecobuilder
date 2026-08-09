@@ -14,7 +14,6 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 
 [![Release](https://img.shields.io/github/v/release/corebunch/instatic?color=black&labelColor=black)](https://github.com/corebunch/instatic/releases)
 [![GitHub stars](https://img.shields.io/github/stars/corebunch/instatic?style=flat&label=stars&labelColor=555&color=ffd43b)](https://github.com/corebunch/instatic/stargazers)
-[![License: MIT](https://img.shields.io/badge/license-MIT-black?labelColor=black&color=blue)](LICENSE)
 [![Runtime: Bun](https://img.shields.io/badge/runtime-Bun-black?labelColor=black&color=f9f1e1)](https://bun.sh)
 [![TypeScript](https://img.shields.io/badge/TypeScript-everywhere-black?labelColor=black&color=3178c6)](https://www.typescriptlang.org/)
 
@@ -36,7 +35,7 @@ A modern website usually means assembling a stack: a headless CMS, a framework, 
 
 What comes out the other end is the part most builders quietly compromise on: plain semantic HTML and compact CSS, with none of the editor's machinery left behind in the page. No framework runtime, no builder attributes, no div soup. The site loads like a static file because, most of the time, it is one.
 
-**MIT. Self-hosted. Yours.**
+**Lightweight. Eco-friendly. Yours.**
 
 <br>
 
@@ -237,8 +236,8 @@ Dig in: [docs index](docs/README.md) · [architecture](docs/architecture.md) · 
 
 ## Thanks
 
-Instatic's interface uses [Pixelarticons](https://pixelarticons.com/) by Gerrit Halfmann. Thanks to Gerrit for a genuinely distinctive icon set, and for kindly letting us use it in an open-source project.
+Instatic's interface uses [Pixelarticons](https://pixelarticons.com/) by Gerrit Halfmann. Thanks to Gerrit for a genuinely distinctive icon set, and for kindly letting us use it.
 
 ## License
 
-MIT. See [LICENSE](LICENSE). No tiers, no open-core asterisks, no "contact sales."
+Proprietary — © Ecobuilder. All rights reserved.

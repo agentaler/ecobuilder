@@ -7,7 +7,7 @@
   },
   "description": "Self-hosted CMS with an integrated visual editor.",
   "author": "David Babinec",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "homepage": "https://instatic.com",
   "repository": {
     "type": "git",
