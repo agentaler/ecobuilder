@@ -110,7 +110,7 @@ h3 { font-size: 1.1rem; }
 .lcol {
   position: absolute; left: var(--x); top: var(--y);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 13px; line-height: 2; white-space: pre;
+  font-size: 14px; line-height: 2.15; white-space: pre;
   color: rgba(154, 168, 160, 0.13); user-select: none;
   animation: col-drift var(--dur) ease-in-out infinite alternate;
 }
@@ -120,6 +120,7 @@ h3 { font-size: 1.1rem; }
   text-shadow: 0 0 10px rgba(76, 194, 131, 0.8);
   animation: letter-glow 3.4s ease-in-out infinite; animation-delay: var(--gd);
 }
+.lcol b.t { color: #5fd8c8; text-shadow: 0 0 12px rgba(95, 216, 200, 0.85); }
 @keyframes letter-glow {
   0%, 100% { opacity: 0.25; }
   45% { opacity: 1; color: var(--accent-bright); text-shadow: 0 0 16px rgba(123, 255, 185, 0.95); }
@@ -127,17 +128,19 @@ h3 { font-size: 1.1rem; }
 
 /* central light beam + traveling pulse + ground flare */
 .hero-beam {
-  position: absolute; left: 50%; top: -3rem; height: calc(100% + 3rem); width: 2px; z-index: -1;
+  position: absolute; left: 50%; top: -3rem; height: calc(100% + 3rem); width: 4px; z-index: -1;
   transform: translateX(-50%); pointer-events: none;
   background: linear-gradient(180deg,
-    transparent 0%, rgba(216, 255, 233, 0.55) 10%, rgba(234, 255, 243, 0.95) 42%,
-    rgba(123, 255, 185, 0.7) 72%, transparent 100%);
-  filter: drop-shadow(0 0 6px rgba(123, 255, 185, 0.9));
+    transparent 0%, rgba(216, 255, 233, 0.5) 7%, rgba(255, 255, 255, 0.98) 34%,
+    #ffffff 58%, rgba(184, 255, 220, 0.9) 80%, rgba(123, 255, 185, 0.6) 94%, transparent 100%);
+  filter: drop-shadow(0 0 8px rgba(200, 255, 226, 0.95));
+  box-shadow: 0 0 90px 26px rgba(76, 194, 131, 0.28);
 }
+/* inner + outer bloom halos */
 .hero-beam::before {
-  content: ""; position: absolute; inset: 0 -26px;
-  background: linear-gradient(180deg, transparent, rgba(76, 194, 131, 0.3) 38%, rgba(76, 194, 131, 0.12) 78%, transparent);
-  filter: blur(16px);
+  content: ""; position: absolute; inset: 0 -34px;
+  background: linear-gradient(180deg, transparent, rgba(140, 235, 185, 0.5) 36%, rgba(96, 214, 152, 0.34) 62%, rgba(76, 194, 131, 0.16) 84%, transparent);
+  filter: blur(18px);
 }
 .hero-beam::after {
   content: ""; position: absolute; left: 50%; translate: -50% 0; top: -25%;
@@ -153,20 +156,22 @@ h3 { font-size: 1.1rem; }
   100% { top: 104%; opacity: 0; }
 }
 .hero-flare {
-  position: absolute; left: 50%; bottom: -9rem; width: 46rem; max-width: 120vw; height: 17rem; z-index: -2;
+  position: absolute; left: 50%; bottom: -8rem; width: 58rem; max-width: 140vw; height: 20rem; z-index: -2;
   transform: translateX(-50%); pointer-events: none;
-  background: radial-gradient(50% 100% at 50% 100%, rgba(123, 255, 185, 0.4), rgba(76, 194, 131, 0.16) 50%, transparent 76%);
-  filter: blur(26px);
+  background:
+    radial-gradient(18% 55% at 50% 100%, rgba(234, 255, 243, 0.75), transparent 70%),
+    radial-gradient(50% 100% at 50% 100%, rgba(123, 255, 185, 0.5), rgba(76, 194, 131, 0.2) 52%, transparent 78%);
+  filter: blur(24px);
   animation: flare-pulse 4.6s ease-in-out infinite;
 }
-@keyframes flare-pulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+@keyframes flare-pulse { 0%, 100% { opacity: 0.65; } 50% { opacity: 1; } }
 .hero-aurora {
   position: absolute; inset: -25% -12%; z-index: -2; pointer-events: none;
   background:
-    radial-gradient(36% 42% at 25% 25%, rgba(76, 194, 131, 0.26), transparent 70%),
-    radial-gradient(40% 46% at 78% 18%, rgba(47, 158, 99, 0.2), transparent 70%),
-    radial-gradient(46% 50% at 55% 92%, rgba(123, 255, 185, 0.16), transparent 72%),
-    radial-gradient(30% 36% at 8% 80%, rgba(38, 121, 84, 0.28), transparent 70%);
+    radial-gradient(36% 42% at 25% 25%, rgba(76, 194, 131, 0.13), transparent 70%),
+    radial-gradient(40% 46% at 78% 18%, rgba(47, 158, 99, 0.1), transparent 70%),
+    radial-gradient(46% 50% at 55% 92%, rgba(123, 255, 185, 0.08), transparent 72%),
+    radial-gradient(30% 36% at 8% 80%, rgba(38, 121, 84, 0.14), transparent 70%);
   filter: blur(52px);
   animation: aurora-drift 14s ease-in-out infinite alternate;
 }

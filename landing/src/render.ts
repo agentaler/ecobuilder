@@ -52,15 +52,23 @@ function letterRain(): string {
   }
   const chars = 'ECOBUILDRHTMLCSSVANTPKY'
   const columns: string[] = []
-  for (let c = 0; c < 18; c++) {
-    const x = 2 + rand() * 94
-    const y = -10 + rand() * 30
+  for (let c = 0; c < 26; c++) {
+    // Bias columns toward the beam in the center (sum of three uniforms ≈ normal)
+    const x = Math.min(97, Math.max(2, 50 + ((rand() + rand() + rand()) / 1.5 - 1) * 52))
+    const nearBeam = Math.abs(x - 50) < 20
+    const y = -10 + rand() * 34
     const dur = (7 + rand() * 8).toFixed(1)
-    const count = 8 + Math.floor(rand() * 10)
+    const count = 8 + Math.floor(rand() * 11)
     let letters = ''
     for (let i = 0; i < count; i++) {
       const ch = chars[Math.floor(rand() * chars.length)]
-      letters += rand() < 0.12 ? `<b style="--gd:${(rand() * 4).toFixed(1)}s">${ch}</b>` : ch
+      const glowChance = nearBeam ? 0.24 : 0.08
+      if (rand() < glowChance) {
+        const teal = rand() < 0.4 ? ' class="t"' : ''
+        letters += `<b${teal} style="--gd:${(rand() * 4).toFixed(1)}s">${ch}</b>`
+      } else {
+        letters += ch
+      }
       if (i < count - 1) letters += '\n'
     }
     columns.push(`<span class="lcol" style="--x:${x.toFixed(1)}%;--y:${y.toFixed(0)}%;--dur:${dur}s">${letters}</span>`)
