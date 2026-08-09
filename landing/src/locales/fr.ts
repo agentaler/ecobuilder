@@ -312,6 +312,30 @@ export const fr: Catalog = {
     body: 'Publiez un site qui vend pour vous — et que la planète remarque à peine.',
     cta: 'Démarrer l’essai gratuit',
   },
+  cookies: {
+    title: 'Nous respectons votre vie privée',
+    body: 'Nous ne déposons qu’un cookie qui retient votre langue — il est nécessaire au fonctionnement du site. Rien d’autre ne se déclenche sans votre accord. Vous pouvez changer d’avis à tout moment.',
+    acceptAll: 'Tout accepter',
+    rejectAll: 'Tout refuser',
+    customize: 'Personnaliser',
+    save: 'Enregistrer mes choix',
+    alwaysOn: 'Toujours actif',
+    manage: 'Gestion des cookies',
+    categories: [
+      {
+        name: 'Strictement nécessaires',
+        desc: 'Retiennent votre langue et votre choix en matière de cookies. Ils ne peuvent pas être désactivés : le site ne peut pas fonctionner sans eux.',
+      },
+      {
+        name: 'Mesure d’audience',
+        desc: 'Nous permettraient de compter les visites et de voir quelles pages sont utiles. Rien n’est chargé aujourd’hui ; si nous en ajoutons, ils resteront désactivés tant que vous ne les aurez pas autorisés.',
+      },
+      {
+        name: 'Marketing',
+        desc: 'Nous permettraient de mesurer nos campagnes publicitaires. Aucun script publicitaire ou de pistage n’est utilisé sur ce site à ce jour.',
+      },
+    ],
+  },
   footer: {
     tagline: 'Le créateur éco-responsable de pages d’atterrissage et de sites web.',
     product: 'Produit',

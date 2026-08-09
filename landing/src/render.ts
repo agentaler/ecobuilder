@@ -348,6 +348,37 @@ function ctaBand(t: Catalog): string {
 </section>`
 }
 
+/**
+ * GDPR/ePrivacy consent banner. Rules it implements deliberately:
+ * refusing is exactly as easy as accepting (equal-weight buttons, no dark
+ * pattern), nothing non-essential is loaded before an explicit opt-in,
+ * categories are opt-in by default (unchecked), and the choice can be
+ * withdrawn later from the footer. Rendered hidden; JS reveals it only when
+ * no valid choice is stored.
+ */
+function cookieBanner(t: Catalog): string {
+  const rows = t.cookies.categories
+    .map((c, i) =>
+      i === 0
+        ? `<label class="cc-row"><span><b>${esc(c.name)}</b><small>${esc(c.desc)}</small></span><span class="cc-fixed">${esc(t.cookies.alwaysOn)}</span></label>`
+        : `<label class="cc-row"><span><b>${esc(c.name)}</b><small>${esc(c.desc)}</small></span><input type="checkbox" data-cc="${i === 1 ? 'analytics' : 'marketing'}"></label>`,
+    )
+    .join('')
+  return `<div id="cc" class="cc" role="dialog" aria-modal="false" aria-labelledby="cc-t" hidden>
+  <div class="cc-card">
+    <h2 id="cc-t" class="cc-title">${esc(t.cookies.title)}</h2>
+    <p class="cc-body">${esc(t.cookies.body)} <a href="${t.meta.basePath}/privacy/">${esc(t.footer.privacy)}</a></p>
+    <div class="cc-detail" hidden>${rows}</div>
+    <div class="cc-actions">
+      <button type="button" class="btn btn-ghost btn-sm" data-cc-act="reject">${esc(t.cookies.rejectAll)}</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-cc-act="customize">${esc(t.cookies.customize)}</button>
+      <button type="button" class="btn btn-primary btn-sm" data-cc-act="accept">${esc(t.cookies.acceptAll)}</button>
+      <button type="button" class="btn btn-primary btn-sm" data-cc-act="save" hidden>${esc(t.cookies.save)}</button>
+    </div>
+  </div>
+</div>`
+}
+
 function footer(t: Catalog): string {
   return `<footer class="footer">
   <div class="footer-cols">
@@ -365,6 +396,7 @@ function footer(t: Catalog): string {
       <h4>${esc(t.footer.legal)}</h4>
       <a href="${t.meta.basePath}/privacy/">${esc(t.footer.privacy)}</a>
       <a href="${t.meta.basePath}/imprint/">${esc(t.footer.imprint)}</a>
+      <a href="#" data-cc-open>${esc(t.cookies.manage)}</a>
       <a class="lang-switch" href="${t.meta.switchPath}/">${esc(t.meta.switchLabel)}</a>
     </div>
   </div>
@@ -418,7 +450,9 @@ ${faq(t)}
 ${ctaBand(t)}
 </main>
 ${footer(t)}
+${cookieBanner(t)}
 <noscript><style>.reveal{opacity:1;translate:none}</style></noscript>
+<script>(function(){var K='eco_consent',el=document.getElementById('cc'),d=el.querySelector('.cc-detail'),sv=el.querySelector('[data-cc-act=save]'),cu=el.querySelector('[data-cc-act=customize]'),ac=el.querySelector('[data-cc-act=accept]');function rd(){var c=document.cookie.split(';').map(function(x){return x.trim()}).filter(function(x){return x.indexOf(K+'=')===0})[0];try{return c?JSON.parse(decodeURIComponent(c.slice(K.length+1))):null}catch(e){return null}}function wr(v){v.ts=1;document.cookie=K+'='+encodeURIComponent(JSON.stringify(v))+';Path=/;Max-Age=15552000;SameSite=Lax';window.__ecoConsent=v;document.dispatchEvent(new CustomEvent('eco:consent',{detail:v}));el.hidden=true}function open(){el.hidden=false}window.__ecoConsent=rd();if(!window.__ecoConsent)open();el.addEventListener('click',function(e){var b=e.target.closest('[data-cc-act]');if(!b)return;var a=b.getAttribute('data-cc-act');if(a==='accept')return wr({analytics:true,marketing:true});if(a==='reject')return wr({analytics:false,marketing:false});if(a==='customize'){d.hidden=false;cu.hidden=true;ac.hidden=true;sv.hidden=false;return}if(a==='save'){var g={};el.querySelectorAll('[data-cc]').forEach(function(i){g[i.getAttribute('data-cc')]=i.checked});return wr(g)}});document.addEventListener('click',function(e){var o=e.target.closest('[data-cc-open]');if(!o)return;e.preventDefault();el.querySelectorAll('[data-cc]').forEach(function(i){i.checked=!!(window.__ecoConsent&&window.__ecoConsent[i.getAttribute('data-cc')])});open()});})();</script>
 <script>document.addEventListener('click',e=>{const d=document.querySelector('.mnav[open]');if(d&&(e.target.closest('.mnav-panel a')||!e.target.closest('.mnav')))d.removeAttribute('open')});document.addEventListener('pointermove',e=>{const c=e.target.closest&&e.target.closest('.spot');if(!c)return;const r=c.getBoundingClientRect();c.style.setProperty('--mx',(e.clientX-r.left)+'px');c.style.setProperty('--my',(e.clientY-r.top)+'px')},{passive:true});const io=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}},{threshold:.15});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));</script>
 </body>
 </html>

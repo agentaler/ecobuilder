@@ -102,6 +102,17 @@ export interface Catalog {
     body: string
     cta: string
   }
+  cookies: {
+    title: string
+    body: string
+    acceptAll: string
+    rejectAll: string
+    customize: string
+    save: string
+    alwaysOn: string
+    manage: string
+    categories: { name: string; desc: string }[]
+  }
   footer: {
     tagline: string
     product: string

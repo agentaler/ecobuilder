@@ -9,7 +9,7 @@ const LEGAL_COPY = {
   en: {
     privacyTitle: 'Privacy policy',
     privacyBody:
-      'This site does not use tracking scripts or analytics cookies. The only cookie set is a strictly-necessary language preference. Full policy coming soon — for questions, contact hello@ecobuilder.ai.',
+      'This site uses no tracking, analytics or advertising scripts. Two strictly-necessary cookies are set: one remembering your language preference, and one recording your cookie choice (kept 6 months). You can change or withdraw that choice at any time via “Cookie settings” in the footer. Data is hosted in the European Union. Full policy coming soon — for questions or any GDPR request (access, deletion, portability), contact hello@ecobuilder.ai.',
     imprintTitle: 'Imprint',
     imprintBody: 'Ecobuilder — contact: hello@ecobuilder.ai. Full legal information coming soon.',
     back: 'Back to home',
@@ -17,7 +17,7 @@ const LEGAL_COPY = {
   fr: {
     privacyTitle: 'Politique de confidentialité',
     privacyBody:
-      'Ce site n’utilise ni scripts de pistage ni cookies d’analyse. Le seul cookie déposé est une préférence de langue strictement nécessaire. Politique complète à venir — pour toute question, contactez hello@ecobuilder.ai.',
+      'Ce site n’utilise aucun script de pistage, de mesure d’audience ou de publicité. Deux cookies strictement nécessaires sont déposés : l’un retient votre préférence de langue, l’autre votre choix en matière de cookies (conservé 6 mois). Vous pouvez modifier ou retirer ce choix à tout moment via « Gestion des cookies » en pied de page. Les données sont hébergées dans l’Union européenne. Politique complète à venir — pour toute question ou demande RGPD (accès, suppression, portabilité), contactez hello@ecobuilder.ai.',
     imprintTitle: 'Mentions légales',
     imprintBody: 'Ecobuilder — contact : hello@ecobuilder.ai. Informations légales complètes à venir.',
     back: 'Retour à l’accueil',

@@ -312,6 +312,30 @@ export const en: Catalog = {
     body: 'Publish a site that sells for you — and that the planet barely notices.',
     cta: 'Start your free trial',
   },
+  cookies: {
+    title: 'We respect your privacy',
+    body: 'We only set a cookie that remembers your language — that one is required for the site to work. Nothing else runs unless you allow it. You can change your mind at any time.',
+    acceptAll: 'Accept all',
+    rejectAll: 'Reject all',
+    customize: 'Customise',
+    save: 'Save choices',
+    alwaysOn: 'Always on',
+    manage: 'Cookie settings',
+    categories: [
+      {
+        name: 'Strictly necessary',
+        desc: 'Remembers your language and your cookie choice. Cannot be switched off — the site cannot work without it.',
+      },
+      {
+        name: 'Analytics',
+        desc: 'Would let us count visits and see which pages are useful. Nothing is loaded today; if we ever add it, it stays off until you allow it.',
+      },
+      {
+        name: 'Marketing',
+        desc: 'Would let us measure ad campaigns. We run no advertising or tracking scripts on this site today.',
+      },
+    ],
+  },
   footer: {
     tagline: 'The eco-friendly landing page & website builder.',
     product: 'Product',
