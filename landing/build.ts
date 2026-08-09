@@ -34,6 +34,7 @@ await mkdir(OUT, { recursive: true })
 const css = await Bun.file(join(import.meta.dir, 'src', 'styles.css')).text()
 const cssHref = `/styles.css?v=${Bun.hash(css).toString(16).slice(0, 10)}`
 await cp(join(import.meta.dir, 'src', 'styles.css'), join(OUT, 'styles.css'))
+await cp(join(import.meta.dir, 'assets'), join(OUT, 'assets'), { recursive: true })
 
 for (const [t, other] of [
   [en, fr],

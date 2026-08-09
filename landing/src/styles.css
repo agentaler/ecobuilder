@@ -2,6 +2,14 @@
    Committed single look: near-black canvas, green aura glow, beam/shimmer
    effects in the aura.build style. */
 
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/assets/inter.woff2') format('woff2');
+}
+
 @property --beam-angle {
   syntax: '<angle>';
   initial-value: 0deg;
@@ -25,7 +33,7 @@
   --radius: 14px;
   --radius-sm: 8px;
   --maxw: 68rem;
-  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -45,7 +53,7 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
 }
 
-h1, h2, h3 { line-height: 1.12; letter-spacing: -0.02em; font-weight: 700; }
+h1, h2, h3 { line-height: 1.1; letter-spacing: -0.03em; font-weight: 700; font-feature-settings: 'ss01', 'cv05'; }
 h1 { font-size: clamp(2.6rem, 6.5vw, 4.6rem); letter-spacing: -0.035em; text-shadow: 0 2px 18px rgba(0, 0, 0, 0.9), 0 0 60px rgba(123, 255, 185, 0.22); }
 /* shimmering light sweep across the headline accent */
 h1 em {
@@ -57,8 +65,8 @@ h1 em {
   animation: shimmer-pan 5s ease-in-out infinite;
 }
 @keyframes shimmer-pan { 0% { background-position: 120% 0; } 60%, 100% { background-position: -60% 0; } }
-h2 { font-size: clamp(1.7rem, 4vw, 2.6rem); max-width: 42rem; }
-h3 { font-size: 1.1rem; }
+h2 { font-size: clamp(1.85rem, 4vw, 2.75rem); max-width: 40rem; letter-spacing: -0.035em; }
+h3 { font-size: 1.08rem; letter-spacing: -0.02em; }
 
 /* ── Nav ─────────────────────────────────────────── */
 .nav-wrap {
@@ -258,7 +266,7 @@ h3 { font-size: 1.1rem; }
        over the beam and letter field */
     radial-gradient(ellipse 48% 34% at 50% 47%, rgba(4, 6, 5, 0.82), rgba(4, 6, 5, 0.45) 55%, transparent 78%),
     radial-gradient(130% 110% at 50% 38%, transparent 55%, rgba(0, 0, 0, 0.55) 100%),
-    linear-gradient(180deg, transparent 86%, var(--bg) 100%);
+    linear-gradient(180deg, transparent 94%, var(--bg) 100%);
 }
 /* traveling pulse down the center line */
 .hero-beam::after {
@@ -346,6 +354,93 @@ h3 { font-size: 1.1rem; }
   animation: beam-orbit 5s linear infinite;
 }
 @keyframes beam-orbit { to { --beam-angle: 360deg; } }
+
+/* ── Product mock ────────────────────────────────── */
+.mock { position: relative; z-index: 2; width: min(60rem, 100%); margin-top: 3.5rem; perspective: 1600px; }
+.mock-frame {
+  border-radius: 16px; overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, #10150f 0%, #0b0f0d 100%);
+  box-shadow: 0 50px 110px -40px rgba(0, 0, 0, 0.95), 0 0 110px -34px rgba(76, 194, 131, 0.75);
+  transform: rotateX(7deg) scale(0.98); transform-origin: top center;
+  animation: mock-settle 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) 0.7s both;
+}
+@keyframes mock-settle {
+  from { opacity: 0; transform: rotateX(16deg) translateY(40px) scale(0.94); }
+  to { opacity: 1; transform: rotateX(7deg) scale(0.98); }
+}
+.mock-bar {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.6rem 0.85rem; background: rgba(255, 255, 255, 0.045);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.mock-bar .dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255, 255, 255, 0.18); }
+.mock-url {
+  margin-left: 0.8rem; padding: 0.2rem 0.9rem; border-radius: 999px;
+  font-size: 0.72rem; color: var(--text-soft); background: rgba(255, 255, 255, 0.05);
+}
+.mock-body { display: grid; grid-template-columns: 9.5rem 1fr; min-height: 19rem; text-align: left; }
+.mock-rail {
+  display: flex; flex-direction: column; gap: 0.35rem; padding: 0.8rem 0.6rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.07); background: rgba(255, 255, 255, 0.02);
+}
+.layer {
+  padding: 0.45rem 0.6rem; border-radius: 7px;
+  font-size: 0.74rem; color: var(--text-soft);
+}
+.layer.on { background: var(--accent-soft); color: var(--accent-bright); box-shadow: inset 0 0 0 1px rgba(76, 194, 131, 0.35); }
+.mock-canvas { padding: 0.85rem; display: grid; gap: 0.85rem; align-content: start; }
+.mock-prompt {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.55rem 0.8rem; border-radius: 999px;
+  background: rgba(76, 194, 131, 0.1); border: 1px solid rgba(76, 194, 131, 0.32);
+  font-size: 0.78rem; color: var(--accent-bright);
+}
+.mock-spark { animation: spark 2.4s ease-in-out infinite; }
+@keyframes spark { 0%, 100% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.15); } }
+.mock-typing {
+  overflow: hidden; white-space: nowrap;
+  animation: typing 5.5s steps(44) 1.6s infinite both;
+}
+@keyframes typing { 0% { width: 0; } 45%, 100% { width: 100%; } }
+.mock-page {
+  display: grid; gap: 0.6rem; padding: 1.1rem;
+  border-radius: 10px; background: rgba(255, 255, 255, 0.025);
+  border: 1px dashed rgba(255, 255, 255, 0.09);
+}
+.sk { display: block; border-radius: 5px; background: rgba(255, 255, 255, 0.09); }
+.sk-h { height: 1.15rem; width: 62%; background: linear-gradient(90deg, rgba(123, 255, 185, 0.55), rgba(76, 194, 131, 0.18)); }
+.sk-t { height: 0.5rem; width: 88%; }
+.sk-t.short { width: 66%; }
+.sk-btn { height: 1.5rem; width: 7.5rem; border-radius: 999px; background: rgba(76, 194, 131, 0.55); margin-top: 0.35rem; }
+.mock-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-top: 0.35rem; }
+.sk-card { height: 3.6rem; border-radius: 8px; background: rgba(255, 255, 255, 0.055); }
+.intro-6 { animation-delay: 0.7s; }
+@media (max-width: 640px) {
+  .mock-body { grid-template-columns: 1fr; min-height: 0; }
+  .mock-rail { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.07); }
+  .layer { white-space: nowrap; }
+  .mock-frame { transform: none; animation-name: mock-settle-flat; }
+  @keyframes mock-settle-flat { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+}
+
+/* ── Card icons ──────────────────────────────────── */
+.ico {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.6rem; height: 2.6rem; margin-bottom: 0.9rem;
+  border-radius: 12px; color: var(--accent-bright);
+  background: linear-gradient(160deg, rgba(76, 194, 131, 0.22), rgba(76, 194, 131, 0.06));
+  box-shadow: inset 0 0 0 1px rgba(76, 194, 131, 0.28), 0 8px 20px -12px rgba(76, 194, 131, 0.7);
+  transition: transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 300ms ease;
+}
+.ico svg { width: 1.35rem; height: 1.35rem; }
+.card:hover .ico, .point:hover .ico, .step:hover .ico {
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: inset 0 0 0 1px rgba(123, 255, 185, 0.5), 0 10px 26px -10px rgba(123, 255, 185, 0.8);
+}
+.step-head { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.9rem; }
+.step-head .ico { margin-bottom: 0; width: 2.3rem; height: 2.3rem; }
+.step-head .step-n { margin-bottom: 0; }
 
 /* ── Sections ────────────────────────────────────── */
 .section { position: relative; max-width: var(--maxw); margin: 0 auto; padding: 5rem 1.25rem; }

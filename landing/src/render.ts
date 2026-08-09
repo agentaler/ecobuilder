@@ -23,6 +23,37 @@ const MARK_SVG = (size: number, id: string) =>
 const brandLockup = (id: string) =>
   `${MARK_SVG(30, id)}<span class="brand-word"><b>eco</b>builder</span>`
 
+
+/**
+ * Line-art icon set for card grids. One consistent 24px stroke style; keys are
+ * assigned per card position so the copy stays free of presentational data.
+ */
+const ICONS: Record<string, string> = {
+  ai: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M17.7 6.3l-2.8 2.8M9.1 14.9l-2.8 2.8"/><circle cx="12" cy="12" r="3.2"/>',
+  fast: '<path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12z"/>',
+  seo: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6M8.5 11.5l2 2 4-4.5"/>',
+  megaphone: '<path d="M3 11v2a1 1 0 0 0 1 1h2l9 5V5L6 10H4a1 1 0 0 0-1 1Z"/><path d="M18 8.5a4 4 0 0 1 0 7"/>',
+  canvas: '<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18M8 9v9"/>',
+  users: '<circle cx="9" cy="9" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 6.2a3 3 0 0 1 0 5.6M17.5 19a5.5 5.5 0 0 0-2.2-4.4"/>',
+  code: '<path d="m8.5 8-4.5 4 4.5 4M15.5 8l4.5 4-4.5 4M13.5 5l-3 14"/>',
+  table: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M3 15h18M9 9.5V20"/>',
+  plug: '<path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0V8ZM12 17v4"/>',
+  form: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6M7 17h4"/>',
+  leaf: '<path d="M20 4C10 4 5 9 5 16c0 1.6.5 3 1.3 4.2M6.5 20C7.8 12 12.5 7.5 20 4"/>',
+  shield: '<path d="M12 3 5 6v6c0 4.2 3 7.6 7 9 4-1.4 7-4.8 7-9V6l-7-3Z"/><path d="m9 12 2 2 4-4"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.8 2.5 15.2 0 18M12 3c-2.5 2.8-2.5 15.2 0 18"/>',
+  chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-5.2A8 8 0 1 1 21 12Z"/>',
+  rocket: '<path d="M13.5 4.5c3.5-1.5 6-1 6-1s.5 2.5-1 6c-1.3 3-3.7 5.4-6.5 6.8L9 15.5C10.4 12.7 12.8 10.3 13.5 4.5Z"/><path d="M9 15.5 5.5 14 4 18l4 1.5ZM14.5 9.5h.01"/>',
+}
+const icon = (key: string) =>
+  `<span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[key] ?? ICONS.leaf}</svg></span>`
+
+const FEATURE_ICONS = ['ai', 'rocket', 'seo', 'megaphone', 'canvas', 'users', 'code', 'table', 'plug', 'form']
+const STEP_ICONS = ['chat', 'ai', 'canvas', 'rocket']
+const AI_ICONS = ['chat', 'seo', 'megaphone', 'fast']
+const ECO_ICONS = ['leaf', 'fast', 'rocket']
+const EUROPE_ICONS = ['shield', 'globe', 'chat']
+
 function nav(t: Catalog): string {
   const otherLang = t.meta.switchPath === '/fr' ? 'fr' : 'en'
   const links = [
@@ -90,6 +121,45 @@ function letterRain(): string {
   return `<div class="letter-field" aria-hidden="true">${columns.join('')}</div>`
 }
 
+/**
+ * Stylised mock of the editor in pure HTML/CSS — a browser chrome, the AI
+ * prompt bar, layer rail and a canvas with a skeleton page. Deliberately
+ * abstract (no invented screenshots of features that don't exist) but it
+ * shows what the product *is* at a glance, which a wall of text cannot.
+ */
+function productMock(t: Catalog): string {
+  const isFr = t.meta.htmlLang === 'fr'
+  const prompt = isFr
+    ? 'Crée une page pour mon studio de yoga à Lyon…'
+    : 'Build a page for my yoga studio in Lyon…'
+  const layers = isFr
+    ? ['Section héro', 'Fonctionnalités', 'Tarifs', 'Formulaire']
+    : ['Hero section', 'Features', 'Pricing', 'Contact form']
+  return `<div class="mock intro intro-6" aria-hidden="true">
+  <div class="mock-frame">
+    <div class="mock-bar">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="mock-url">${esc(isFr ? 'monstudio.fr' : 'mystudio.com')}</span>
+    </div>
+    <div class="mock-body">
+      <div class="mock-rail">
+        ${layers.map((l, i) => `<span class="layer${i === 0 ? ' on' : ''}">${esc(l)}</span>`).join('')}
+      </div>
+      <div class="mock-canvas">
+        <div class="mock-prompt"><span class="mock-spark">✦</span><span class="mock-typing">${esc(prompt)}</span></div>
+        <div class="mock-page">
+          <span class="sk sk-h"></span>
+          <span class="sk sk-t"></span>
+          <span class="sk sk-t short"></span>
+          <span class="sk sk-btn"></span>
+          <div class="mock-cards"><span class="sk sk-card"></span><span class="sk sk-card"></span><span class="sk sk-card"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>`
+}
+
 function hero(t: Catalog): string {
   const stats = t.hero.stats
     .map((s) => `<div class="stat"><div class="stat-value">${esc(s.value)}</div><div class="stat-label">${esc(s.label)}</div></div>`)
@@ -122,6 +192,7 @@ function hero(t: Catalog): string {
     <a class="btn btn-ghost" href="#pricing">${esc(t.hero.ctaSecondary)}</a>
   </div>
   <div class="stat-strip border-beam intro intro-5">${stats}</div>
+  ${productMock(t)}
 </section>`
 }
 
@@ -136,7 +207,9 @@ function eco(t: Catalog): string {
     )
     .join('')
   const points = t.eco.points
-    .map((p) => `<div class="point reveal"><h3>${esc(p.title)}</h3><p>${esc(p.body)}</p></div>`)
+    .map(
+      (p, i) => `<div class="point reveal">${icon(ECO_ICONS[i % ECO_ICONS.length])}<h3>${esc(p.title)}</h3><p>${esc(p.body)}</p></div>`,
+    )
     .join('')
   return `<section class="section" id="eco">
   <p class="kicker reveal">${esc(t.eco.kicker)}</p>
@@ -155,7 +228,7 @@ function howItWorks(t: Catalog): string {
   const steps = t.howItWorks.steps
     .map(
       (s, i) => `<div class="step spot reveal">
-      <span class="step-n">${i + 1}</span>
+      <span class="step-head"><span class="step-n">${i + 1}</span>${icon(STEP_ICONS[i % STEP_ICONS.length])}</span>
       <h3>${esc(s.title)}</h3>
       <p>${esc(s.body)}</p>
     </div>`,
@@ -171,7 +244,9 @@ function howItWorks(t: Catalog): string {
 
 function aiOutcomes(t: Catalog): string {
   const items = t.aiOutcomes.items
-    .map((p) => `<div class="point reveal"><h3>${esc(p.title)}</h3><p>${esc(p.body)}</p></div>`)
+    .map(
+      (p, i) => `<div class="point reveal">${icon(AI_ICONS[i % AI_ICONS.length])}<h3>${esc(p.title)}</h3><p>${esc(p.body)}</p></div>`,
+    )
     .join('')
   return `<section class="section section-tinted" id="ai">
   <p class="kicker reveal">${esc(t.aiOutcomes.kicker)}</p>
@@ -202,7 +277,9 @@ function services(t: Catalog): string {
 
 function features(t: Catalog): string {
   const cards = t.features.items
-    .map((f) => `<div class="card spot reveal"><h3>${esc(f.title)}</h3><p>${esc(f.body)}</p></div>`)
+    .map(
+      (f, i) => `<div class="card spot reveal">${icon(FEATURE_ICONS[i % FEATURE_ICONS.length])}<h3>${esc(f.title)}</h3><p>${esc(f.body)}</p></div>`,
+    )
     .join('')
   return `<section class="section" id="features">
   <p class="kicker reveal">${esc(t.features.kicker)}</p>
@@ -213,7 +290,9 @@ function features(t: Catalog): string {
 
 function europe(t: Catalog): string {
   const points = t.europe.points
-    .map((p) => `<div class="point reveal"><h3>${esc(p.title)}</h3><p>${esc(p.body)}</p></div>`)
+    .map(
+      (p, i) => `<div class="point reveal">${icon(EUROPE_ICONS[i % EUROPE_ICONS.length])}<h3>${esc(p.title)}</h3><p>${esc(p.body)}</p></div>`,
+    )
     .join('')
   return `<section class="section section-tinted" id="europe">
   <p class="kicker reveal">${esc(t.europe.kicker)}</p>
@@ -312,6 +391,7 @@ export function renderHome(t: Catalog, other: Catalog, cssHref: string): string 
 <meta property="og:type" content="website">
 <meta property="og:url" content="${SITE_ORIGIN}${t.meta.basePath}/">
 <link rel="icon" href="data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><defs><linearGradient id="g" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#2fa869"/><stop offset="1" stop-color="#155c38"/></linearGradient></defs><rect x="1" y="1" width="30" height="30" rx="8.5" fill="url(#g)"/><path d="M25.9 6.1C26.6 15.7 20.3 23.6 11 24.8 9.3 15.3 15.9 7.3 25.9 6.1Z" fill="#fff"/><path d="M6 27.2C8.9 26.9 11.6 25.9 14 24.2" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M13.2 21.9C17.6 20.4 21.6 16.4 23.2 11.5" stroke="#1c7047" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>`)}">
+<link rel="preload" href="/assets/inter.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${cssHref}">
 <script type="application/ld+json">${JSON.stringify({
     '@context': 'https://schema.org',
