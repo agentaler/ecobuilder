@@ -1,0 +1,82 @@
+/**
+ * The locale catalog contract. Both `en.ts` and `fr.ts` must satisfy this
+ * interface exactly, so a missing or extra key in either catalog fails
+ * `tsc` at build time — locale parity is enforced by the type system, not
+ * a runtime check.
+ */
+export interface Catalog {
+  meta: {
+    htmlLang: string
+    title: string
+    description: string
+    /** URL path prefix for this locale, e.g. "/en" */
+    basePath: string
+    /** Label shown on the language switcher for the OTHER locale */
+    switchLabel: string
+    /** Path prefix the switcher links to */
+    switchPath: string
+  }
+  nav: {
+    features: string
+    eco: string
+    openSource: string
+    faq: string
+    openApp: string
+  }
+  hero: {
+    badge: string
+    title: string
+    titleAccent: string
+    subtitle: string
+    ctaPrimary: string
+    ctaSecondary: string
+    stats: { value: string; label: string }[]
+  }
+  eco: {
+    kicker: string
+    title: string
+    body: string
+    comparison: {
+      title: string
+      note: string
+      bars: { label: string; value: string; percent: number; highlight?: boolean }[]
+    }
+    points: { title: string; body: string }[]
+  }
+  features: {
+    kicker: string
+    title: string
+    items: { title: string; body: string }[]
+  }
+  europe: {
+    kicker: string
+    title: string
+    body: string
+    points: { title: string; body: string }[]
+  }
+  openSource: {
+    kicker: string
+    title: string
+    body: string
+    ctaGithub: string
+    ctaCloud: string
+  }
+  faq: {
+    kicker: string
+    title: string
+    items: { q: string; a: string }[]
+  }
+  ctaBand: {
+    title: string
+    body: string
+    cta: string
+  }
+  footer: {
+    tagline: string
+    product: string
+    legal: string
+    privacy: string
+    imprint: string
+    hostedInEu: string
+  }
+}

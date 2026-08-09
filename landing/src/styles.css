@@ -1,0 +1,192 @@
+/* Ecobuilder landing — self-contained token-based styles. No frameworks. */
+
+:root {
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --surface-tint: #eef4ee;
+  --text: #1d241f;
+  --text-soft: #55605a;
+  --border: #e3e1da;
+  --accent: #2f9e63;
+  --accent-deep: #1e7448;
+  --accent-soft: #dff0e5;
+  --inverse-bg: #16301f;
+  --inverse-text: #f2f7f0;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --maxw: 68rem;
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #131714;
+    --surface: #1b201c;
+    --surface-tint: #1e2a21;
+    --text: #edf1ec;
+    --text-soft: #a7b1a9;
+    --border: #2a312b;
+    --accent: #4cc283;
+    --accent-deep: #7bd8a5;
+    --accent-soft: #21342a;
+    --inverse-bg: #dff0e5;
+    --inverse-text: #16301f;
+  }
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+
+h1, h2, h3 { line-height: 1.15; letter-spacing: -0.02em; font-weight: 700; }
+h1 { font-size: clamp(2.4rem, 6vw, 4rem); }
+h1 em { font-style: normal; color: var(--accent); }
+h2 { font-size: clamp(1.7rem, 4vw, 2.5rem); max-width: 40rem; }
+h3 { font-size: 1.1rem; }
+
+/* ── Nav ─────────────────────────────────────────── */
+.nav-wrap {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.nav {
+  max-width: var(--maxw); margin: 0 auto; padding: 0.8rem 1.25rem;
+  display: flex; align-items: center; gap: 1.5rem;
+}
+.brand { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.15rem; }
+.logo-mark { color: var(--accent); flex: none; }
+.nav-links { display: flex; gap: 1.25rem; margin-inline: auto; }
+.nav-links a { color: var(--text-soft); font-size: 0.95rem; }
+.nav-links a:hover { color: var(--text); }
+.nav-actions { display: flex; align-items: center; gap: 1rem; }
+.lang-switch { color: var(--text-soft); font-size: 0.9rem; text-decoration: underline; text-underline-offset: 3px; }
+.lang-switch:hover { color: var(--text); }
+@media (max-width: 720px) { .nav-links { display: none; } }
+
+/* ── Buttons ─────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0.75rem 1.4rem; border-radius: 999px; font-weight: 600; font-size: 1rem;
+  transition: transform 120ms ease, background 120ms ease, color 120ms ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn-sm { padding: 0.45rem 1rem; font-size: 0.9rem; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-deep); }
+@media (prefers-color-scheme: dark) {
+  .btn-primary { color: #10231a; }
+  .btn-primary:hover { color: #10231a; }
+}
+.btn-ghost { border: 1px solid var(--border); color: var(--text); background: var(--surface); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-inverse { background: var(--inverse-bg); color: var(--inverse-text); }
+
+/* ── Hero ────────────────────────────────────────── */
+.hero {
+  max-width: var(--maxw); margin: 0 auto; padding: 5.5rem 1.25rem 4rem;
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.5rem;
+}
+.badge {
+  font-size: 0.85rem; font-weight: 600; color: var(--accent-deep);
+  background: var(--accent-soft); padding: 0.35rem 0.9rem; border-radius: 999px;
+}
+.hero-sub { max-width: 44rem; color: var(--text-soft); font-size: 1.15rem; }
+.cta-row { display: flex; gap: 0.9rem; flex-wrap: wrap; justify-content: center; }
+.stat-strip {
+  display: flex; gap: 2.5rem; flex-wrap: wrap; justify-content: center;
+  margin-top: 1.5rem; padding: 1.25rem 2rem;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+}
+.stat-value { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+.stat-label { font-size: 0.85rem; color: var(--text-soft); }
+
+/* ── Sections ────────────────────────────────────── */
+.section { max-width: var(--maxw); margin: 0 auto; padding: 4.5rem 1.25rem; }
+.section-tinted {
+  max-width: none; background: var(--surface-tint);
+}
+.section-tinted > * { max-width: var(--maxw); margin-left: auto; margin-right: auto; }
+.section-tinted { padding: 4.5rem max(1.25rem, calc((100% - var(--maxw)) / 2)); }
+.kicker {
+  font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--accent); margin-bottom: 0.75rem;
+}
+.section-body { max-width: 44rem; color: var(--text-soft); margin-top: 1rem; font-size: 1.05rem; }
+
+/* ── Eco comparison ──────────────────────────────── */
+.compare-card {
+  margin-top: 2.5rem; padding: 2rem;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+}
+.bars { display: grid; gap: 0.9rem; margin-top: 1.25rem; }
+.bar-row { display: grid; grid-template-columns: 14rem 1fr 5rem; align-items: center; gap: 1rem; }
+@media (max-width: 640px) { .bar-row { grid-template-columns: 1fr; gap: 0.25rem; } }
+.bar-label { font-size: 0.9rem; color: var(--text-soft); }
+.bar-track { display: block; height: 0.9rem; background: var(--accent-soft); border-radius: 999px; overflow: hidden; }
+.bar-fill { display: block; height: 100%; width: var(--w); min-width: 0.9rem; background: var(--text-soft); border-radius: 999px; }
+.bar-highlight .bar-fill { background: var(--accent); }
+.bar-highlight .bar-label, .bar-highlight .bar-value { color: var(--accent-deep); font-weight: 700; }
+.bar-value { font-variant-numeric: tabular-nums; text-align: right; font-size: 0.9rem; }
+.compare-note { margin-top: 1.25rem; font-size: 0.85rem; color: var(--text-soft); }
+
+.point-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1.5rem; margin-top: 2.5rem; }
+.point h3 { margin-bottom: 0.4rem; }
+.point p { color: var(--text-soft); font-size: 0.97rem; }
+
+/* ── Feature cards ───────────────────────────────── */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; margin-top: 2.5rem; }
+.card {
+  padding: 1.6rem; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); transition: border-color 120ms ease;
+}
+.card:hover { border-color: var(--accent); }
+.card h3 { margin-bottom: 0.5rem; }
+.card p { color: var(--text-soft); font-size: 0.97rem; }
+
+/* ── FAQ ─────────────────────────────────────────── */
+.faq-list { margin-top: 2rem; display: grid; gap: 0.75rem; max-width: 46rem; }
+.faq-item {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem;
+}
+.faq-item summary { cursor: pointer; font-weight: 600; }
+.faq-item[open] summary { color: var(--accent-deep); }
+.faq-item p { margin-top: 0.6rem; color: var(--text-soft); }
+
+/* ── CTA band ────────────────────────────────────── */
+.cta-band {
+  max-width: var(--maxw); margin: 2rem auto 4rem; padding: 3.5rem 2rem;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+  color: #fff; border-radius: calc(var(--radius) + 6px);
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1rem;
+}
+.cta-band h2 { max-width: none; }
+.cta-band p { opacity: 0.9; }
+
+/* ── Footer ──────────────────────────────────────── */
+.footer { border-top: 1px solid var(--border); padding: 3rem 1.25rem 2rem; }
+.footer-cols {
+  max-width: var(--maxw); margin: 0 auto;
+  display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 2rem;
+}
+@media (max-width: 640px) { .footer-cols { grid-template-columns: 1fr; } }
+.footer-brand p { color: var(--text-soft); margin-top: 0.75rem; font-size: 0.95rem; }
+.footer h4 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-soft); margin-bottom: 0.75rem; }
+.footer a { display: block; padding: 0.2rem 0; color: var(--text-soft); font-size: 0.95rem; }
+.footer a:hover { color: var(--text); }
+.footer-eu { max-width: var(--maxw); margin: 2.5rem auto 0; color: var(--text-soft); font-size: 0.85rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .btn { transition: none; }
+}
