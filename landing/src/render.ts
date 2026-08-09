@@ -39,13 +39,44 @@ function nav(t: Catalog): string {
 </nav></header>`
 }
 
+/**
+ * Static "letter rain" field behind the hero — columns of dim letters with a
+ * few glowing ones, generated deterministically at build time (seeded LCG, so
+ * builds stay reproducible). Pure markup + CSS; no runtime JS.
+ */
+function letterRain(): string {
+  let seed = 0x5eedc0de
+  const rand = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0
+    return seed / 0xffffffff
+  }
+  const chars = 'ECOBUILDRHTMLCSSVANTPKY'
+  const columns: string[] = []
+  for (let c = 0; c < 18; c++) {
+    const x = 2 + rand() * 94
+    const y = -10 + rand() * 30
+    const dur = (7 + rand() * 8).toFixed(1)
+    const count = 8 + Math.floor(rand() * 10)
+    let letters = ''
+    for (let i = 0; i < count; i++) {
+      const ch = chars[Math.floor(rand() * chars.length)]
+      letters += rand() < 0.12 ? `<b style="--gd:${(rand() * 4).toFixed(1)}s">${ch}</b>` : ch
+      if (i < count - 1) letters += '\n'
+    }
+    columns.push(`<span class="lcol" style="--x:${x.toFixed(1)}%;--y:${y.toFixed(0)}%;--dur:${dur}s">${letters}</span>`)
+  }
+  return `<div class="letter-field" aria-hidden="true">${columns.join('')}</div>`
+}
+
 function hero(t: Catalog): string {
   const stats = t.hero.stats
     .map((s) => `<div class="stat"><div class="stat-value">${esc(s.value)}</div><div class="stat-label">${esc(s.label)}</div></div>`)
     .join('')
   return `<section class="hero">
   <div class="hero-aurora" aria-hidden="true"></div>
-  <svg class="hero-leaf" viewBox="0 0 32 32" aria-hidden="true"><path d="M25.5 6.5C25.5 17 17 25.5 6.5 25.5 6.5 15 15 6.5 25.5 6.5Z" fill="currentColor"/></svg>
+  ${letterRain()}
+  <div class="hero-beam" aria-hidden="true"></div>
+  <div class="hero-flare" aria-hidden="true"></div>
   <p class="badge intro intro-1">${esc(t.hero.badge)}</p>
   <h1 class="intro intro-2">${esc(t.hero.title)}<br><em>${esc(t.hero.titleAccent)}</em></h1>
   <p class="hero-sub intro intro-3">${esc(t.hero.subtitle)}</p>
