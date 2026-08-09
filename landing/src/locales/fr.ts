@@ -5,7 +5,7 @@ export const fr: Catalog = {
     htmlLang: 'fr',
     title: 'Ecobuilder — Le créateur de sites web éco-responsable',
     description:
-      'Créez de belles pages d’atterrissage et de beaux sites web qui pèsent léger. Ecobuilder est l’alternative éco-responsable à Instapage, Webflow et WordPress — des pages statiques propres, hébergées en Europe, sans superflu.',
+      'L’alternative tout-en-un et éco-responsable à Instapage : pages d’atterrissage, sites web, hébergement, SEO et marketing dans une seule offre dès 79 €/mois. Des pages statiques propres, hébergées en Europe, sans superflu.',
     basePath: '/fr',
     switchLabel: 'English',
     switchPath: '/en',
@@ -22,7 +22,7 @@ export const fr: Catalog = {
     title: 'Créez de beaux sites web',
     titleAccent: 'qui pèsent léger.',
     subtitle:
-      'Ecobuilder est un créateur de sites visuel qui publie du HTML et du CSS statiques, propres, dignes d’un travail artisanal. Pas de framework embarqué, pas de mégaoctets de JavaScript — seulement des pages rapides qui consomment moins d’énergie à chaque visite.',
+      'Ecobuilder est votre offre tout-en-un : éditeur visuel, hébergement, SEO et marketing dans un seul abonnement dès 79 €/mois. Vos pages sont publiées en HTML statique propre et soigné — rapides, bien référencées, et plus légères pour la planète à chaque visite.',
     ctaPrimary: 'Essai gratuit de 14 jours',
     ctaSecondary: 'Voir les tarifs',
     stats: [
@@ -60,9 +60,17 @@ export const fr: Catalog = {
     ],
   },
   features: {
-    kicker: 'Fonctionnalités',
-    title: 'Un vrai éditeur visuel. Un vrai CMS. Un seul outil.',
+    kicker: 'Tout-en-un',
+    title: 'Créer, référencer, convertir — un seul abonnement.',
     items: [
+      {
+        title: 'SEO intégré',
+        body: 'HTML sémantique, sitemaps automatiques, contrôle complet des méta-données et d’Open Graph, et des pages assez rapides pour exceller aux Core Web Vitals — le travail de référencement se fait à la publication.',
+      },
+      {
+        title: 'Outils et services marketing',
+        body: 'Capture de contacts, pages prêtes pour vos campagnes et modèles orientés conversion — avec l’accompagnement SEO et marketing de notre équipe sur les offres supérieures.',
+      },
       {
         title: 'Éditeur visuel',
         body: 'Concevez sur un véritable canevas visuel avec points de rupture, design tokens et composants réutilisables — ce que vous voyez est exactement ce qui est publié.',
@@ -111,7 +119,7 @@ export const fr: Catalog = {
   pricing: {
     kicker: 'Tarifs',
     title: 'Des offres simples qui grandissent avec vous.',
-    body: 'Chaque offre inclut l’éditeur visuel, la co-édition en temps réel, l’hébergement européen avec SSL, et des pages publiées ultra-légères par conception.',
+    body: 'Une offre tout-en-un dès 79 €/mois : éditeur visuel, hébergement, SEO et marketing réunis — sans options payantes, sans suppléments à la carte.',
     note: 'Toutes les offres commencent par un essai gratuit de 14 jours — sans carte bancaire. Prix hors TVA.',
     tiers: [
       {
@@ -124,7 +132,7 @@ export const fr: Catalog = {
           'Pages publiées illimitées',
           '30 000 visiteurs uniques / mois',
           'Connexion de votre nom de domaine',
-          'Co-édition en temps réel',
+          'Boîte à outils SEO et sitemaps',
           'Formulaires et capture de contacts',
           'Hébergement UE et SSL inclus',
         ],
@@ -140,9 +148,9 @@ export const fr: Catalog = {
           'Tout ce qui est inclus dans Create',
           '100 000 visiteurs uniques / mois',
           'Plusieurs sites et espaces de travail',
+          'Audits SEO et conversion',
           'Achat de domaines directement chez nous',
-          'Rôles et permissions d’équipe',
-          'Support prioritaire',
+          'Rôles d’équipe et support prioritaire',
         ],
         cta: 'Essai gratuit de 14 jours',
         highlight: true,
@@ -156,9 +164,9 @@ export const fr: Catalog = {
         features: [
           'Tout ce qui est inclus dans Optimize',
           'Visiteurs et sites illimités',
-          'Accompagnement et migration dédiés',
-          'SLA et support dédié',
-          'Contrats et facturation personnalisés',
+          'Accompagnement SEO et marketing dédié',
+          'Intégration et migration dédiées',
+          'SLA et contrats personnalisés',
         ],
         cta: 'Parler à un conseiller',
         custom: true,
@@ -176,6 +184,10 @@ export const fr: Catalog = {
       {
         q: 'Qu’est-ce qui rend un site web « éco-responsable » ?',
         a: 'Surtout le poids et le travail : moins d’octets transférés et moins de calcul par visite, c’est moins d’énergie dans les centres de données, les réseaux et les appareils des visiteurs. Ecobuilder minimise les deux dès la conception.',
+      },
+      {
+        q: 'Le SEO et le marketing sont-ils vraiment inclus ?',
+        a: 'Oui — chaque offre est tout-en-un. Le SEO technique (balisage propre, sitemaps, contrôle des méta-données, pages rapides) est intégré au produit, et les offres Optimize et Convert ajoutent des audits SEO et un accompagnement marketing par notre équipe.',
       },
       {
         q: 'Puis-je utiliser mon propre nom de domaine ?',

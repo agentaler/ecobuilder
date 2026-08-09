@@ -5,7 +5,7 @@ export const en: Catalog = {
     htmlLang: 'en',
     title: 'Ecobuilder — The eco-friendly website builder',
     description:
-      'Build beautiful landing pages and websites that tread lightly. Ecobuilder is the eco-friendly alternative to Instapage, Webflow and WordPress — clean static pages, EU hosting, no bloat.',
+      'The all-in-one eco-friendly alternative to Instapage: landing pages, websites, hosting, SEO and marketing in one package from €79/month. Clean static pages, EU hosting, no bloat.',
     basePath: '/en',
     switchLabel: 'Français',
     switchPath: '/fr',
@@ -22,7 +22,7 @@ export const en: Catalog = {
     title: 'Build beautiful websites',
     titleAccent: 'that tread lightly.',
     subtitle:
-      'Ecobuilder is a visual website builder that publishes clean, hand-quality static HTML and CSS. No framework runtime, no megabytes of JavaScript — just fast pages that cost less energy on every single visit.',
+      'Ecobuilder is your all-in-one package: visual builder, hosting, SEO and marketing in one subscription from €79/month. Pages publish as clean, hand-quality static HTML — fast, high-ranking, and lighter on the planet with every visit.',
     ctaPrimary: 'Start your 14-day free trial',
     ctaSecondary: 'See pricing',
     stats: [
@@ -60,9 +60,17 @@ export const en: Catalog = {
     ],
   },
   features: {
-    kicker: 'Features',
-    title: 'A real visual builder. A real CMS. One tool.',
+    kicker: 'All-in-one',
+    title: 'Build, rank and convert — one subscription.',
     items: [
+      {
+        title: 'SEO built in',
+        body: 'Semantic HTML, automatic sitemaps, full meta and Open Graph control, and pages fast enough to win Core Web Vitals — the ranking work is done at publish time.',
+      },
+      {
+        title: 'Marketing toolkit & services',
+        body: 'Lead capture, campaign-ready pages and conversion-focused templates — with hands-on SEO and marketing support from our team on higher plans.',
+      },
       {
         title: 'Visual editor',
         body: 'Design on a true visual canvas with breakpoints, design tokens and reusable components — what you see is exactly what gets published.',
@@ -111,7 +119,7 @@ export const en: Catalog = {
   pricing: {
     kicker: 'Pricing',
     title: 'Simple plans that scale with you.',
-    body: 'Every plan includes the visual editor, real-time co-editing, EU hosting with SSL, and pages that publish featherweight by design.',
+    body: 'One all-in-one package from €79/month: visual builder, hosting, SEO and marketing together — no add-ons, no per-feature upsells.',
     note: 'All plans start with a 14-day free trial — no credit card required. Prices exclude VAT.',
     tiers: [
       {
@@ -124,7 +132,7 @@ export const en: Catalog = {
           'Unlimited published pages',
           '30,000 unique visitors / month',
           'Connect your custom domain',
-          'Real-time co-editing',
+          'On-page SEO toolkit & sitemaps',
           'Forms & lead capture',
           'EU hosting & SSL included',
         ],
@@ -140,9 +148,9 @@ export const en: Catalog = {
           'Everything in Create',
           '100,000 unique visitors / month',
           'Multiple sites & workspaces',
+          'SEO & conversion audits',
           'Buy domains directly from us',
-          'Team roles & permissions',
-          'Priority support',
+          'Team roles & priority support',
         ],
         cta: 'Start 14-day free trial',
         highlight: true,
@@ -156,9 +164,9 @@ export const en: Catalog = {
         features: [
           'Everything in Optimize',
           'Unlimited visitors & sites',
+          'Dedicated SEO & marketing support',
           'Dedicated onboarding & migration',
-          'SLA & dedicated support',
-          'Custom contracts & invoicing',
+          'SLA & custom contracts',
         ],
         cta: 'Talk to sales',
         custom: true,
@@ -176,6 +184,10 @@ export const en: Catalog = {
       {
         q: 'What makes a website “eco-friendly”?',
         a: 'Mostly weight and work: fewer bytes transferred and less computation per visit means less energy in data centres, networks and visitor devices. Ecobuilder minimises both by design.',
+      },
+      {
+        q: 'Are SEO and marketing really included?',
+        a: 'Yes — every plan is all-in-one. Technical SEO (clean markup, sitemaps, meta control, fast pages) is built into the product, and Optimize and Convert plans add hands-on SEO audits and marketing support from our team.',
       },
       {
         q: 'Can I use my own domain?',
