@@ -14,8 +14,7 @@ import { join, normalize } from 'node:path'
 
 const DIST = join(import.meta.dir, 'dist')
 const PORT = Number(process.env.PORT ?? 4173)
-const LOCALES = ['en', 'fr'] as const
-type Locale = (typeof LOCALES)[number]
+type Locale = 'en' | 'fr'
 
 export function pickLocale(acceptLanguage: string | null, cookie: string | null): Locale {
   const fromCookie = /(?:^|;\s*)lang=(en|fr)(?:;|$)/.exec(cookie ?? '')?.[1]
