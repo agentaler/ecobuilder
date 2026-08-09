@@ -46,13 +46,14 @@ body::after {
 }
 
 h1, h2, h3 { line-height: 1.12; letter-spacing: -0.02em; font-weight: 700; }
-h1 { font-size: clamp(2.6rem, 6.5vw, 4.6rem); letter-spacing: -0.035em; text-shadow: 0 0 60px rgba(123, 255, 185, 0.28); }
+h1 { font-size: clamp(2.6rem, 6.5vw, 4.6rem); letter-spacing: -0.035em; text-shadow: 0 2px 18px rgba(0, 0, 0, 0.9), 0 0 60px rgba(123, 255, 185, 0.22); }
 /* shimmering light sweep across the headline accent */
 h1 em {
   font-style: normal;
-  background: linear-gradient(110deg, var(--accent) 30%, var(--accent-bright) 47%, #d8ffe9 50%, var(--accent-bright) 53%, var(--accent) 70%);
+  background: linear-gradient(110deg, #5fd79a 28%, var(--accent-bright) 46%, #eafff4 50%, var(--accent-bright) 54%, #5fd79a 72%);
   background-size: 220% 100%;
   -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 2px 16px rgba(0, 0, 0, 0.9));
   animation: shimmer-pan 5s ease-in-out infinite;
 }
 @keyframes shimmer-pan { 0% { background-position: 120% 0; } 60%, 100% { background-position: -60% 0; } }
@@ -109,13 +110,19 @@ h3 { font-size: 1.1rem; }
 /* letter-rain field behind the headline */
 .letter-field {
   position: absolute; inset: 0; z-index: -3; pointer-events: none; overflow: hidden;
-  mask-image: radial-gradient(72% 82% at 50% 45%, #000 35%, transparent 80%);
+  /* Fade at the edges AND punch a hole where the headline/subtitle sit, so
+     letters never compete with the copy. */
+  mask-image:
+    radial-gradient(72% 82% at 50% 45%, #000 35%, transparent 80%),
+    radial-gradient(52% 40% at 50% 46%, transparent 25%, #000 88%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
 }
 .lcol {
   position: absolute; left: var(--x); top: var(--y);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 14px; line-height: 2.15; white-space: pre;
-  color: rgba(154, 168, 160, 0.13); user-select: none;
+  color: rgba(154, 168, 160, 0.1); user-select: none;
   animation: col-drift var(--dur) ease-in-out infinite alternate;
 }
 @keyframes col-drift { from { transform: translateY(-16px); } to { transform: translateY(16px); } }
@@ -127,7 +134,7 @@ h3 { font-size: 1.1rem; }
 .lcol b.t { color: #5fd8c8; text-shadow: 0 0 12px rgba(95, 216, 200, 0.85); }
 @keyframes letter-glow {
   0%, 100% { opacity: 0.25; }
-  45% { opacity: 1; color: var(--accent-bright); text-shadow: 0 0 16px rgba(123, 255, 185, 0.95); }
+  45% { opacity: 0.8; color: var(--accent-bright); text-shadow: 0 0 16px rgba(123, 255, 185, 0.8); }
 }
 
 /* Volumetric light shaft: wide at the top, tapering to a narrow waist
@@ -177,6 +184,9 @@ h3 { font-size: 1.1rem; }
 .hero-vignette {
   position: absolute; inset: 0; z-index: 0; pointer-events: none;
   background:
+    /* soft dark cushion behind the copy so headline + subtitle stay legible
+       over the beam and letter field */
+    radial-gradient(ellipse 48% 34% at 50% 47%, rgba(4, 6, 5, 0.82), rgba(4, 6, 5, 0.45) 55%, transparent 78%),
     radial-gradient(130% 110% at 50% 38%, transparent 55%, rgba(0, 0, 0, 0.55) 100%),
     linear-gradient(180deg, transparent 86%, var(--bg) 100%);
 }
@@ -223,8 +233,12 @@ h3 { font-size: 1.1rem; }
   background: var(--accent-soft); border: 1px solid rgba(76, 194, 131, 0.35);
   padding: 0.35rem 0.9rem; border-radius: 999px;
   box-shadow: 0 0 24px -8px rgba(76, 194, 131, 0.5);
+  backdrop-filter: blur(4px);
 }
-.hero-sub { max-width: 44rem; color: var(--text-soft); font-size: 1.15rem; }
+.hero-sub {
+  max-width: 44rem; color: #cbd6d0; font-size: 1.15rem;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.85);
+}
 .cta-row { display: flex; gap: 0.9rem; flex-wrap: wrap; justify-content: center; }
 
 /* entrance cascade */
