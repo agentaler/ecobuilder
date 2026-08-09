@@ -5,7 +5,7 @@ export const en: Catalog = {
     htmlLang: 'en',
     title: 'Ecobuilder — The eco-friendly website builder',
     description:
-      'The all-in-one eco-friendly website builder with AI: describe your page, publish in minutes — no web skills needed. Hosting, SEO and marketing included, from €29/month. EU hosting, clean static pages.',
+      'Eco-friendly websites that grow your revenue. Faster pages rank higher and convert better — built by AI in minutes, no web skills needed. Hosting, SEO and marketing included from €29/month, hosted in the EU.',
     basePath: '/en',
     switchLabel: 'Français',
     switchPath: '/fr',
@@ -19,10 +19,10 @@ export const en: Catalog = {
   },
   hero: {
     badge: 'Built for Europe · Hosted in the EU',
-    title: 'Build beautiful websites',
-    titleAccent: 'that tread lightly.',
+    title: 'Eco-friendly websites',
+    titleAccent: 'that grow your revenue.',
     subtitle:
-      'Describe what you need and let the built-in AI draft it, then publish in minutes — no web knowledge required. Hosting, SEO and marketing are all included from €29/month, and every page ships as clean static HTML that treads lightly on the planet.',
+      'Faster pages rank higher and convert better — so every visitor costs you less and buys more. Describe what you need, let the AI build it, and publish in minutes. Hosting, SEO and marketing included from €29/month.',
     ctaPrimary: 'Start your 7-day free trial',
     ctaSecondary: 'See pricing',
     stats: [
@@ -33,8 +33,8 @@ export const en: Catalog = {
   },
   eco: {
     kicker: 'Why eco',
-    title: 'The greenest byte is the one you never send.',
-    body: 'The web produces more CO₂ than aviation, and page bloat is a big part of it. Ecobuilder attacks the problem at the source: the publisher emits plain, semantic HTML with hand-clean CSS — the kind of page a careful developer would write, generated for you.',
+    title: 'Lighter pages. Lower costs. More sales.',
+    body: 'Every extra megabyte costs you twice: visitors leave before your page loads, and the energy bill lands on the planet. Ecobuilder publishes plain, semantic HTML with hand-clean CSS — the kind of page a careful developer would write, generated for you. Green by construction, profitable by consequence.',
     comparison: {
       title: 'Average page weight',
       note: 'Typical values: HTTP Archive median vs. an Ecobuilder-published marketing page. Lighter pages mean less energy in networks, servers and devices — on every visit.',
@@ -216,8 +216,8 @@ export const en: Catalog = {
     ],
   },
   ctaBand: {
-    title: 'Ready to build lighter?',
-    body: 'Publish a site you’re proud of — and one the planet barely notices.',
+    title: 'Turn visitors into customers.',
+    body: 'Publish a site that sells for you — and that the planet barely notices.',
     cta: 'Start your free trial',
   },
   footer: {

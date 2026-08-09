@@ -5,7 +5,7 @@ export const fr: Catalog = {
     htmlLang: 'fr',
     title: 'Ecobuilder — Le créateur de sites web éco-responsable',
     description:
-      'Le créateur de sites tout-en-un, éco-responsable et dopé à l’IA : décrivez votre page, publiez en quelques minutes — aucune compétence web requise. Hébergement, SEO et marketing inclus, dès 29 €/mois.',
+      'Des sites éco-responsables qui font grandir vos ventes. Des pages plus rapides se référencent mieux et convertissent davantage — créées par l’IA en quelques minutes, sans compétence web. Hébergement, SEO et marketing inclus dès 29 €/mois, hébergés dans l’UE.',
     basePath: '/fr',
     switchLabel: 'English',
     switchPath: '/en',
@@ -19,10 +19,10 @@ export const fr: Catalog = {
   },
   hero: {
     badge: 'Pensé pour l’Europe · Hébergé dans l’UE',
-    title: 'Créez de beaux sites web',
-    titleAccent: 'qui pèsent léger.',
+    title: 'Des sites éco-responsables',
+    titleAccent: 'qui font grandir vos ventes.',
     subtitle:
-      'Décrivez ce dont vous avez besoin, l’IA intégrée le prépare, et vous publiez en quelques minutes — aucune connaissance web requise. Hébergement, SEO et marketing inclus dès 29 €/mois, et chaque page est livrée en HTML statique propre, léger pour la planète.',
+      'Des pages plus rapides se référencent mieux et convertissent davantage — chaque visiteur vous coûte moins et achète plus. Décrivez ce dont vous avez besoin, l’IA le crée, et vous publiez en quelques minutes. Hébergement, SEO et marketing inclus dès 29 €/mois.',
     ctaPrimary: 'Essai gratuit de 7 jours',
     ctaSecondary: 'Voir les tarifs',
     stats: [
@@ -33,8 +33,8 @@ export const fr: Catalog = {
   },
   eco: {
     kicker: 'Pourquoi éco',
-    title: 'L’octet le plus vert est celui qu’on n’envoie jamais.',
-    body: 'Le web émet plus de CO₂ que l’aviation, et le poids des pages y est pour beaucoup. Ecobuilder s’attaque au problème à la source : le moteur de publication produit du HTML sémantique et du CSS soigné — le genre de page qu’écrirait un développeur minutieux, générée pour vous.',
+    title: 'Des pages légères. Moins de coûts. Plus de ventes.',
+    body: 'Chaque mégaoctet superflu vous coûte deux fois : vos visiteurs partent avant l’affichage, et la facture énergétique retombe sur la planète. Ecobuilder publie du HTML sémantique et du CSS soigné — le genre de page qu’écrirait un développeur minutieux, générée pour vous. Verte par construction, rentable par conséquence.',
     comparison: {
       title: 'Poids moyen d’une page',
       note: 'Valeurs typiques : médiane HTTP Archive contre une page marketing publiée avec Ecobuilder. Des pages plus légères, c’est moins d’énergie dans les réseaux, les serveurs et les appareils — à chaque visite.',
@@ -216,8 +216,8 @@ export const fr: Catalog = {
     ],
   },
   ctaBand: {
-    title: 'Prêt à construire plus léger ?',
-    body: 'Publiez un site dont vous êtes fier — et que la planète remarque à peine.',
+    title: 'Transformez vos visiteurs en clients.',
+    body: 'Publiez un site qui vend pour vous — et que la planète remarque à peine.',
     cta: 'Démarrer l’essai gratuit',
   },
   footer: {
