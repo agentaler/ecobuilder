@@ -27,6 +27,8 @@ RAILWAY_RUN_UID=0
 
 Configure the app service health check path as `/health`. If Railway asks which port the app listens on when generating a public URL, use the same value as `PORT`.
 
+For source builds deployed with `railway up`, the repo-root `railway.json` sets the health check path and restart policy as config-as-code, so those service settings don't need to be entered in the dashboard.
+
 ## App Service
 
 Use a Docker image source for production installs:
