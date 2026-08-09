@@ -13,17 +13,19 @@ function esc(value: string): string {
 }
 
 /**
- * The Ecobuilder mark: a green app tile with a white leaf slicing through it
- * diagonally. Fixed brand colors (not theme-dependent) so the mark is
- * identical everywhere — nav, footer, favicon, app icon.
+ * The Ecobuilder mark: a gradient green tile with an organic leaf in negative
+ * space — curved stem flowing out of the corner into an asymmetric blade with
+ * a single vein. Fixed brand colors so the mark is identical everywhere.
+ * `id` must be unique per inline instance (SVG gradient ids are global).
  */
-const MARK_SVG = (size: number) =>
-  `<svg class="logo-mark" viewBox="0 0 32 32" width="${size}" height="${size}" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="9" fill="#1e7448"/><path d="M25.5 6.5C25.5 17 17 25.5 6.5 25.5 6.5 15 15 6.5 25.5 6.5Z" fill="#ffffff"/><path d="M10 22C14.5 20.8 20.8 14.5 22 10" stroke="#1e7448" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>`
-const leafLogo = MARK_SVG(28)
+const MARK_SVG = (size: number, id: string) =>
+  `<svg class="logo-mark" viewBox="0 0 32 32" width="${size}" height="${size}" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#2fa869"/><stop offset="1" stop-color="#155c38"/></linearGradient></defs><rect x="1" y="1" width="30" height="30" rx="8.5" fill="url(#${id})"/><path d="M25.9 6.1C26.6 15.7 20.3 23.6 11 24.8 9.3 15.3 15.9 7.3 25.9 6.1Z" fill="#ffffff"/><path d="M6 27.2C8.9 26.9 11.6 25.9 14 24.2" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M13.2 21.9C17.6 20.4 21.6 16.4 23.2 11.5" stroke="#1c7047" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>`
+const brandLockup = (id: string) =>
+  `${MARK_SVG(30, id)}<span class="brand-word"><b>eco</b>builder</span>`
 
 function nav(t: Catalog): string {
   return `<header class="nav-wrap"><nav class="nav" aria-label="Main">
-  <a class="brand" href="${t.meta.basePath}/">${leafLogo}<span>Ecobuilder</span></a>
+  <a class="brand" href="${t.meta.basePath}/">${brandLockup('nav-mark')}</a>
   <div class="nav-links">
     <a href="#features">${esc(t.nav.features)}</a>
     <a href="#eco">${esc(t.nav.eco)}</a>
@@ -154,7 +156,7 @@ function footer(t: Catalog): string {
   return `<footer class="footer">
   <div class="footer-cols">
     <div class="footer-brand">
-      <span class="brand">${leafLogo}<span>Ecobuilder</span></span>
+      <span class="brand">${brandLockup('footer-mark')}</span>
       <p>${esc(t.footer.tagline)}</p>
     </div>
     <div>
@@ -191,7 +193,7 @@ export function renderHome(t: Catalog, other: Catalog): string {
 <meta property="og:description" content="${esc(t.meta.description)}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${SITE_ORIGIN}${t.meta.basePath}/">
-<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect x="1" y="1" width="30" height="30" rx="9" fill="#1e7448"/><path d="M25.5 6.5C25.5 17 17 25.5 6.5 25.5 6.5 15 15 6.5 25.5 6.5Z" fill="#fff"/><path d="M10 22C14.5 20.8 20.8 14.5 22 10" stroke="#1e7448" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>`)}">
+<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><defs><linearGradient id="g" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#2fa869"/><stop offset="1" stop-color="#155c38"/></linearGradient></defs><rect x="1" y="1" width="30" height="30" rx="8.5" fill="url(#g)"/><path d="M25.9 6.1C26.6 15.7 20.3 23.6 11 24.8 9.3 15.3 15.9 7.3 25.9 6.1Z" fill="#fff"/><path d="M6 27.2C8.9 26.9 11.6 25.9 14 24.2" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M13.2 21.9C17.6 20.4 21.6 16.4 23.2 11.5" stroke="#1c7047" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>`)}">
 <link rel="stylesheet" href="/styles.css">
 <script type="application/ld+json">${JSON.stringify({
     '@context': 'https://schema.org',
