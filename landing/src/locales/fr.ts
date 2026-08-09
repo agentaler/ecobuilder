@@ -5,7 +5,7 @@ export const fr: Catalog = {
     htmlLang: 'fr',
     title: 'Ecobuilder — Le créateur de sites web éco-responsable',
     description:
-      'Des sites éco-responsables qui font grandir vos ventes. Des pages plus rapides se référencent mieux et convertissent davantage — créées par l’IA en quelques minutes, sans compétence web. Hébergement, SEO et marketing inclus dès 29 €/mois, hébergés dans l’UE.',
+      'Ecobuilder est le créateur de sites IA éco-responsable qui fait grandir vos ventes. Décrivez votre activité et obtenez un site complet en quelques minutes — pages, textes, formulaires et SEO. Hébergement, SEO et marketing inclus dès 29 €/mois, hébergés dans l’UE.',
     basePath: '/fr',
     switchLabel: 'English',
     switchPath: '/en',
@@ -18,11 +18,11 @@ export const fr: Catalog = {
     openApp: 'Ouvrir l’app',
   },
   hero: {
-    badge: 'Pensé pour l’Europe · Hébergé dans l’UE',
-    title: 'Des sites éco-responsables',
-    titleAccent: 'qui font grandir vos ventes.',
+    badge: 'Propulsé par l’IA · Hébergé dans l’UE',
+    title: 'Le créateur de sites éco-responsable',
+    titleAccent: 'qui fait grandir vos ventes.',
     subtitle:
-      'Des pages plus rapides se référencent mieux et convertissent davantage — chaque visiteur vous coûte moins et achète plus. Décrivez ce dont vous avez besoin, l’IA le crée, et vous publiez en quelques minutes. Hébergement, SEO et marketing inclus dès 29 €/mois.',
+      'Décrivez votre activité et l’IA crée tout votre site — pages, textes, formulaires et SEO — en ligne sur votre nom de domaine en quelques minutes. Chaque page est ultra-légère : elle se charge vite, se référence mieux et convertit davantage. Hébergement, SEO et marketing inclus dès 29 €/mois.',
     ctaPrimary: 'Essai gratuit de 7 jours',
     ctaSecondary: 'Voir les tarifs',
     stats: [

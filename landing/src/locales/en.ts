@@ -5,7 +5,7 @@ export const en: Catalog = {
     htmlLang: 'en',
     title: 'Ecobuilder — The eco-friendly website builder',
     description:
-      'Eco-friendly websites that grow your revenue. Faster pages rank higher and convert better — built by AI in minutes, no web skills needed. Hosting, SEO and marketing included from €29/month, hosted in the EU.',
+      'Ecobuilder is the eco-friendly AI website builder that grows your revenue. Describe your business, get a complete site in minutes — pages, copy, forms and SEO. Hosting, SEO and marketing included from €29/month, hosted in the EU.',
     basePath: '/en',
     switchLabel: 'Français',
     switchPath: '/fr',
@@ -18,11 +18,11 @@ export const en: Catalog = {
     openApp: 'Open the app',
   },
   hero: {
-    badge: 'Built for Europe · Hosted in the EU',
-    title: 'Eco-friendly websites',
-    titleAccent: 'that grow your revenue.',
+    badge: 'Powered by AI · Hosted in the EU',
+    title: 'The eco-friendly website builder',
+    titleAccent: 'that grows your revenue.',
     subtitle:
-      'Faster pages rank higher and convert better — so every visitor costs you less and buys more. Describe what you need, let the AI build it, and publish in minutes. Hosting, SEO and marketing included from €29/month.',
+      'Describe your business and the AI builds your whole site — pages, copy, forms and SEO — live on your own domain in minutes. Every page ships featherweight, so it loads fast, ranks higher and converts better. Hosting, SEO and marketing included from €29/month.',
     ctaPrimary: 'Start your 7-day free trial',
     ctaSecondary: 'See pricing',
     stats: [
