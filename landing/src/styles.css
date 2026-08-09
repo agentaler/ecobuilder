@@ -38,6 +38,9 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
+/* No element may create horizontal scroll; `clip` keeps the sticky nav working
+   where `hidden` would break it. */
+html, body { max-width: 100%; overflow-x: clip; }
 body {
   font-family: var(--font);
   background: var(--bg);
@@ -288,7 +291,7 @@ h3 { font-size: 1.08rem; letter-spacing: -0.02em; }
   100% { top: 104%; opacity: 0; }
 }
 .hero-flare {
-  position: absolute; left: 50%; bottom: -8rem; width: 58rem; max-width: 140vw; height: 20rem; z-index: -2;
+  position: absolute; left: 50%; bottom: -8rem; width: min(58rem, 96vw); height: 20rem; z-index: -2;
   transform: translateX(-50%); pointer-events: none;
   background:
     radial-gradient(18% 55% at 50% 100%, rgba(234, 255, 243, 0.75), transparent 70%),
@@ -458,7 +461,7 @@ h3 { font-size: 1.08rem; letter-spacing: -0.02em; }
 /* drifting ambient orb per section */
 .section:not(.section-tinted)::after {
   content: ""; position: absolute; z-index: -1; pointer-events: none;
-  width: 40rem; height: 40rem; max-width: 120vw;
+  width: min(40rem, 78vw); height: 40rem;
   left: 50%; top: 0; translate: -50% -28%;
   background: radial-gradient(50% 50% at 50% 50%, rgba(76, 194, 131, 0.09), transparent 70%);
   filter: blur(46px);
