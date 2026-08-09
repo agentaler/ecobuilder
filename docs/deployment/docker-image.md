@@ -27,7 +27,7 @@ UPLOADS_DIR=/app/storage/uploads
 ## Build Locally
 
 ```sh
-docker build -t instatic:local .
+docker build -t ecobuilder:local .
 ```
 
 ## Published Image
@@ -35,8 +35,8 @@ docker build -t instatic:local .
 GHCR is the canonical image registry:
 
 ```sh
-docker pull ghcr.io/corebunch/instatic:latest
-docker pull ghcr.io/corebunch/instatic:0.0.13
+docker pull ghcr.io/agentaler/ecobuilder:latest
+docker pull ghcr.io/agentaler/ecobuilder:0.0.13
 ```
 
 The v0.0.13 published image is built for `linux/amd64`. Use it on Railway and x86_64 VPS/container hosts. ARM64 hosts should build from source for now, or wait for the native arm64 release job before pulling GHCR images directly.
@@ -46,19 +46,19 @@ The v0.0.13 published image is built for `linux/amd64`. Use it on Railway and x8
 Use this mode when the host can attach a persistent volume to the app container.
 
 ```sh
-docker volume create instatic-storage
+docker volume create ecobuilder-storage
 
 docker run -d \
-  --name instatic \
+  --name ecobuilder \
   -p 3001:3001 \
   -e PORT=3001 \
   -e DATABASE_URL="sqlite:/app/storage/data/cms.db" \
   -e STATIC_DIR=/app/dist \
   -e UPLOADS_DIR=/app/storage/uploads \
   -e INSTATIC_SECRET_KEY="replace-with-output-of-generate-secret-key" \
-  -v instatic-storage:/app/storage \
+  -v ecobuilder-storage:/app/storage \
   --restart unless-stopped \
-  instatic:local
+  ecobuilder:local
 ```
 
 The single volume stores both the SQLite database and uploaded media.
@@ -68,31 +68,31 @@ The single volume stores both the SQLite database and uploaded media.
 Use this mode when Postgres is provided by the host or by a separate managed database service.
 
 ```sh
-docker volume create instatic-storage
+docker volume create ecobuilder-storage
 
 docker run -d \
-  --name instatic \
+  --name ecobuilder \
   -p 3001:3001 \
   -e PORT=3001 \
-  -e DATABASE_URL="postgres://user:password@host:5432/instatic" \
+  -e DATABASE_URL="postgres://user:password@host:5432/ecobuilder" \
   -e STATIC_DIR=/app/dist \
   -e UPLOADS_DIR=/app/storage/uploads \
   -e INSTATIC_SECRET_KEY="replace-with-output-of-generate-secret-key" \
-  -v instatic-storage:/app/storage \
+  -v ecobuilder-storage:/app/storage \
   --restart unless-stopped \
-  instatic:local
+  ecobuilder:local
 ```
 
 The app volume is still required in Postgres mode because uploads, fonts, plugin packs, and published disk artefacts live under `UPLOADS_DIR`.
 
-Replace `instatic:local` with `ghcr.io/corebunch/instatic:<tag>` when deploying from a published image.
+Replace `ecobuilder:local` with `ghcr.io/agentaler/ecobuilder:<tag>` when deploying from a published image.
 
 ## Run On Railway From The Image
 
 Create an app service from Docker image source:
 
 ```txt
-ghcr.io/corebunch/instatic:0.0.13
+ghcr.io/agentaler/ecobuilder:0.0.13
 ```
 
 Attach a Railway volume at `/app/storage`, set the health check path to `/health`, and set app variables:
@@ -107,7 +107,7 @@ PUBLIC_ORIGIN=https://${{RAILWAY_PUBLIC_DOMAIN}}
 RAILWAY_RUN_UID=0
 ```
 
-`RAILWAY_RUN_UID=0` is required because Railway volumes are mounted as `root` and the published image otherwise runs as the non-root `bun` user. `PUBLIC_ORIGIN=https://${{RAILWAY_PUBLIC_DOMAIN}}` gives Instatic the public origin for its CSRF check now that Railway terminates HTTPS at the edge; the server would auto-detect the same value from `RAILWAY_PUBLIC_DOMAIN`, but setting it explicitly survives custom-domain edits.
+`RAILWAY_RUN_UID=0` is required because Railway volumes are mounted as `root` and the published image otherwise runs as the non-root `bun` user. `PUBLIC_ORIGIN=https://${{RAILWAY_PUBLIC_DOMAIN}}` gives Ecobuilder the public origin for its CSRF check now that Railway terminates HTTPS at the edge; the server would auto-detect the same value from `RAILWAY_PUBLIC_DOMAIN`, but setting it explicitly survives custom-domain edits.
 
 Enable Railway Image Auto Updates when you want Railway to move the service forward automatically during a maintenance window. Use `:latest` for "always follow the newest image", or a semver tag such as `:0.0.13` if you want Railway's semver update controls.
 
@@ -129,7 +129,7 @@ UPLOADS_DIR=/app/storage/uploads
 STATIC_DIR=/app/dist
 ```
 
-Render auto-injects `RENDER_EXTERNAL_URL`, which Instatic uses as the CSRF public origin, so no proxy/origin variable is needed in the Blueprint. The Postgres Blueprint creates one image-backed web service, one persistent disk for uploads, and one Render Postgres database. See [render.md](render.md) for the full Render contract.
+Render auto-injects `RENDER_EXTERNAL_URL`, which Ecobuilder uses as the CSRF public origin, so no proxy/origin variable is needed in the Blueprint. The Postgres Blueprint creates one image-backed web service, one persistent disk for uploads, and one Render Postgres database. See [render.md](render.md) for the full Render contract.
 
 
 ## Required Runtime Variables

@@ -1,19 +1,12 @@
 <div align="center">
 
-# Instatic
+# Ecobuilder
 
 **Own your site. Love building it.**
 
 A self-hosted CMS where the visual editor, content engine, and publisher all live in one Bun server — and the pages it ships are clean enough to read in view-source.
 
-<p>
-  <a href="https://trendshift.io/repositories/66792?utm_source=repository-badge&utm_medium=badge&utm_campaign=badge-repository-66792" target="_blank" rel="noopener noreferrer">
-    <img src="https://trendshift.io/api/badge/repositories/66792" alt="CoreBunch/Instatic | Trendshift" width="250" height="55">
-  </a>
-</p>
-
-[![Release](https://img.shields.io/github/v/release/corebunch/instatic?color=black&labelColor=black)](https://github.com/corebunch/instatic/releases)
-[![GitHub stars](https://img.shields.io/github/stars/corebunch/instatic?style=flat&label=stars&labelColor=555&color=ffd43b)](https://github.com/corebunch/instatic/stargazers)
+[![Release](https://img.shields.io/github/v/release/agentaler/ecobuilder?color=black&labelColor=black)](https://github.com/agentaler/ecobuilder/releases)
 [![Runtime: Bun](https://img.shields.io/badge/runtime-Bun-black?labelColor=black&color=f9f1e1)](https://bun.sh)
 [![TypeScript](https://img.shields.io/badge/TypeScript-everywhere-black?labelColor=black&color=3178c6)](https://www.typescriptlang.org/)
 
@@ -22,16 +15,16 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 <br>
 
 <a href="https://www.youtube.com/watch?v=zyjCF_TaLlg">
-  <img src="https://img.youtube.com/vi/zyjCF_TaLlg/maxresdefault.jpg" alt="Watch the Instatic interface demo on YouTube" width="100%">
+  <img src="https://img.youtube.com/vi/zyjCF_TaLlg/maxresdefault.jpg" alt="Watch the Ecobuilder interface demo on YouTube" width="100%">
 </a>
 
-*Watch the introductory video about Instatic on YouTube.*
+*Watch the introductory video about Ecobuilder on YouTube.*
 
 </div>
 
 <br>
 
-A modern website usually means assembling a stack: a headless CMS, a framework, a host, a form service, an analytics vendor, an image CDN — each with its own bill, dashboard, and 2 a.m. outage. Instatic is the opposite bet. One Bun server holds the whole thing — the canvas editor, the content engine, media, auth, forms, plugins, and the publisher — and you run it wherever you like, backed by SQLite or Postgres.
+A modern website usually means assembling a stack: a headless CMS, a framework, a host, a form service, an analytics vendor, an image CDN — each with its own bill, dashboard, and 2 a.m. outage. Ecobuilder is the opposite bet. One Bun server holds the whole thing — the canvas editor, the content engine, media, auth, forms, plugins, and the publisher — and you run it wherever you like, backed by SQLite or Postgres.
 
 What comes out the other end is the part most builders quietly compromise on: plain semantic HTML and compact CSS, with none of the editor's machinery left behind in the page. No framework runtime, no builder attributes, no div soup. The site loads like a static file because, most of the time, it is one.
 
@@ -41,11 +34,11 @@ What comes out the other end is the part most builders quietly compromise on: pl
 
 ## Deploy in one click
 
-Railway is the fastest way to get Instatic live. Pick a template, hit the button, wait about two minutes. That's it. It generates the secret keys, attaches the storage volume, and sets up the health checks on its own. You never open a terminal.
+Railway is the fastest way to get Ecobuilder live. Pick a template, hit the button, wait about two minutes. That's it. It generates the secret keys, attaches the storage volume, and sets up the health checks on its own. You never open a terminal.
 
 <div align="center">
 
-<img src="docs/assets/readme/railway-deploy.gif" alt="Deploying Instatic to Railway — from template to a live CMS in under a minute" width="80%">
+<img src="docs/assets/readme/railway-deploy.gif" alt="Deploying Ecobuilder to Railway — from template to a live CMS in under a minute" width="80%">
 
 *One minute to live. Unedited.*
 
@@ -64,12 +57,12 @@ SQLite is the right default for most sites. Reach for Postgres when you've got a
 
 ### Updating is just a redeploy
 
-When a new Instatic version is available, update by redeploying the latest image. Your database and uploads stay on the attached storage, so the app container can be replaced without rebuilding the site from scratch.
+When a new Ecobuilder version is available, update by redeploying the latest image. Your database and uploads stay on the attached storage, so the app container can be replaced without rebuilding the site from scratch.
 
-Prefer your own hardware? Instatic is a single Docker image:
+Prefer your own hardware? Ecobuilder is a single Docker image:
 
 ```sh
-INSTATIC_IMAGE=ghcr.io/corebunch/instatic:latest docker compose -f compose.prod.yml -f compose.sqlite.yml up -d
+INSTATIC_IMAGE=ghcr.io/agentaler/ecobuilder:latest docker compose -f compose.prod.yml -f compose.sqlite.yml up -d
 ```
 
 Full guides for VPS, Postgres, HTTPS with Caddy, Render, and backups are in [docs/deployment](docs/deployment/README.md).
@@ -78,11 +71,11 @@ Full guides for VPS, Postgres, HTTPS with Caddy, Render, and backups are in [doc
 
 ## One tool, the whole life of a site
 
-Most tools do one job and hand you off for the rest. You design in one place, build in another, keep content somewhere else, then bolt analytics on from a fourth. Instatic does all of it. Here's what's actually in the box.
+Most tools do one job and hand you off for the rest. You design in one place, build in another, keep content somewhere else, then bolt analytics on from a fourth. Ecobuilder does all of it. Here's what's actually in the box.
 
 ### 🎨 Design
 
-<img src="docs/assets/readme/design-framework.webp" alt="Core Framework scales inside Instatic — a fluid spacing scale with mathematical ratios, edited live next to the canvas" width="100%">
+<img src="docs/assets/readme/design-framework.webp" alt="Core Framework scales inside Ecobuilder — a fluid spacing scale with mathematical ratios, edited live next to the canvas" width="100%">
 
 The editor is a real canvas, not a form with a preview pane stapled to it. You put several breakpoint frames side by side and edit them together. Change the desktop and the mobile frame reacts in the same view. When you'd rather work on the real thing, flip to live mode and edit a single full-size page in place.
 
@@ -103,7 +96,7 @@ Your whole design system lives as data. Change one token and every page that use
 - **Visual Components** are reusable pieces with typed parameters and named slots. A parameter can be a string, number, boolean, color, image, URL, rich text, an enum, or a whole slot of content. Edit the component once and every instance on the site updates. Components that would reference themselves are blocked before they happen, so nothing eats its own tail.
 - **Templates** handle the shared chrome. One layout for the whole site, separate layouts per post type, and a real 404 page you design yourself. Content flows into an outlet, so a header and footer get written once and wrap everything.
 - **Loops** repeat a layout over a collection: your posts, your pages, your media, or anything a plugin exposes as a source. Give a loop a couple of variants and it alternates between them as it goes. Good for post lists, product grids, galleries.
-- **Forms that belong to your CMS.** Build a form out of semantic fields and the submissions land in your own data tables. Instatic can read the fields you placed and create the matching table for you. No third-party form service, no embed, no monthly fee for a contact form.
+- **Forms that belong to your CMS.** Build a form out of semantic fields and the submissions land in your own data tables. Ecobuilder can read the fields you placed and create the matching table for you. No third-party form service, no embed, no monthly fee for a contact form.
 - **An AI agent that actually edits the page.** Describe what you want and it builds it on the canvas as real, editable nodes, not a screenshot or a wall of code. It writes semantic HTML for structure and CSS for style, through the same import pipeline you use when you paste markup. A 35-tool Site scope builds pages; a 15-tool Content scope edits entries. Bring your own model: Claude, OpenAI, OpenRouter, or local Ollama. Your key, your model, your bill.
 - **Imports that hold up.** Paste raw HTML and get editable nodes. Or drop a whole static site — HTML, CSS, images, fonts — and Super Import turns it into pages, style rules, design tokens, and media. Every conflict is shown to you before anything is written, and the entire import is a single undo.
 
@@ -121,7 +114,7 @@ Your whole design system lives as data. Change one token and every page that use
 
 ### 📊 Analyze
 
-<img src="docs/assets/readme/analyze-dashboard.webp" alt="The Instatic dashboard — site stats, activity feed, and status widgets on a customizable grid" width="100%">
+<img src="docs/assets/readme/analyze-dashboard.webp" alt="The Ecobuilder dashboard — site stats, activity feed, and status widgets on a customizable grid" width="100%">
 
 - **A dashboard you arrange yourself.** A 12-column grid of tile widgets you can drag, resize, and rearrange. Add the ones you care about in customize mode, and the layout saves per user. Plugins can ship their own widgets into the same grid.
 - **An audit log that doesn't forget.** Every meaningful admin action writes a row: logins, content changes, role edits, plugin lifecycle. It's append-only, so it's a real record of who did what and when, not something anyone can quietly rewrite.
@@ -133,7 +126,7 @@ The analytics surface today is intentionally operational: dashboard status, audi
 
 Every CMS has plugins. The difference here is where backend plugin code runs.
 
-An Instatic plugin is a zip package with a manifest. Its server entrypoint runs in a per-plugin worker that hosts a **QuickJS-WASM sandbox**: no filesystem, no environment variables, no network at all unless the site owner grants it, one host at a time. Editor extensions and app-kind admin pages are different: they run in the admin window and require the explicit `editor.code` permission before install.
+An Ecobuilder plugin is a zip package with a manifest. Its server entrypoint runs in a per-plugin worker that hosts a **QuickJS-WASM sandbox**: no filesystem, no environment variables, no network at all unless the site owner grants it, one host at a time. Editor extensions and app-kind admin pages are different: they run in the admin window and require the explicit `editor.code` permission before install.
 
 Through the SDK, a plugin can add:
 
@@ -150,7 +143,7 @@ Start with the [plugin system docs](docs/features/plugin-system.md) and the [tem
 
 ## Fast because there's almost nothing to load
 
-A published Instatic page is mostly just a file sitting on disk. No framework to boot, no hydration step, no database round-trip on the common path. The browser pulls down semantic HTML and compact CSS bundles, and it's done. There's barely anything between the visitor and the content, so the pages feel instant.
+A published Ecobuilder page is mostly just a file sitting on disk. No framework to boot, no hydration step, no database round-trip on the common path. The browser pulls down semantic HTML and compact CSS bundles, and it's done. There's barely anything between the visitor and the content, so the pages feel instant.
 
 That speed isn't a setting you tune. It falls out of how publishing works, in three layers you never have to think about:
 
@@ -167,8 +160,8 @@ What comes out the other end is plain HTML and compact CSS, all the way down. No
 You need [Bun](https://bun.sh). Nothing else. The default dev setup runs on SQLite, so there are no extra services to stand up.
 
 ```sh
-git clone https://github.com/corebunch/instatic.git
-cd instatic
+git clone https://github.com/agentaler/ecobuilder.git
+cd ecobuilder
 bun install
 bun run dev
 ```
@@ -187,7 +180,7 @@ We're the team behind **[Motion.page](https://motion.page)** and **[Core Framewo
 
 We spent years making other platforms more bearable. At some point the obvious question wouldn't go away: what if the thing underneath was just right to begin with? No legacy to work around, no markup we're not allowed to touch, no business model that depends on keeping your site where we can see it.
 
-So we built Instatic. And we brought Core Framework along, wired in as a core system, so the color shades, type scales, spacing, and utility classes our users already rely on are part of the product — not an add-on you install and hope for the best.
+So we built Ecobuilder. And we brought Core Framework along, wired in as a core system, so the color shades, type scales, spacing, and utility classes our users already rely on are part of the product — not an add-on you install and hope for the best.
 
 <br>
 
@@ -236,7 +229,7 @@ Dig in: [docs index](docs/README.md) · [architecture](docs/architecture.md) · 
 
 ## Thanks
 
-Instatic's interface uses [Pixelarticons](https://pixelarticons.com/) by Gerrit Halfmann. Thanks to Gerrit for a genuinely distinctive icon set, and for kindly letting us use it.
+Ecobuilder's interface uses [Pixelarticons](https://pixelarticons.com/) by Gerrit Halfmann. Thanks to Gerrit for a genuinely distinctive icon set, and for kindly letting us use it.
 
 ## License
 

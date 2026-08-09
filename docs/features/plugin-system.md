@@ -1006,7 +1006,7 @@ The build script auto-wires entrypoints from source folders: `server/index.{ts,j
 
 `instatic-plugin dev` writes built files **directly** into the host's `uploads/plugins/<id>/<version>/`. Subsequent rebuilds are picked up on the next activation cycle.
 
-When running inside the instatic monorepo, the CLI auto-detects the host's `uploads/` by walking up the tree. From a separate plugin repo:
+When running inside the ecobuilder monorepo, the CLI auto-detects the host's `uploads/` by walking up the tree. From a separate plugin repo:
 
 ```sh
 INSTATIC_UPLOADS_DIR=../instatic/uploads bun instatic-plugin dev

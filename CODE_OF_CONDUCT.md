@@ -1,6 +1,6 @@
 # Code Of Conduct
 
-Instatic aims to be a practical, respectful open-source project. Be direct, technical, and considerate.
+Ecobuilder aims to be a practical, respectful project. Be direct, technical, and considerate.
 
 ## Standards
 

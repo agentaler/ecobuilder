@@ -1,6 +1,6 @@
 # Design
 
-The visual design system for Instatic — principles, tokens, surfaces, components.
+The visual design system for Ecobuilder — principles, tokens, surfaces, components.
 
 The design is a **two-layer color model**: an achromatic base (surfaces, borders, default text) with a deliberate semantic and categorical color layer on top (numbered accents for identity, state tokens for meaning, canvas neon for selection). Everything is tokenized in `src/styles/globals.css`. Every primitive lives in `src/ui/components/`.
 
@@ -319,7 +319,7 @@ Each tile usually carries:
 - A **value** rendered large with `--text-bright`
 - Optional micro-trend, chart, or list body
 
-This is what reads as the Instatic dashboard aesthetic. Same pattern is used by the storage breakdown, posts widget, activity feed, etc. The "Add block" tile uses `box-shadow: inset 0 0 0 1px ...` to convey emptiness without breaking the borderless rule.
+This is what reads as the Ecobuilder dashboard aesthetic. Same pattern is used by the storage breakdown, posts widget, activity feed, etc. The "Add block" tile uses `box-shadow: inset 0 0 0 1px ...` to convey emptiness without breaking the borderless rule.
 
 ### 2. Floating Overlay Panels
 

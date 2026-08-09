@@ -339,7 +339,7 @@ describe('handleExportRoute — GET ?includeMedia=1', () => {
     expect(source).not.toContain('readFile(join(uploadsDir')
   })
 
-  test('returns a zip archive with media metadata in the Instatic manifest and bytes under media/', async () => {
+  test('returns a zip archive with media metadata in the Ecobuilder manifest and bytes under media/', async () => {
     const mediaDb = createSqliteClient(':memory:')
     await runMigrations(mediaDb, sqliteMigrations)
     const mediaCookie = await seedAuth(mediaDb)

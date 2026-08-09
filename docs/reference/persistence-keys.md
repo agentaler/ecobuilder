@@ -49,7 +49,7 @@ The session cookie is `HttpOnly`, `Secure` (in production behind TLS), `SameSite
 
 ## Server-side per-user preferences
 
-Stored in the `user_preferences` table — one row per `(user_id, key)`. Keys are namespaced under `instatic-`. Persisted server-side so they sync across devices.
+Stored in the `user_preferences` table — one row per `(user_id, key)`. Keys are plain, unprefixed names (`'dashboard-layout'`, `'module-inserter'` — see `USER_PREFERENCE_KEYS` in `src/core/persistence/userPreferences.ts`); the `instatic-` prefix convention applies only to client-side localStorage keys. Persisted server-side so they sync across devices.
 
 | Key                                       | Owner                                                                 | Source-of-truth file                                            |
 |-------------------------------------------|-----------------------------------------------------------------------|-----------------------------------------------------------------|

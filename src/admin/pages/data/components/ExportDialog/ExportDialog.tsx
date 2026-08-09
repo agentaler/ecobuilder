@@ -4,7 +4,7 @@
  * A sibling of the Site Import modal: a two-column category navigator (left)
  * with a detail pane (right). Everything is selected by default, so the primary
  * action is a one-click *full export* — a bundle that re-imports into a fresh
- * Instatic instance and reproduces the same site: theme & settings, all content
+ * Ecobuilder instance and reproduces the same site: theme & settings, all content
  * tables + rows, the media library and its folder tree, and published-URL
  * redirects.
  *
@@ -383,7 +383,7 @@ export function ExportDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      eyebrow="Instatic"
+      eyebrow="Ecobuilder"
       title="Export site"
       size="2xl"
       bodyClassName={styles.body}

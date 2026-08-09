@@ -2,7 +2,7 @@
 
 This index maps supported deployment targets to the files, variables, and persistence rules they need.
 
-Instatic is one Bun server packaged by the root `Dockerfile`. The server reads runtime configuration from `server/config.ts`: `PORT`, `DATABASE_URL`, `UPLOADS_DIR`, `STATIC_DIR`, `PUBLIC_ORIGIN`, and `TRUSTED_PROXY_CIDRS`. Reversible server secrets, including AI provider credentials, plugin secret settings, and MFA TOTP seeds, are encrypted with `INSTATIC_SECRET_KEY` when configured. Database migrations run automatically on boot in `server/index.ts`.
+Ecobuilder is one Bun server packaged by the root `Dockerfile`. The server reads runtime configuration from `server/config.ts`: `PORT`, `DATABASE_URL`, `UPLOADS_DIR`, `STATIC_DIR`, `PUBLIC_ORIGIN`, and `TRUSTED_PROXY_CIDRS`. Reversible server secrets, including AI provider credentials, plugin secret settings, and MFA TOTP seeds, are encrypted with `INSTATIC_SECRET_KEY` when configured. Database migrations run automatically on boot in `server/index.ts`.
 
 ---
 
@@ -51,13 +51,13 @@ Managed platforms often override `PORT`. That is fine; the server uses `process.
 Release bundles plus the published GHCR image are the default portable install path:
 
 ```sh
-INSTATIC_IMAGE=ghcr.io/corebunch/instatic:latest docker compose -f compose.prod.yml -f compose.sqlite.yml up -d
+INSTATIC_IMAGE=ghcr.io/agentaler/ecobuilder:latest docker compose -f compose.prod.yml -f compose.sqlite.yml up -d
 ```
 
 Pin a semver tag for predictable upgrades:
 
 ```sh
-INSTATIC_IMAGE=ghcr.io/corebunch/instatic:0.0.13 docker compose -f compose.prod.yml -f compose.sqlite.yml up -d
+INSTATIC_IMAGE=ghcr.io/agentaler/ecobuilder:0.0.13 docker compose -f compose.prod.yml -f compose.sqlite.yml up -d
 ```
 
 Source builds remain supported for contributors and release-candidate testing:
@@ -66,7 +66,7 @@ Source builds remain supported for contributors and release-candidate testing:
 docker compose -f compose.prod.yml -f compose.sqlite.yml -f compose.build.yml up -d --build
 ```
 
-The maintainer release target is `ghcr.io/corebunch/instatic`, documented in [release-workflow.md](release-workflow.md).
+The maintainer release target is `ghcr.io/agentaler/ecobuilder`, documented in [release-workflow.md](release-workflow.md).
 
 ## Database Choice
 

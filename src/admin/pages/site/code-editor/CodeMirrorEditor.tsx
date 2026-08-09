@@ -311,7 +311,7 @@ function codeMirrorDiagnostics(
       to: Math.min(line.to, from + 1),
       severity: diagnostic.severity,
       message: diagnostic.message,
-      source: 'Instatic compiler',
+      source: 'Ecobuilder compiler',
     }
   })
 }

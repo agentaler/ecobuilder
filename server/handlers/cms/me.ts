@@ -185,7 +185,7 @@ export async function handleMeRoutes(
     return jsonResponse({
       secret,
       otpauthUrl: totpProvisioningUri({
-        issuer: 'Instatic',
+        issuer: 'Ecobuilder',
         accountName: user.email,
         secret,
       }),

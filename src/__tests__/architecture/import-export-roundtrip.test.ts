@@ -743,7 +743,7 @@ describe('full-site round-trip — folders, membership, redirects', () => {
 })
 
 describe('archive import validation', () => {
-  test('rejects an Instatic archive that omits manifest-declared media', async () => {
+  test('rejects an Ecobuilder archive that omits manifest-declared media', async () => {
     const uploadsDir = await mkdtemp(join(tmpdir(), 'instatic-import-missing-media-'))
     try {
       const db = createSqliteClient(':memory:')

@@ -218,7 +218,7 @@ Body: an internal `SiteBundle` JSON (verbatim). Strategy is a query-string param
 
 `POST /admin/api/cms/import/archive[?strategy=replace|merge-add|merge-overwrite]`
 
-Body: the user-facing ZIP archive emitted by export. The manifest must be the first stored entry at `.instatic/site-bundle.json`; media entries must be stored under `media/<storagePath>`. This is the path used by Super Import when a dropped ZIP is an Instatic transfer archive.
+Body: the user-facing ZIP archive emitted by export. The manifest must be the first stored entry at `.instatic/site-bundle.json`; media entries must be stored under `media/<storagePath>`. This is the path used by Super Import when a dropped ZIP is an Ecobuilder transfer archive.
 
 The archive endpoint also accepts a `selection` query parameter containing `BundleImportSelection` JSON. The browser still posts the original ZIP Blob; the server filters the manifest before delegating to the JSON import handler and streams only selected media entries to disk, draining unselected archive entries as needed. Row slug conflict resolutions travel in the same selection as `rowSlugOverrides: { tableId, rowId, slug }[]`; the server applies those overrides to the manifest row before import.
 

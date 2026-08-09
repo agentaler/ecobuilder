@@ -11,7 +11,7 @@ if (!version) {
   throw new Error('Usage: bun run release:bundle -- <semver>')
 }
 
-const bundleName = `instatic-${version}`
+const bundleName = `ecobuilder-${version}`
 const stagingDir = join(OUT_DIR, bundleName)
 const archivePath = join(OUT_DIR, `${bundleName}-release-bundle.tar.gz`)
 
@@ -49,8 +49,8 @@ async function copyIntoBundle(path: string): Promise<void> {
 async function pinRenderBlueprintImage(path: string): Promise<void> {
   const destination = join(stagingDir, path)
   const contents = await readFile(destination, 'utf-8')
-  const image = `ghcr.io/corebunch/instatic:${version}`
-  const updated = contents.replace(/ghcr\.io\/corebunch\/instatic:[^\s]+/g, image)
+  const image = `ghcr.io/agentaler/ecobuilder:${version}`
+  const updated = contents.replace(/ghcr\.io\/agentaler\/ecobuilder:[^\s]+/g, image)
   if (updated === contents) {
     throw new Error(`Render Blueprint image tag was not found: ${path}`)
   }
@@ -71,14 +71,14 @@ for (const file of renderBlueprintFiles) {
 
 await writeFile(
   join(stagingDir, 'INSTALL.md'),
-  `# Instatic ${version} Install Bundle
+  `# Ecobuilder ${version} Install Bundle
 
-This bundle contains the production Compose files and deployment docs for Instatic ${version}.
+This bundle contains the production Compose files and deployment docs for Ecobuilder ${version}.
 
 ## SQLite, single-container install
 
 \`\`\`sh
-INSTATIC_IMAGE=ghcr.io/corebunch/instatic:${version} docker compose -f compose.prod.yml -f compose.sqlite.yml up -d
+INSTATIC_IMAGE=ghcr.io/agentaler/ecobuilder:${version} docker compose -f compose.prod.yml -f compose.sqlite.yml up -d
 \`\`\`
 
 ## Postgres install
@@ -86,12 +86,12 @@ INSTATIC_IMAGE=ghcr.io/corebunch/instatic:${version} docker compose -f compose.p
 \`\`\`sh
 cp .env.production.example .env
 # Edit .env and set POSTGRES_PASSWORD and INSTATIC_SECRET_KEY.
-INSTATIC_IMAGE=ghcr.io/corebunch/instatic:${version} docker compose -f compose.prod.yml up -d
+INSTATIC_IMAGE=ghcr.io/agentaler/ecobuilder:${version} docker compose -f compose.prod.yml up -d
 \`\`\`
 
 ## Railway image-source install
 
-Use \`ghcr.io/corebunch/instatic:${version}\` as the Railway service source. Attach a volume at \`/app/storage\` and set:
+Use \`ghcr.io/agentaler/ecobuilder:${version}\` as the Railway service source. Attach a volume at \`/app/storage\` and set:
 
 \`\`\`txt
 PORT=8080
@@ -112,7 +112,7 @@ Copy one of these files to a template repository as its root \`render.yaml\`:
 - \`docs/deployment/render/sqlite/render.yaml\`
 - \`docs/deployment/render/postgres/render.yaml\`
 
-These release-bundle copies are already pinned to \`ghcr.io/corebunch/instatic:${version}\`.
+These release-bundle copies are already pinned to \`ghcr.io/agentaler/ecobuilder:${version}\`.
 Read \`docs/deployment/render.md\` before publishing a Deploy to Render button.
 `,
   'utf-8',

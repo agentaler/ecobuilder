@@ -49,7 +49,7 @@ function parseArgs(argv: string[]): ParsedArgs {
 }
 
 function printHelp(): void {
-  console.log(`instatic-plugin — Instatic plugin CLI
+  console.log(`instatic-plugin — Ecobuilder plugin CLI
 
 Commands:
   init <name>             Scaffold a new plugin in <name>/

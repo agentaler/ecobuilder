@@ -22,14 +22,14 @@ Before adding AI provider credentials, saving plugin secret settings, or enablin
 
 ## Install From A Release Bundle
 
-1. Download `instatic-<version>-release-bundle.tar.gz` from the GitHub Release.
+1. Download `ecobuilder-<version>-release-bundle.tar.gz` from the GitHub Release.
 2. Unpack it on the server.
 3. Choose SQLite or Postgres.
 
 SQLite:
 
 ```sh
-INSTATIC_IMAGE=ghcr.io/corebunch/instatic:<version> docker compose -f compose.prod.yml -f compose.sqlite.yml up -d
+INSTATIC_IMAGE=ghcr.io/agentaler/ecobuilder:<version> docker compose -f compose.prod.yml -f compose.sqlite.yml up -d
 ```
 
 Postgres:
@@ -37,7 +37,7 @@ Postgres:
 ```sh
 cp .env.production.example .env
 # Set POSTGRES_PASSWORD and INSTATIC_SECRET_KEY in .env.
-INSTATIC_IMAGE=ghcr.io/corebunch/instatic:<version> docker compose -f compose.prod.yml up -d
+INSTATIC_IMAGE=ghcr.io/agentaler/ecobuilder:<version> docker compose -f compose.prod.yml up -d
 ```
 
 ## Prerequisites
@@ -49,8 +49,8 @@ Install Docker Engine and Docker Compose on the VPS. If using TLS, point a domai
 Use a source checkout:
 
 ```sh
-git clone https://github.com/CoreBunch/Instatic.git
-cd instatic
+git clone https://github.com/agentaler/ecobuilder.git
+cd ecobuilder
 ```
 
 For plain SQLite without TLS, source builds use `compose.prod.yml`, `compose.sqlite.yml`, and `compose.build.yml`. Image-pull installs use only `compose.prod.yml` and `compose.sqlite.yml`, but they still need the Compose files from a checkout or release bundle.
@@ -143,7 +143,7 @@ LETSENCRYPT_EMAIL=ops@example.com
 PUBLIC_ORIGIN=https://cms.example.com
 ```
 
-Caddy terminates TLS and forwards plain HTTP to the container, so the container's own request URL is `http://app:3001`. `PUBLIC_ORIGIN` is how Instatic knows the real public origin for its CSRF check — set it to `https://` plus your `DOMAIN`. (Leave `PUBLIC_ORIGIN` unset only for plain-HTTP installs with no proxy in front.)
+Caddy terminates TLS and forwards plain HTTP to the container, so the container's own request URL is `http://app:3001`. `PUBLIC_ORIGIN` is how Ecobuilder knows the real public origin for its CSRF check — set it to `https://` plus your `DOMAIN`. (Leave `PUBLIC_ORIGIN` unset only for plain-HTTP installs with no proxy in front.)
 
 Run SQLite + TLS:
 
@@ -227,7 +227,7 @@ Wrap the command in a process supervisor (systemd, pm2, supervisord) for auto-re
 
 `docker compose down` stops containers and keeps named volumes.
 
-`docker compose down -v` deletes named volumes. For Instatic that means deleting the CMS database and uploaded media. Use it only when intentionally wiping the install.
+`docker compose down -v` deletes named volumes. For Ecobuilder that means deleting the CMS database and uploaded media. Use it only when intentionally wiping the install.
 
 Backups are covered in [backup-restore.md](backup-restore.md).
 

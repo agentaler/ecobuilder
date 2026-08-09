@@ -1,8 +1,8 @@
 # MCP connections
 
-MCP connections let external AI clients operate an Instatic instance through the [Model Context Protocol](https://modelcontextprotocol.io). Instatic is the MCP server: clients list its capability-filtered tools, run headless reads, relay editing tools to the connection owner's open workspace, and explicitly publish completed drafts.
+MCP connections let external AI clients operate an Ecobuilder instance through the [Model Context Protocol](https://modelcontextprotocol.io). Ecobuilder is the MCP server: clients list its capability-filtered tools, run headless reads, relay editing tools to the connection owner's open workspace, and explicitly publish completed drafts.
 
-This is the inverse of the **Providers** tab. Providers let Instatic call model APIs; MCP connections let outside clients call Instatic.
+This is the inverse of the **Providers** tab. Providers let Ecobuilder call model APIs; MCP connections let outside clients call Ecobuilder.
 
 The wire server uses the stable split `@modelcontextprotocol/server` v2 package. That dependency remains allowed only under `server/ai/mcp/`; provider drivers continue to use their direct REST implementations.
 
@@ -12,7 +12,7 @@ The UI exposes two credential lifecycles instead of a cosmetic local/remote swit
 
 | Mode | Intended client | Authentication | Lifecycle |
 |---|---|---|---|
-| Hosted OAuth | Claude custom connectors and other remote MCP clients | OAuth authorization code with S256 PKCE | The client discovers the authorization server, dynamically registers, and sends the user to Instatic for consent. Access tokens last up to one hour; refresh tokens rotate; the grant expires after 90 days. |
+| Hosted OAuth | Claude custom connectors and other remote MCP clients | OAuth authorization code with S256 PKCE | The client discovers the authorization server, dynamically registers, and sends the user to Ecobuilder for consent. Access tokens last up to one hour; refresh tokens rotate; the grant expires after 90 days. |
 | Personal access token | Claude Code, Codex, Cursor, local bridges, and clients that accept an explicit header | `Authorization: Bearer imcp_pat_…` | Created after step-up authentication, shown once, scoped to selected capabilities, configurable expiry, independently revocable. |
 
 Both modes resolve to the same persistent connection grant and the same `toolAllowedForCapabilities` gate. OAuth does not create a wider tool path.
@@ -23,7 +23,7 @@ The MCP endpoint is always:
 https://<your-host>/_instatic/mcp
 ```
 
-Hosted clients run in their provider's infrastructure. They cannot reach `localhost`, a private LAN address, or an HTTP-only deployment. The MCP tab detects this and warns until Instatic's canonical public origin is HTTPS.
+Hosted clients run in their provider's infrastructure. They cannot reach `localhost`, a private LAN address, or an HTTP-only deployment. The MCP tab detects this and warns until Ecobuilder's canonical public origin is HTTPS.
 
 ## Wire protocol
 
@@ -36,13 +36,13 @@ The endpoint uses the official v2 `createMcpHandler` Web-standard entry and serv
 
 The same handler keeps the SDK's `legacy: 'stateless'` fallback enabled. Clients speaking a 2025-era revision may still send an `initialize` request and then make independent authenticated POSTs, but no protocol session is created. This compatibility path can be removed when supported clients have all migrated.
 
-Every request is bearer-authenticated before the SDK dispatches it. Browser-originated requests are also checked against Instatic's configured public-origin policy before authentication or dispatch; requests without `Origin` remain valid for native and server-to-server MCP clients.
+Every request is bearer-authenticated before the SDK dispatches it. Browser-originated requests are also checked against Ecobuilder's configured public-origin policy before authentication or dispatch; requests without `Origin` remain valid for native and server-to-server MCP clients.
 
 See the official [TypeScript SDK v2 migration guide](https://github.com/modelcontextprotocol/typescript-sdk/blob/main/docs/migration/support-2026-07-28.md), [stable MCP 2026-07-28 specification](https://modelcontextprotocol.io/specification/2026-07-28), and [release changelog](https://modelcontextprotocol.io/specification/2026-07-28/changelog) for the wire revision.
 
 ## Hosted OAuth flow
 
-Instatic implements the MCP authorization-server surface directly:
+Ecobuilder implements the MCP authorization-server surface directly:
 
 | Endpoint | Purpose |
 |---|---|
@@ -61,7 +61,7 @@ Hosted MCP client
   → dynamically registers its exact callback URI
   → opens /admin/ai/oauth/authorize with resource + state + S256 challenge
   → user signs in, reviews the client, selects capabilities, and completes step-up
-  → Instatic redirects a one-time code to the registered callback
+  → Ecobuilder redirects a one-time code to the registered callback
   → client exchanges code + verifier for opaque access and refresh tokens
   → client calls /_instatic/mcp with the access token
 ```
@@ -81,13 +81,13 @@ Security properties:
 
 ### Claude Desktop / Claude custom connector
 
-1. Deploy Instatic at a public HTTPS origin and configure that origin through the normal server public-origin configuration.
-2. In Instatic, open **AI → MCP** and copy the **Remote MCP URL**.
+1. Deploy Ecobuilder at a public HTTPS origin and configure that origin through the normal server public-origin configuration.
+2. In Ecobuilder, open **AI → MCP** and copy the **Remote MCP URL**.
 3. In Claude, open **Settings → Connectors**, add a custom connector, choose a name, and paste the URL.
 4. Leave **OAuth Client ID** and **OAuth Client Secret** empty. Claude can dynamically register as a public PKCE client.
-5. Choose **Connect**. The browser returns to Instatic, where the user selects capabilities and approves the connection.
+5. Choose **Connect**. The browser returns to Ecobuilder, where the user selects capabilities and approves the connection.
 
-The resulting OAuth connection appears automatically under **Authorized connections**. No Instatic token is copied into Claude.
+The resulting OAuth connection appears automatically under **Authorized connections**. No Ecobuilder token is copied into Claude.
 
 ## Personal access tokens
 

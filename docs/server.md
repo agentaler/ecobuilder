@@ -1,6 +1,6 @@
 # Server
 
-Deep dive on the server-side of Instatic — the Bun process, the router, the handlers, the auth model, the DB adapter, and how a request becomes a response.
+Deep dive on the server-side of Ecobuilder — the Bun process, the router, the handlers, the auth model, the DB adapter, and how a request becomes a response.
 
 The server is a single `Bun.serve` process that boots the DB, runs migrations, activates installed plugins, then accepts HTTP requests and dispatches them through an ordered route table. There are no separate service processes or message queues. The runtime entrypoint is `server/index.ts`; CPU-heavy image variants and plugin server code run in `Bun.Worker`s owned by this process.
 
@@ -72,7 +72,7 @@ It walks an ordered `routes` array of `RouteHandler` functions. Each handler ret
 - Dropping the body is `Bun.serve`'s job. A `HEAD` response ships the headers a `GET` would have produced, `content-length` included, with no content — handlers stay body-agnostic.
 - A method a route genuinely doesn't support still gets its `405`; only `HEAD` is folded into `GET`.
 
-Before this normalisation existed, `HEAD` matched no `GET`-gated route and fell through to the terminal JSON `404`, so uptime monitors and link checkers — which probe with `HEAD` by convention — reported healthy published pages as missing ([#306](https://github.com/CoreBunch/Instatic/issues/306)).
+Before this normalisation existed, `HEAD` matched no `GET`-gated route and fell through to the terminal JSON `404`, so uptime monitors and link checkers — which probe with `HEAD` by convention — reported healthy published pages as missing ([#306](https://github.com/agentaler/ecobuilder/issues/306)).
 
 ### The route table
 
