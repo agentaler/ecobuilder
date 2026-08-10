@@ -76,6 +76,7 @@ export async function handleSetupRoutes(req: Request, db: DbClient): Promise<Res
 
     return serializeCollabAwareWrite(async () => {
       let homePageId = ''
+      let postTemplateId = ''
       const response = await db.transaction(async (tx) => {
         await createSite(tx, siteName, {})
         const owner = await createUser(tx, {
@@ -111,10 +112,42 @@ export async function handleSetupRoutes(req: Request, db: DbClient): Promise<Res
           null,
           { collabInternal: true },
         )
+
+        // Seed an entry template for the `posts` post type. Without one, a
+        // published post resolves to a row but has no template chain to render
+        // through, so `renderPublishedDataRowTemplate` returns null and the
+        // public URL 404s while the UI reports the publish as successful — a
+        // silent dead end on every fresh install. The template is a normal
+        // page the user can edit or delete; it just has to exist.
+        const templateRoot = createNode('base.body')
+        const templateOutlet = createNode('base.outlet')
+        templateRoot.children = [templateOutlet.id]
+        templateOutlet.parentId = templateRoot.id
+        const postTemplate: Page = {
+          id: nanoid(),
+          title: 'Post template',
+          slug: 'post-template',
+          nodes: { [templateRoot.id]: templateRoot, [templateOutlet.id]: templateOutlet },
+          rootNodeId: templateRoot.id,
+          template: { enabled: true, target: { kind: 'postTypes', tableSlugs: ['posts'] }, priority: 0 },
+        }
+        postTemplateId = postTemplate.id
+        await createDataRow(
+          tx,
+          {
+            id: postTemplate.id,
+            tableId: 'pages',
+            cells: pageToCells(postTemplate),
+            slug: postTemplate.slug,
+          },
+          owner.id,
+          null,
+          { collabInternal: true },
+        )
         return jsonResponse({ ok: true }, { status: 201 })
       })
       notifyShellWrite()
-      notifyRowWrite({ tableId: 'pages', rowIds: [homePageId], kind: 'create' })
+      notifyRowWrite({ tableId: 'pages', rowIds: [homePageId, postTemplateId], kind: 'create' })
       return response
     })
   }
