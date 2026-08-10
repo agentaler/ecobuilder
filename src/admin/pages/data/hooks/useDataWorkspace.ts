@@ -8,7 +8,6 @@ import {
   deleteCmsDataTable,
   listCmsDataRows,
   listCmsDataTables,
-  publishCmsDataRow,
   saveCmsDataRowDraft,
   updateCmsDataTable,
   updateCmsDataRowStatus,
@@ -24,6 +23,7 @@ import type {
 import { buildDuplicateRowCells } from '@core/data/duplicateRow'
 import { buildEmptyCells } from '../utils/fieldDefaults'
 import { getErrorMessage } from '@core/utils/errorMessage'
+import { publishRowAndWarn } from '@admin/lib/publishRow'
 
 function updateRowList(rows: DataRow[], row: DataRow): DataRow[] {
   const idx = rows.findIndex((r) => r.id === row.id)
@@ -352,7 +352,7 @@ export function useDataWorkspace({ shouldLoadRows }: DataWorkspaceOptions): Data
 
   const publishRow = async (rowId: string): Promise<DataRow> => {
     setRowsError(null)
-    const row = await publishCmsDataRow(rowId)
+    const row = await publishRowAndWarn(rowId)
     setRows((current) => updateRowList(current, row))
     return row
   }

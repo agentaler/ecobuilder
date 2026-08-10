@@ -477,6 +477,25 @@ const DataRowVersionSchema = Type.Object({
 export type DataRowVersion = Static<typeof DataRowVersionSchema>
 
 // ---------------------------------------------------------------------------
+// PublishWarning — the publish succeeded, but the result is not visible.
+//
+// Publishing a row and serving it are two different things: the row transitions
+// to `published` in its own transaction, while the public URL only renders if
+// the row's post type has a *published* entry template to render it into
+// (`renderPublishedDataRowTemplate` returns null on an empty template chain).
+// Without this warning that gap is silent end to end — the API returns 200, the
+// row shows as published, and every visit to the URL 404s.
+// ---------------------------------------------------------------------------
+
+export const PublishWarningSchema = Type.Object({
+  code: Type.Literal('missingEntryTemplate'),
+  /** Ready to show to the user; the server owns the wording. */
+  message: Type.String(),
+})
+
+export type PublishWarning = Static<typeof PublishWarningSchema>
+
+// ---------------------------------------------------------------------------
 // PublishedDataRow — the active version joined with its table, resolved for
 // public-route rendering. `cells` snapshots the version's payload at publish
 // time; `featuredMediaPath` is resolved by the publisher when the row carries

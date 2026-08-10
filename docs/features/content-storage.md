@@ -237,7 +237,7 @@ For postType rows, `publishDataRow` does the same but incrementally: writes the 
 
 See [docs/features/publisher.md](publisher.md) for the full pipeline.
 
-For **post-types**, public row routes require an explicitly authored entry template (a `pages` row with `template.target = { kind: 'postTypes', tableSlugs: [table.slug] }`). When you publish a post, the renderer resolves the template chain for the entry route (`resolveTemplateChain`) and renders the merged tree with the post row pushed onto the entry stack as `currentEntry`. Dynamic bindings on the template nodes resolve `currentEntry.title`, `currentEntry.body`, etc. Without a matching entry template, the published row exists in the CMS but its public detail URL returns 404. See [docs/features/templates.md](templates.md) for the full template model.
+For **post-types**, public row routes require an explicitly authored entry template (a `pages` row with `template.target = { kind: 'postTypes', tableSlugs: [table.slug] }`). When you publish a post, the renderer resolves the template chain for the entry route (`resolveTemplateChain`) and renders the merged tree with the post row pushed onto the entry stack as `currentEntry`. Dynamic bindings on the template nodes resolve `currentEntry.title`, `currentEntry.body`, etc. Without a matching entry template, the published row exists in the CMS but its public detail URL returns 404 — so `publishDataRow` returns a `missingEntryTemplate` warning alongside the published row rather than letting that gap pass silently, and setup seeds a `post-template` page so a fresh install has one. See [docs/features/templates.md](templates.md) for the full template model.
 
 ### Scheduled publishing
 

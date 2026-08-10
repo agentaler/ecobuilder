@@ -10,7 +10,7 @@ import type {
   SaveDataRowDraftInput,
   DataMeta,
 } from '@core/data/schemas'
-import type { DeletedRowSummary } from '@core/data/schemas'
+import type { DeletedRowSummary, PublishWarning } from '@core/data/schemas'
 import {
   DataMetaSchema,
   DataRowSchema,
@@ -18,6 +18,7 @@ import {
   DataTableSchema,
   DataUserReferenceSchema,
   DeletedRowSummarySchema,
+  PublishWarningSchema,
 } from '@core/data/schemas'
 import type { LoopItem } from '@core/loops/types'
 import { LoopItemSchema } from '@core/loops/types'
@@ -49,6 +50,11 @@ const TableEnvelope = Type.Object(
 
 const RowEnvelope = Type.Object(
   { row: Type.Optional(DataRowSchema) },
+  { additionalProperties: true },
+)
+
+const PublishedRowEnvelope = Type.Object(
+  { row: Type.Optional(DataRowSchema), warnings: Type.Optional(Type.Array(PublishWarningSchema)) },
   { additionalProperties: true },
 )
 
@@ -228,19 +234,28 @@ export async function deleteCmsDataRow(
   return body.row
 }
 
+export interface PublishedCmsDataRow {
+  row: DataRow
+  /**
+   * Publish succeeded but the row is not reachable — e.g. its post type has no
+   * published entry template. Callers surface these; they are not failures.
+   */
+  warnings: PublishWarning[]
+}
+
 export async function publishCmsDataRow(
   rowId: string,
   fetchImpl: FetchLike = globalThis.fetch.bind(globalThis),
   basePath = '/admin/api/cms',
-): Promise<DataRow> {
+): Promise<PublishedCmsDataRow> {
   const body = await apiRequest(`${basePath}/data/rows/${encodeURIComponent(rowId)}/publish`, {
     method: 'POST',
-    schema: RowEnvelope,
+    schema: PublishedRowEnvelope,
     fetchImpl,
     fallbackMessage: 'CMS data row publish failed',
   })
   if (!body.row) throw new Error('CMS data row publish response was missing row')
-  return body.row
+  return { row: body.row, warnings: body.warnings ?? [] }
 }
 
 /**

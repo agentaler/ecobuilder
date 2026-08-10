@@ -326,6 +326,13 @@ Creating a postType `data_table` does not create a page. Entry templates are ord
 
 Without a matching entry template, the row remains publishable CMS content but its public detail URL returns 404.
 
+Two things keep that from being a silent dead end:
+
+- **Setup seeds a `post-template` page** targeting the seeded `posts` table (`server/handlers/cms/setup.ts`), so a fresh install can publish a post and have it render. It is an ordinary page — restyle it, retarget it, or delete it.
+- **Publishing a row reports the gap.** `publishDataRow` resolves the entry template chain against the last *published* site snapshot and returns a `missingEntryTemplate` warning when it is empty (`PublishWarningSchema` in `@core/data/schemas`). The publish still succeeds — the row really is published — but the admin surfaces the warning as a toast (`publishRowAndWarn` in `src/admin/lib/publishRow.ts`), and the scheduler logs it, because nobody is watching a scheduled publish.
+
+The chain is resolved against the *published* snapshot, so a template that exists only as a draft still warns: the site has to be published before the entry route goes live.
+
 ---
 
 ## Cookbook
