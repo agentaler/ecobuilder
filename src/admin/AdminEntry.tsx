@@ -85,6 +85,7 @@ export default function AdminEntry({ section = 'dashboard' }: AdminEntryProps) {
   return (
     <AdminPreAuthForm
       phase={livePhase}
+      setupTokenRequired={boot.setupTokenRequired}
       publicSite={boot.publicSite}
       initialError={boot.initialError}
       onPhaseChange={(phase) => setOverride({ phase })}

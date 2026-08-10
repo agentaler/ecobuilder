@@ -23,6 +23,8 @@ export type PreAuthPhase = 'setup' | 'login' | 'mfa'
 
 interface AdminPreAuthFormProps {
   phase: PreAuthPhase
+  /** Production installs require a bootstrap token to claim the instance. */
+  setupTokenRequired: boolean
   publicSite: CmsPublicSite
   initialError: string | null
   onPhaseChange: (phase: PreAuthPhase) => void
@@ -62,6 +64,7 @@ async function runAuthAction(
 
 export function AdminPreAuthForm({
   phase,
+  setupTokenRequired,
   publicSite,
   initialError,
   onPhaseChange,
@@ -72,6 +75,7 @@ export function AdminPreAuthForm({
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [mfaCode, setMfaCode] = useState('')
+  const [setupToken, setSetupToken] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(initialError)
 
@@ -80,6 +84,7 @@ export function AdminPreAuthForm({
   const emailId = useId()
   const passwordId = useId()
   const mfaCodeId = useId()
+  const setupTokenId = useId()
 
   async function handleSetup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -88,7 +93,7 @@ export function AdminPreAuthForm({
       return
     }
     await runAuthAction(async () => {
-      await setupCms({ siteName, email, password, displayName })
+      await setupCms({ siteName, email, password, displayName, setupToken })
       await loginCms({ email, password })
       onAuthenticated(await getCurrentCmsUser())
     }, 'Setup failed', setSubmitting, setError)
@@ -194,6 +199,22 @@ export function AdminPreAuthForm({
                   data-testid="admin-setup-display-name"
                 />
               </label>
+
+              {/* Only a person with deployment log access can claim a public
+                  install — knowing the URL is not enough. */}
+              {setupTokenRequired && (
+                <label className={styles.field} htmlFor={setupTokenId}>
+                  <span>Setup token <span className={styles.hint}>printed in this server's startup log</span></span>
+                  <Input
+                    id={setupTokenId}
+                    value={setupToken}
+                    onChange={(event) => setSetupToken(event.target.value)}
+                    required
+                    autoComplete="off"
+                    data-testid="admin-setup-token"
+                  />
+                </label>
+              )}
             </>
           )}
 

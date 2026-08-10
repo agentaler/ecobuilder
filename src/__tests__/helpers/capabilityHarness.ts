@@ -1,6 +1,7 @@
 import { expect } from 'bun:test'
 import type { CoreCapability } from '../../../server/auth/capabilities'
 import { SESSION_COOKIE_NAME } from '../../../server/auth/tokens'
+import { getSetupToken } from '../../../server/auth/setupToken'
 import type { DbClient } from '../../../server/db'
 import { handleCmsRequest, type CmsHandlerOptions } from '../../../server/handlers/cms'
 import { tryHandleAi } from '../../../server/ai/handlers'
@@ -146,6 +147,11 @@ export async function createCapabilityTestHarness(
         siteName: 'Capability Matrix',
         email: ownerEmail,
         password: CAPABILITY_TEST_PASSWORD,
+        // The harness stands in for the operator claiming the install, and an
+        // operator has the bootstrap token. Sending it unconditionally keeps
+        // tests that run under NODE_ENV=production (where the setup gate is
+        // live) from having to know the gate exists.
+        setupToken: getSetupToken(),
       },
     })
     expect(res.status).toBe(201)

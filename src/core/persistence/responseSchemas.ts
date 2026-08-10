@@ -56,6 +56,12 @@ export const CmsSetupStatusSchema = Type.Object({
   hasAdmin: Type.Boolean(),
   hasOwner: Type.Optional(Type.Boolean()),
   needsSetup: Type.Boolean(),
+  /**
+   * Whether the setup POST demands a bootstrap token (production only — see
+   * `server/auth/setupToken.ts`). Optional so a client talking to an older
+   * server still parses; absent reads as "not required".
+   */
+  setupTokenRequired: Type.Optional(Type.Boolean()),
 })
 
 export type CmsSetupStatus = Static<typeof CmsSetupStatusSchema>

@@ -47,6 +47,7 @@ type AdminBootPhase = 'setup' | 'login' | 'editor'
 interface AdminBootResult {
   status: 'loading' | 'ready'
   phase: AdminBootPhase
+  setupTokenRequired: boolean
   currentUser: CmsCurrentUser | null
   publicSite: CmsPublicSite
   initialError: string | null
@@ -71,6 +72,9 @@ export function useAdminBoot(): AdminBootResult {
   const [currentUser, setCurrentUser] = useState<CmsCurrentUser | null>(null)
   const [publicSite, setPublicSite] = useState<CmsPublicSite>(DEFAULT_PUBLIC_SITE)
   const [initialError, setInitialError] = useState<string | null>(null)
+  // Production installs gate the setup POST behind a bootstrap token, so the
+  // setup form has to know whether to ask for one.
+  const [setupTokenRequired, setSetupTokenRequired] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -103,6 +107,7 @@ export function useAdminBoot(): AdminBootResult {
         if (setupStatus.needsSetup) {
           // flushSync — see comment on the editor-phase branch below.
           flushSync(() => {
+            setSetupTokenRequired(setupStatus.setupTokenRequired ?? false)
             setPhase('setup')
             setStatus('ready')
           })
@@ -157,5 +162,5 @@ export function useAdminBoot(): AdminBootResult {
     return () => { cancelled = true }
   }, [])
 
-  return { status, phase, currentUser, publicSite, initialError }
+  return { status, phase, currentUser, publicSite, initialError, setupTokenRequired }
 }

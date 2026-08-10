@@ -13,6 +13,11 @@ interface CmsSetupInput {
   password: string
   /** The owner's public name. Omitted or empty means author bindings render nothing. */
   displayName?: string
+  /**
+   * Bootstrap token, required when `CmsSetupStatus.setupTokenRequired` is set.
+   * The server prints it to the deployment log of an unclaimed install.
+   */
+  setupToken?: string
 }
 
 interface CmsLoginInput {

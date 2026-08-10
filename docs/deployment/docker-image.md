@@ -141,6 +141,7 @@ Render auto-injects `RENDER_EXTERNAL_URL`, which Ecobuilder uses as the CSRF pub
 | `STATIC_DIR` | Yes in Docker | `/app/dist` |
 | `PORT` | Platform-dependent | HTTP listen port; defaults to `3001` |
 | `INSTATIC_SECRET_KEY` | Yes for reversible server secrets | Output of `bun run scripts/generate-secret-key.ts` |
+| `INSTATIC_SETUP_TOKEN` | Optional in production | Bootstrap token for the first-run setup screen. Unset, one is generated per boot and printed to the startup log |
 | `PUBLIC_ORIGIN` | Behind managed HTTPS proxies | Comma-separated public origins for the CSRF check, e.g. `https://www.example.com`. Auto-detected from `RENDER_EXTERNAL_URL` / `RAILWAY_PUBLIC_DOMAIN` on those platforms |
 | `TRUSTED_PROXY_CIDRS` | Optional | Comma-separated trusted proxy CIDRs for client-IP attribution only (audit logs, rate-limit keys) — **not** used for CSRF. Trust only your real proxy CIDRs; never `0.0.0.0/0` for a public service |
 
@@ -149,6 +150,20 @@ Managed platforms usually inject `PORT`. Do not hard-code a different listen por
 Managed HTTPS platforms often terminate TLS before forwarding HTTP to the container, so the container sees plain HTTP. Set `PUBLIC_ORIGIN` to the site's public origin for those deployments so the CSRF origin check compares against the real public origin instead of the container-local request URL. Render and Railway are auto-detected (`RENDER_EXTERNAL_URL` / `RAILWAY_PUBLIC_DOMAIN`), so a one-click deploy needs no manual value; set `PUBLIC_ORIGIN` explicitly when you add a custom domain (append it as a second comma-separated entry).
 
 `INSTATIC_SECRET_KEY` is the stable AES master key for reversible server secrets, including Anthropic, OpenAI, and OpenRouter credentials and TOTP MFA seeds. If it is missing in production, adding a credential or enabling TOTP MFA fails. If it is rotated or lost, existing stored credentials must be re-entered and TOTP MFA must be re-enrolled.
+
+### Claiming a new production install
+
+`POST /admin/api/cms/setup` creates the site and its first owner. It refuses to run twice, but until it has run once the install belongs to whoever reaches it first — on a public hostname that is a stranger, not you. In production the setup screen therefore also asks for a bootstrap token:
+
+- Set `INSTATIC_SETUP_TOKEN` to pin a value you already know, or
+- leave it unset and read the token from the startup log:
+
+  ```
+  [setup] This install is unclaimed. Setup requires this one-time token:
+  [setup]   <token>
+  ```
+
+A generated token changes on every restart, so claim the install in the same boot you read it from — or set the env var. Once setup completes the endpoint 409s and nothing is logged on later boots. Outside production (`NODE_ENV !== 'production'`) no token is required, so local development and the test suite are unaffected.
 
 ## Health Check
 

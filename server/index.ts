@@ -3,6 +3,8 @@ import { runMigrations } from './db/runMigrations'
 import { initCache } from './cache/redis'
 import { adoptPublishVersion, syncPublishVersionFromCache } from './publish/publishState'
 import { syncSystemRoles } from './repositories/roles'
+import { getSetupStatus } from './repositories/setup'
+import { logSetupTokenIfPending } from './auth/setupToken'
 import { readServerConfig } from './config'
 import { DEV_ORIGIN_ALLOWLIST, configurePublicOrigins, configureTrustedProxyCidrs, stampSocketIp } from './auth/security'
 import { applySecurityHeaders } from './securityHeaders'
@@ -178,3 +180,8 @@ process.on('SIGTERM', () => void shutdown('SIGTERM'))
 process.on('SIGINT', () => void shutdown('SIGINT'))
 
 console.log(`[server] Listening on http://localhost:${config.port}`)
+
+// An unclaimed production install is claimable by anyone who reaches it, so
+// the setup POST is token-gated. Announce the token here — after the listen
+// log, where an operator reading deployment output will actually see it.
+logSetupTokenIfPending((await getSetupStatus(db)).needsSetup)
