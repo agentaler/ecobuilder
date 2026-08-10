@@ -8,7 +8,7 @@ Today one host serves both a site's public pages (`/`) and its editor (`/admin`)
 | Host | Serves | Audience |
 |---|---|---|
 | `app.ecobuilder.ai` | tenant workspace at `/` | customers |
-| `<tenant>.ecobuilder.site` / custom domain | that tenant's published site at `/` | visitors |
+| `<tenant>.ecobuilder.ai` / custom domain | that tenant's published site at `/` | visitors |
 | `admin.ecobuilder.ai` | platform console | Ecobuilder staff |
 
 **The security rule this epic exists to enforce:** platform administration is NOT a tenant capability. A super admin is a platform-level identity on its own host with its own session scope; it is never "an owner with more permissions". Otherwise any tenant-scoping bug in the capability system escalates into cross-tenant access.

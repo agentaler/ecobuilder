@@ -34,7 +34,7 @@ Requirement IDs below were assigned by this analysis (no formal PRD exists).
 | E06 | SaaS accounts: signup, social login, tenant model | P1 | E03 | 10 | R-003, R-009 |
 | E07 | Tenant-scoped data layer | P1 | E06 | 9 | R-003 |
 | E08 | Tenant-aware runtime & publishing | P2 | E07 | 9 | R-003 |
-| E09 | Domains: tenant subdomains, custom connect, purchase | P2 | E08 | 8 | R-010 |
+| E09 | Domains: tenant subdomains, custom connect, purchase | P2 | E08 | 9 | R-010 |
 | E10 | Billing & plans | P2 | E06 | 7 | R-003 |
 | E11 | SaaS operations: observability, GDPR, limits, backups | P2 | E03 | 8 | R-003 |
 | E12 | URL model & super-admin console | P1–P2 | E06, E08 | 9 | R-003, R-012 |
@@ -54,7 +54,7 @@ Added coverage dimension: `i18n` (landing-page localization and locale routing).
 | E06 | T06,T07 | T04,T05 | T02,T03 | T08 | T01 | T09 | N/A¹⁰ | T10 | N/A² |
 | E07 | N/A¹¹ | T05 | T01–T04 | T06,T07 | N/A¹¹ | T08 | N/A¹⁰ | T09 | N/A² |
 | E08 | T06 | T02 | T01 | T05 | T03,T04 | T07,T08 | N/A¹⁰ | T09 | N/A² |
-| E09 | T04,T05 | T02,T03 | T01 | T06 | N/A¹² | T07 | T03 | T08 | N/A² |
+| E09 | T04,T05 | T02,T03 | T01 | T06,T09 | N/A¹² | T07 | T03 | T08 | N/A² |
 | E10 | T04 | T02,T03 | T01 | T05 | N/A¹² | T06 | N/A¹⁰ | T07 | N/A² |
 | E11 | T06 | N/A¹³ | T05 | T03 | N/A¹² | T07 | T01,T02,T04 | T08 | N/A² |
 
@@ -85,8 +85,9 @@ Added coverage dimension: `i18n` (landing-page localization and locale routing).
 | R-007 | E05-T07,T08 | |
 | R-008 | E03-T01…T08 | |
 | R-009 | E06-T01,T04,T05,T06 | |
-| R-010 | E09-T01…T08 | |
+| R-010 | E09-T01…T09 | |
 | R-011 | E00-T01…T05 | |
+| R-012 | E12-T01…T09; E09-T09 | E09-T09 keeps the console isolated from tenant subdomains |
 
 ### Unmapped requirements
 None — all requirements in scope are covered.
@@ -95,9 +96,11 @@ None — all requirements in scope are covered.
 
 1. **Better Auth vs. extending in-house auth** (R-009). Better Auth would replace a mature in-house session/MFA/step-up stack and add a large dependency; the conservative reading encoded in E06 is: keep the in-house session model, add OAuth (Google, GitHub, Apple) provider flows to it, and revisit Better Auth only if provider count grows. E06-T01 is the decision ticket.
 2. **Existing production data** (E03). app.ecobuilder.ai currently runs on SQLite with (apparently) only setup-time data. Tickets assume it is acceptable to re-run setup on Postgres rather than build a SQLite→PG data migration tool. Confirm before E03-T03.
-3. **Tenant public-site subdomain scheme** (E08/E09). Tickets assume `<tenant>.ecobuilder.site` (separate TLD from the app/landing domains, standard SaaS practice for cookie/security isolation). Needs domain purchase + wildcard DNS decision.
+3. **Tenant public-site subdomain scheme** (E08/E09) — **DECIDED (user, 2026-08-10): `<tenant>.ecobuilder.ai`**, with custom-domain mapping on top. Needs wildcard DNS + wildcard TLS for `*.ecobuilder.ai`.
+
+   This puts tenant-controlled sites as siblings of `app.ecobuilder.ai` and `admin.ecobuilder.ai` under one registrable domain, which makes them **related-domain attackers** in browser terms. That is safe only with the mitigations now mandated in E09-T09; without them a tenant site can set cookies that the workspace and console will receive. The alternative (a separate domain such as `ecobuilder.site`) removes the class of attack entirely, so revisit if the mitigations prove awkward.
 4. **Domain purchase provider** (R-010). Tickets assume a reseller API (Namecheap/OpenSRS/Gandi or Cloudflare Registrar-style). E09-T01 is the decision ticket; pricing margin is a business decision.
-5. **Billing scope** (E10). User directives (2026-08-09): undercut Instapage to win customers, with a strong annual discount — Create €29/mo annual (€39 monthly), Optimize €59/mo annual (€79 monthly), Convert custom — all with a 14-day free trial, 25% annual saving. Sell on eco + AI + effortless setup. Stripe assumed (connector already attached). E10-T01 confirms limits per tier.
+5. **Billing scope** (E10). User directives (2026-08-09): undercut Instapage to win customers, with a strong annual discount — Create €29/mo annual (€39 monthly), Optimize €59/mo annual (€79 monthly), Convert custom — all with a 7-day free trial, 25% annual saving. Sell on eco + AI + effortless setup. Stripe assumed (connector already attached). E10-T01 confirms limits per tier.
 6. **Open-source status.** User directive (2026-08-09): Ecobuilder is a **closed-source commercial SaaS**, not open source. The repo currently carries an open-source LICENSE, public GitHub positioning, README/CONTRIBUTING language, and CLAUDE.md's "self-hosted, open-source" description — all need a repositioning pass (folded into E01), and the repository likely needs to become private. Legal review of the upstream license obligations (the codebase originates from the Instatic open-source project) is REQUIRED before relicensing — flag to the user.
 7. **`/_instatic/*` public namespaces** (E02). Renaming URL prefixes baked into published HTML requires dual-serving + republish. Tickets encode: rename env vars and CLI now; keep wire-level namespaces (`/_instatic/*`, `<instatic-hole>`, `@instatic/*` import specifiers) until a dedicated migration window — they are invisible to end users.
 8. **Admin UI localization** is treated as out of scope (landing page only gets FR). Flag if the product itself must be bilingual.

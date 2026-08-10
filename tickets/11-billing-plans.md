@@ -11,7 +11,7 @@ Out of scope for this epic: usage-based metering beyond plan limits; invoicing l
 **Covers:** R-003
 **Depends on:** —
 
-Plan names and prices are set by user directive (undercut Instapage; strong annual discount): **Create** €29/mo annual (€39 monthly), **Optimize** €59/mo annual (€79 monthly), **Convert** custom — all with a 14-day free trial and a 25% annual saving. This ADR confirms the limit dimensions per tier already advertised on the landing page (Create: 1 site, 30k visitors/mo; Optimize: multiple sites/workspaces, 100k visitors/mo, domain purchase, team roles, priority support; Convert: unlimited + onboarding/SLA) and any additional enforcement dimensions (storage GB, AI usage).
+Plan names and prices are set by user directive (undercut Instapage; strong annual discount): **Create** €29/mo annual (€39 monthly), **Optimize** €59/mo annual (€79 monthly), **Convert** custom — all with a 7-day free trial and a 25% annual saving. This ADR confirms the limit dimensions per tier already advertised on the landing page (Create: 1 site, 30k visitors/mo; Optimize: multiple sites/workspaces, 100k visitors/mo, domain purchase, team roles, priority support; Convert: unlimited + onboarding/SLA) and any additional enforcement dimensions (storage GB, AI usage).
 
 **Acceptance criteria:**
 - Signed-off plan matrix with concrete numbers; limit dimensions enumerated as typed constants.
