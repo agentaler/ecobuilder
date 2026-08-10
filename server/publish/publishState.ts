@@ -26,7 +26,37 @@
 // Publish version
 // ---------------------------------------------------------------------------
 
+import {
+  PUBLISH_LOCK_KEY,
+  acquireLock,
+  incrementSharedPublishVersion,
+  isCacheConfigured,
+  readSharedPublishVersion,
+  releaseLock,
+} from '../cache/redis'
+
 let publishVersion = 0
+
+/**
+ * Adopt a publish version observed elsewhere (a peer instance's broadcast, or
+ * the shared counter read at boot). Only ever moves forward: versions are
+ * monotonic, and going backwards would make this instance serve renders it has
+ * already invalidated.
+ */
+export function adoptPublishVersion(version: number): void {
+  if (Number.isFinite(version) && version > publishVersion) publishVersion = version
+}
+
+/**
+ * Align the local counter with the shared one at startup. Without this a
+ * restarted instance would begin at 0 and consider every peer-published render
+ * "newer than current", serving stale hole fragments until its own first
+ * publish caught up.
+ */
+export async function syncPublishVersionFromCache(): Promise<void> {
+  const shared = await readSharedPublishVersion()
+  if (shared !== null) adoptPublishVersion(shared)
+}
 
 /**
  * Increment the publish version. All version-keyed caches (the render-cache
@@ -36,7 +66,16 @@ let publishVersion = 0
  * Call after every publish commit (full publish, per-row publish, unpublish).
  */
 export function bumpPublishVersion(): number {
-  return ++publishVersion
+  publishVersion += 1
+  if (isCacheConfigured()) {
+    // Mirror to the shared counter so peer instances invalidate their own
+    // render caches. Fire-and-forget: the local bump is what this request
+    // depends on, and a Redis outage must not fail a publish.
+    void incrementSharedPublishVersion().then((shared) => {
+      if (shared !== null) adoptPublishVersion(shared)
+    })
+  }
+  return publishVersion
 }
 
 /**
@@ -79,13 +118,43 @@ let publishChain: Promise<unknown> = Promise.resolve()
  * promise-chain serializer is sufficient.
  */
 export function withPublishLock<T>(fn: () => Promise<T>): Promise<T> {
-  const run = (): Promise<T> => fn()
+  const run = (): Promise<T> => (isCacheConfigured() ? runWithSharedLock(fn) : fn())
   const result = publishChain.then(run, run)
   publishChain = result.then(
     () => undefined,
     () => undefined,
   )
   return result
+}
+
+/** How long a publish may hold the shared lock before peers may take it. */
+const SHARED_LOCK_TTL_MS = 120_000
+/** Poll interval while another instance holds the lock. */
+const SHARED_LOCK_RETRY_MS = 150
+/** Give up waiting and proceed unlocked rather than failing the publish. */
+const SHARED_LOCK_WAIT_MS = 30_000
+
+/**
+ * Serialize a publish across instances as well as within this process. If the
+ * lock cannot be taken within `SHARED_LOCK_WAIT_MS` — or Redis is unavailable
+ * — the publish proceeds with only the in-process lock, which is exactly the
+ * single-instance behaviour. Availability beats strict mutual exclusion here:
+ * the failure mode of waiting forever is a stuck deploy.
+ */
+async function runWithSharedLock<T>(fn: () => Promise<T>): Promise<T> {
+  const deadline = Date.now() + SHARED_LOCK_WAIT_MS
+  let token: string | null = null
+  while (Date.now() < deadline) {
+    token = await acquireLock(PUBLISH_LOCK_KEY, SHARED_LOCK_TTL_MS)
+    if (token) break
+    await Bun.sleep(SHARED_LOCK_RETRY_MS)
+  }
+  if (!token) console.warn('[publish] shared lock unavailable, publishing with local lock only')
+  try {
+    return await fn()
+  } finally {
+    if (token) await releaseLock(PUBLISH_LOCK_KEY, token)
+  }
 }
 
 // ---------------------------------------------------------------------------

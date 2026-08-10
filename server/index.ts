@@ -1,5 +1,7 @@
 import { createDbClient } from './db'
 import { runMigrations } from './db/runMigrations'
+import { initCache } from './cache/redis'
+import { adoptPublishVersion, syncPublishVersionFromCache } from './publish/publishState'
 import { syncSystemRoles } from './repositories/roles'
 import { readServerConfig } from './config'
 import { DEV_ORIGIN_ALLOWLIST, configurePublicOrigins, configureTrustedProxyCidrs, stampSocketIp } from './auth/security'
@@ -19,6 +21,14 @@ configureTrustedProxyCidrs(config.trustedProxyCidrs)
 configurePublicOrigins(config.publicOrigins)
 const { db, migrations } = createDbClient(config.databaseUrl)
 await runMigrations(db, migrations)
+
+// Optional shared cache. When REDIS_URL is set this makes publish
+// invalidation and the publish lock work across instances; when it is unset
+// every helper is a no-op and the process behaves exactly as a single-instance
+// install always has.
+await initCache(config.redisUrl, adoptPublishVersion)
+await syncPublishVersionFromCache()
+if (config.redisUrl) console.log('[cache] shared cache connected')
 // System role sync runs after migrations on every boot — the Owner row's
 // capabilities are force-reset to `CORE_CAPABILITIES` so existing
 // installations don't strand owners on a stale grant list when new
