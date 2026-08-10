@@ -19,6 +19,7 @@ Requirement IDs below were assigned by this analysis (no formal PRD exists).
 | R-009 | Social login (Better Auth or similar) | P1 |
 | R-010 | Tenants can **connect their own domain or buy a domain from us** easily | P2 |
 | R-011 | Publish (site + posts) works reliably on the hosted deployment | P0 |
+| R-012 | Platform console (super admin) separate from tenant workspaces; workspace served at `/` on the app host, not `/admin` | P1–P2 |
 
 ## Epics & build order
 
@@ -36,6 +37,7 @@ Requirement IDs below were assigned by this analysis (no formal PRD exists).
 | E09 | Domains: tenant subdomains, custom connect, purchase | P2 | E08 | 8 | R-010 |
 | E10 | Billing & plans | P2 | E06 | 7 | R-003 |
 | E11 | SaaS operations: observability, GDPR, limits, backups | P2 | E03 | 8 | R-003 |
+| E12 | URL model & super-admin console | P1–P2 | E06, E08 | 9 | R-003, R-012 |
 
 Added coverage dimension: `i18n` (landing-page localization and locale routing). Checklist: translated copy completeness, locale routing/URLs, hreflang, language detection & override, persisted preference, date/number formats.
 
@@ -99,6 +101,7 @@ None — all requirements in scope are covered.
 6. **Open-source status.** User directive (2026-08-09): Ecobuilder is a **closed-source commercial SaaS**, not open source. The repo currently carries an open-source LICENSE, public GitHub positioning, README/CONTRIBUTING language, and CLAUDE.md's "self-hosted, open-source" description — all need a repositioning pass (folded into E01), and the repository likely needs to become private. Legal review of the upstream license obligations (the codebase originates from the Instatic open-source project) is REQUIRED before relicensing — flag to the user.
 7. **`/_instatic/*` public namespaces** (E02). Renaming URL prefixes baked into published HTML requires dual-serving + republish. Tickets encode: rename env vars and CLI now; keep wire-level namespaces (`/_instatic/*`, `<instatic-hole>`, `@instatic/*` import specifiers) until a dedicated migration window — they are invisible to end users.
 8. **Admin UI localization** is treated as out of scope (landing page only gets FR). Flag if the product itself must be bilingual.
+9. **`/admin` prefix and super admin** (E12). User directive (2026-08-10): once multi-tenant, the workspace should be served at `/` on app.ecobuilder.ai (the prefix only existed because one host served both a public site and its editor), and `/admin` should come to mean the *platform* console. Tickets encode: workspace at `/` with `/admin/*` redirects, console on a separate host (`admin.ecobuilder.ai`) with a platform-level identity that is deliberately NOT a tenant capability, and the internal `/admin/api/*` namespace left alone as invisible churn. Confirm the console hostname.
 
 ## Out of scope (stated or conservative)
 
