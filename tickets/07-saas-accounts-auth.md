@@ -25,6 +25,8 @@ Additive migrations (both dialects, same ID): `tenants` (id, slug unique, name, 
 **Acceptance criteria:**
 - Migration runs on a live-shaped DB; every existing user ends up a member of the backfilled tenant with an equivalent role.
 
+**Status: implemented.** Migration `025_tenancy` (both dialects) creates `tenants` + `tenant_members` and backfills the bootstrap tenant `'default'` from the `site` row + existing users. Repository at `server/repositories/tenants.ts` (`createTenant`, `addTenantMember`, `listTenantsForUser`, `getTenantMembership`, `countActiveTenantOwners`, `normalizeTenantSlug` with the E09-T09 reserved-slug set). Setup (`server/handlers/cms/setup.ts`) now creates the bootstrap tenant + owner membership so fresh installs match the backfilled shape. Covered by `src/__tests__/server/tenants.test.ts`. The former single-install architecture gate is rewritten as `singleInstallManagedHosting.test.ts` → "Tenancy model is canonical". Remaining in E06: T03 (retire single-owner index), T04–T08 (signup/OAuth/session tenancy).
+
 ### E06-T03 · Retire single-installation account constraints `db` `P1`
 **Covers:** R-003
 **Depends on:** E06-T02

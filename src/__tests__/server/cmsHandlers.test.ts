@@ -387,6 +387,26 @@ function makeFakeDb() {
       })
       return { rows: [], rowCount: 1 }
     }
+    // Tenancy (migration 025): setup now creates the bootstrap tenant + owner
+    // membership. This fake DB has no tenant tables, so answer the three
+    // statements setup issues with plausible rows.
+    if (normalized.includes('from tenants where slug')) {
+      return { rows: [], rowCount: 0 } // no existing tenant with this slug
+    }
+    if (normalized.includes('insert into tenants')) {
+      const now = new Date().toISOString()
+      return {
+        rows: [{ id: values[0], slug: values[1], name: values[2], status: 'active', settings_json: {}, created_at: now, updated_at: now } as Row],
+        rowCount: 1,
+      }
+    }
+    if (normalized.includes('insert into tenant_members')) {
+      const now = new Date().toISOString()
+      return {
+        rows: [{ tenant_id: values[0], user_id: values[1], role_id: values[2], status: values[3], created_at: now, updated_at: now } as Row],
+        rowCount: 1,
+      }
+    }
     throw new Error(`Unhandled SQL: ${sql}`)
   }
 

@@ -1224,4 +1224,51 @@ export const sqliteMigrations: Migration[] = [
        where trim(lower(display_name)) = trim(lower(email));
     `,
   },
+  {
+    // Multi-tenancy foundation (E06-T02). `tenants` is the account boundary
+    // every later epic scopes to; `tenant_members` binds a user to a tenant
+    // with a role — roles stay global capability bundles, membership makes
+    // them per-tenant. Additive and non-destructive: existing single-install
+    // data is backfilled into one bootstrap tenant with id 'default', and the
+    // legacy single-owner / single-site model keeps working unchanged until
+    // later migrations retire it. On a fresh (pre-setup) DB the backfill
+    // selects nothing and setup creates the first tenant instead.
+    id: '025_tenancy',
+    sql: `
+      create table if not exists tenants (
+        id text primary key,
+        slug text not null unique,
+        name text not null,
+        status text not null default 'active',
+        settings_json text not null default '{}',
+        created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        updated_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        constraint tenants_status_check check (status in ('active', 'suspended'))
+      );
+
+      create table if not exists tenant_members (
+        tenant_id text not null references tenants(id) on delete cascade,
+        user_id text not null references users(id) on delete cascade,
+        role_id text not null references roles(id) on delete restrict,
+        status text not null default 'active',
+        created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        updated_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        primary key (tenant_id, user_id),
+        constraint tenant_members_status_check check (status in ('active', 'suspended'))
+      );
+
+      create index if not exists tenant_members_user_idx
+        on tenant_members (user_id);
+
+      -- Backfill the bootstrap tenant from the existing site row (if setup has
+      -- run), then make every non-deleted user a member with their current role.
+      insert into tenants (id, slug, name)
+        select 'default', 'default', name from site limit 1
+        on conflict (id) do nothing;
+
+      insert into tenant_members (tenant_id, user_id, role_id, status)
+        select 'default', id, role_id, status from users where deleted_at is null
+        on conflict (tenant_id, user_id) do nothing;
+    `,
+  },
 ]

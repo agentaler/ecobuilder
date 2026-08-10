@@ -22,6 +22,12 @@ import { nanoid } from 'nanoid'
 import type { DbClient } from '../../db/client'
 import { hashPassword } from '../../auth/tokens'
 import { createSite, getSetupStatus } from '../../repositories/setup'
+import {
+  BOOTSTRAP_TENANT_ID,
+  BOOTSTRAP_TENANT_SLUG,
+  addTenantMember,
+  createTenant,
+} from '../../repositories/tenants'
 import { isSetupTokenRequired, isValidSetupToken } from '../../auth/setupToken'
 import { createUser } from '../../repositories/users'
 import { createAuditEvent } from '../../repositories/audit'
@@ -112,6 +118,12 @@ export async function handleSetupRoutes(req: Request, db: DbClient): Promise<Res
           metadata: { roleId: 'owner', source: 'setup' },
           ...requestAuditContext(req),
         })
+        // Create the bootstrap tenant + owner membership so a freshly set-up
+        // install matches the shape migration 025 backfills existing installs
+        // into: exactly one tenant ('default') with the owner as its owner.
+        // Single-tenant self-hosted mode simply never creates a second one.
+        await createTenant(tx, { id: BOOTSTRAP_TENANT_ID, slug: BOOTSTRAP_TENANT_SLUG, name: siteName })
+        await addTenantMember(tx, { tenantId: BOOTSTRAP_TENANT_ID, userId: owner.id, roleId: 'owner' })
         // Seed a starter homepage as a data_row in the 'pages' system table.
         const rootNode = createNode('base.body')
         const homePage: Page = {

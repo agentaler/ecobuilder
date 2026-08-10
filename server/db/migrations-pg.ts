@@ -1156,4 +1156,48 @@ export const pgMigrations: Migration[] = [
        where trim(lower(display_name)) = trim(lower(email));
     `,
   },
+  {
+    // Multi-tenancy foundation (E06-T02) — see migrations-sqlite.ts:025 for the
+    // rationale. `tenants` is the account boundary later epics scope to;
+    // `tenant_members` binds a user to a tenant with a role. Additive: existing
+    // single-install data is backfilled into one bootstrap tenant ('default')
+    // and the legacy model keeps working until later migrations retire it.
+    id: '025_tenancy',
+    sql: `
+      create table if not exists tenants (
+        id text primary key,
+        slug text not null unique,
+        name text not null,
+        status text not null default 'active',
+        settings_json jsonb not null default '{}'::jsonb,
+        created_at timestamptz not null default now(),
+        updated_at timestamptz not null default now(),
+        constraint tenants_status_check check (status in ('active', 'suspended'))
+      );
+
+      create table if not exists tenant_members (
+        tenant_id text not null references tenants(id) on delete cascade,
+        user_id text not null references users(id) on delete cascade,
+        role_id text not null references roles(id) on delete restrict,
+        status text not null default 'active',
+        created_at timestamptz not null default now(),
+        updated_at timestamptz not null default now(),
+        primary key (tenant_id, user_id),
+        constraint tenant_members_status_check check (status in ('active', 'suspended'))
+      );
+
+      create index if not exists tenant_members_user_idx
+        on tenant_members (user_id);
+
+      -- Backfill the bootstrap tenant from the existing site row (if setup has
+      -- run), then make every non-deleted user a member with their current role.
+      insert into tenants (id, slug, name)
+        select 'default', 'default', name from site limit 1
+        on conflict (id) do nothing;
+
+      insert into tenant_members (tenant_id, user_id, role_id, status)
+        select 'default', id, role_id, status from users where deleted_at is null
+        on conflict (tenant_id, user_id) do nothing;
+    `,
+  },
 ]
