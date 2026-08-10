@@ -423,7 +423,7 @@ Each iframe `<head>` receives five `<style>` elements (three from `ClassStyleInj
 
 | Element | Injector | Cascade layer | Contents |
 |---|---|---|---|
-| `<style id="instatic-editor-chrome">` | `EditorChromeInjector` | **unlayered** | Editor-only chrome: placeholder, slot-instance, list placeholder, unknown-module fallback |
+| `<style id="ecobuilder-editor-chrome">` | `EditorChromeInjector` | **unlayered** | Editor-only chrome: placeholder, slot-instance, list placeholder, unknown-module fallback |
 | `<style id="mc-classes">` | `ClassStyleInjector` | `@layer user-authored` | Publisher reset + framework CSS + class registry CSS |
 | `<style id="mc-classes-preview">` | `ClassStyleInjector` | `@layer user-authored` | Higher-specificity preview rule while a property control is hovered; empty for state-pseudo rules |
 | `<style id="mc-classes-force-state">` | `ClassStyleInjector` | `@layer user-authored` | Forced state preview: paints the active state-pseudo rule onto the selected node via a doubled `[data-node-id]` selector |
@@ -640,7 +640,7 @@ Data sources:
 - **Modules:** `registry.list()` filtered by the same editor insertion rules as the compact picker (`base.body`, `base.visual-component-ref`, and `base.slot-instance` hidden; `base.slot-outlet` only in Visual Component mode).
 - **Layouts:** a single source — user-saved layouts from `site.layouts` (see "Saved layouts" below), which persist as `data_rows` (table_id `layouts`). There are no code-defined presets; any built-ins we ship later are seeded rows in that same table, indistinguishable from a user save.
 - **Components:** `site.visualComponents`.
-- **Recent:** per-browser local state in `instatic-module-inserter-v1`, validated with TypeBox before use.
+- **Recent:** per-browser local state in `ecobuilder-module-inserter-v1`, validated with TypeBox before use.
 - **Favorites:** per-user server state in `user_preferences` key `module-inserter`, validated with TypeBox by `src/core/persistence/userPreferences.ts` and used by `CanvasNotch`.
 
 The modal uses the tile-card pattern from `docs/design.md`: `--bg-surface` parent, 1px grid gap, `--bg-surface-2` tiles, `--card-radius`, categorical accents via `data-accent`, and an achromatic `--focus-ring` selection state. Wireframe image regions reuse `--canvas-placeholder-bg`.

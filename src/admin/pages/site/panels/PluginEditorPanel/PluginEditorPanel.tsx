@@ -50,7 +50,7 @@ function PluginEditorPanelContent({
   onToggleMode,
 }: PluginEditorPanelProps) {
   // Subscribe to the runtime so the panel re-renders if the plugin is
-  // re-activated (e.g. after a hot reload from `instatic-plugin dev`).
+  // re-activated (e.g. after a hot reload from `ecobuilder-plugin dev`).
   const [tick, setTick] = useState(0)
   useEffect(() => {
     const unsubscribe = pluginRuntime.subscribe(() => setTick((t) => t + 1))

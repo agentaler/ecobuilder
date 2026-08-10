@@ -15,12 +15,15 @@ import { createCapabilityTestHarness } from '../helpers/capabilityHarness'
 import { getSetupToken, isSetupTokenRequired, isValidSetupToken } from '../../../server/auth/setupToken'
 
 const originalNodeEnv = process.env.NODE_ENV
-const originalToken = process.env.INSTATIC_SETUP_TOKEN
+const originalToken = process.env.ECOBUILDER_SETUP_TOKEN
+const originalLegacyToken = process.env.INSTATIC_SETUP_TOKEN
 
 afterEach(() => {
   process.env.NODE_ENV = originalNodeEnv
-  if (originalToken === undefined) delete process.env.INSTATIC_SETUP_TOKEN
-  else process.env.INSTATIC_SETUP_TOKEN = originalToken
+  if (originalToken === undefined) delete process.env.ECOBUILDER_SETUP_TOKEN
+  else process.env.ECOBUILDER_SETUP_TOKEN = originalToken
+  if (originalLegacyToken === undefined) delete process.env.INSTATIC_SETUP_TOKEN
+  else process.env.INSTATIC_SETUP_TOKEN = originalLegacyToken
 })
 
 async function postSetup(
@@ -41,7 +44,7 @@ describe('setup token gate', () => {
     const harness = await createCapabilityTestHarness()
     try {
       process.env.NODE_ENV = 'production'
-      process.env.INSTATIC_SETUP_TOKEN = 'correct-horse-battery-staple'
+      process.env.ECOBUILDER_SETUP_TOKEN = 'correct-horse-battery-staple'
 
       const res = await postSetup(harness, VALID_SETUP)
       expect(res.status).toBe(403)
@@ -59,7 +62,7 @@ describe('setup token gate', () => {
     const harness = await createCapabilityTestHarness()
     try {
       process.env.NODE_ENV = 'production'
-      process.env.INSTATIC_SETUP_TOKEN = 'correct-horse-battery-staple'
+      process.env.ECOBUILDER_SETUP_TOKEN = 'correct-horse-battery-staple'
 
       const res = await postSetup(harness, { ...VALID_SETUP, setupToken: 'guess' })
       expect(res.status).toBe(403)
@@ -72,7 +75,7 @@ describe('setup token gate', () => {
     const harness = await createCapabilityTestHarness()
     try {
       process.env.NODE_ENV = 'production'
-      process.env.INSTATIC_SETUP_TOKEN = 'correct-horse-battery-staple'
+      process.env.ECOBUILDER_SETUP_TOKEN = 'correct-horse-battery-staple'
 
       const res = await postSetup(harness, {
         ...VALID_SETUP,
@@ -102,7 +105,7 @@ describe('setup token gate', () => {
     const harness = await createCapabilityTestHarness()
     try {
       process.env.NODE_ENV = 'production'
-      process.env.INSTATIC_SETUP_TOKEN = 'correct-horse-battery-staple'
+      process.env.ECOBUILDER_SETUP_TOKEN = 'correct-horse-battery-staple'
       const status = await (await harness.cms('/admin/api/cms/setup/status')).json()
       expect(status.setupTokenRequired).toBe(true)
 
@@ -121,6 +124,18 @@ describe('setup token comparison', () => {
     expect(isSetupTokenRequired()).toBe(true)
     process.env.NODE_ENV = 'development'
     expect(isSetupTokenRequired()).toBe(false)
+  })
+
+  it('honours the legacy INSTATIC_SETUP_TOKEN name as a fallback', () => {
+    // Deployment config set before the ECOBUILDER_* rename must keep working —
+    // see src/core/utils/renamedEnv.ts. New name wins when both are set.
+    delete process.env.ECOBUILDER_SETUP_TOKEN
+    process.env.INSTATIC_SETUP_TOKEN = 'legacy-configured-token'
+    expect(isValidSetupToken('legacy-configured-token')).toBe(true)
+    process.env.ECOBUILDER_SETUP_TOKEN = 'current-token'
+    expect(isValidSetupToken('current-token')).toBe(true)
+    expect(isValidSetupToken('legacy-configured-token')).toBe(false)
+    delete process.env.INSTATIC_SETUP_TOKEN
   })
 
   it('rejects a prefix of the real token', () => {

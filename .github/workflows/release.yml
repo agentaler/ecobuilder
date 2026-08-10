@@ -82,9 +82,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            INSTATIC_VERSION=${{ steps.version.outputs.version }}
-            INSTATIC_REVISION=${{ github.sha }}
-            INSTATIC_CREATED=${{ steps.version.outputs.created }}
+            ECOBUILDER_VERSION=${{ steps.version.outputs.version }}
+            ECOBUILDER_REVISION=${{ github.sha }}
+            ECOBUILDER_CREATED=${{ steps.version.outputs.created }}
 
   bundle:
     name: Publish Release Bundle

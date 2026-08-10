@@ -108,7 +108,7 @@ Or build and tag an image manually:
 
 ```sh
 docker build -t ghcr.io/agentaler/ecobuilder:dev .
-INSTATIC_IMAGE=ghcr.io/agentaler/ecobuilder:dev docker compose -f compose.prod.yml up -d
+ECOBUILDER_IMAGE=ghcr.io/agentaler/ecobuilder:dev docker compose -f compose.prod.yml up -d
 ```
 
 ## GitHub Actions Shape

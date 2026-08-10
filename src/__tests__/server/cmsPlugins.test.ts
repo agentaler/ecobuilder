@@ -715,7 +715,7 @@ describe('CMS plugin handlers', () => {
   })
 
   it('installs zip plugin packages, writes assets, and activates backend routes', async () => {
-    const uploadsDir = await mkdtemp(join(tmpdir(), 'instatic-plugins-'))
+    const uploadsDir = await mkdtemp(join(tmpdir(), 'ecobuilder-plugins-'))
     const db = makeFakeDb()
     const cookie = await createCookie(db)
     const manifest = {

@@ -3,4 +3,4 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: ${INSTATIC_IMAGE:-ecobuilder:local}
+    image: ${ECOBUILDER_IMAGE:-${INSTATIC_IMAGE:-ecobuilder:local}}

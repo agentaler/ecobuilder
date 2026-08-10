@@ -6,7 +6,7 @@ import { dirname, join, resolve } from 'node:path'
 const ROOT = resolve(import.meta.dir, '..')
 const OUT_DIR = join(ROOT, '.tmp', 'release')
 
-const version = Bun.argv[2] ?? process.env.INSTATIC_VERSION
+const version = Bun.argv[2] ?? process.env.ECOBUILDER_VERSION
 if (!version) {
   throw new Error('Usage: bun run release:bundle -- <semver>')
 }
@@ -78,15 +78,15 @@ This bundle contains the production Compose files and deployment docs for Ecobui
 ## SQLite, single-container install
 
 \`\`\`sh
-INSTATIC_IMAGE=ghcr.io/agentaler/ecobuilder:${version} docker compose -f compose.prod.yml -f compose.sqlite.yml up -d
+ECOBUILDER_IMAGE=ghcr.io/agentaler/ecobuilder:${version} docker compose -f compose.prod.yml -f compose.sqlite.yml up -d
 \`\`\`
 
 ## Postgres install
 
 \`\`\`sh
 cp .env.production.example .env
-# Edit .env and set POSTGRES_PASSWORD and INSTATIC_SECRET_KEY.
-INSTATIC_IMAGE=ghcr.io/agentaler/ecobuilder:${version} docker compose -f compose.prod.yml up -d
+# Edit .env and set POSTGRES_PASSWORD and ECOBUILDER_SECRET_KEY.
+ECOBUILDER_IMAGE=ghcr.io/agentaler/ecobuilder:${version} docker compose -f compose.prod.yml up -d
 \`\`\`
 
 ## Railway image-source install
@@ -99,7 +99,7 @@ DATABASE_URL=sqlite:/app/storage/data/cms.db
 UPLOADS_DIR=/app/storage/uploads
 STATIC_DIR=/app/dist
 RAILWAY_RUN_UID=0
-INSTATIC_SECRET_KEY=<output of bun run scripts/generate-secret-key.ts>
+ECOBUILDER_SECRET_KEY=<output of bun run scripts/generate-secret-key.ts>
 PUBLIC_ORIGIN=https://\${{RAILWAY_PUBLIC_DOMAIN}}
 \`\`\`
 

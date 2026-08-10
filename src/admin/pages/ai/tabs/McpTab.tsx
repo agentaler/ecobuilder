@@ -563,14 +563,14 @@ function AccessTokenResultDialog({
     '--transport',
     'http-only',
     '--header',
-    'Authorization:${INSTATIC_MCP_AUTH}',
+    'Authorization:${ECOBUILDER_MCP_AUTH}',
   ]
   const desktopConfig = JSON.stringify({
     mcpServers: {
       instatic: {
         command: 'npx',
         args: bridgeArgs,
-        env: { INSTATIC_MCP_AUTH: `Bearer ${accessToken}` },
+        env: { ECOBUILDER_MCP_AUTH: `Bearer ${accessToken}` },
       },
     },
   }, null, 2)

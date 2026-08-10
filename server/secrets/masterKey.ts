@@ -8,7 +8,8 @@
  *
  * Source priority:
  *
- *   1. `INSTATIC_SECRET_KEY` environment variable (base64).
+ *   1. `ECOBUILDER_SECRET_KEY` environment variable (base64). The legacy
+ *      `INSTATIC_SECRET_KEY` is still read as a fallback (see `renamedEnv.ts`).
  *      Production deployments MUST set this. If unset in production
  *      (`NODE_ENV=production`), boot fails loudly with instructions.
  *
@@ -23,11 +24,13 @@
  */
 
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { readRenamedEnv, renamedEnvName } from '@core/utils/renamedEnv'
 import { dirname } from 'node:path'
 
 const REQUIRED_KEY_BYTES = 32
 const DEV_KEY_PATH = '.tmp/secret.key'
-const ENV_VAR_NAME = 'INSTATIC_SECRET_KEY'
+const ENV_VAR_SUFFIX = 'SECRET_KEY'
+const ENV_VAR_NAME = renamedEnvName(ENV_VAR_SUFFIX)
 
 let cachedKey: CryptoKey | null = null
 let cachedFingerprint: string | null = null
@@ -69,7 +72,7 @@ export function __resetMasterKeyCacheForTesting(): void {
 }
 
 function readMasterKeyBytes(): Uint8Array {
-  const envValue = process.env[ENV_VAR_NAME]
+  const envValue = readRenamedEnv(ENV_VAR_SUFFIX)
   if (envValue && envValue.trim()) {
     return parseAndValidateBase64(envValue.trim(), `env var ${ENV_VAR_NAME}`)
   }

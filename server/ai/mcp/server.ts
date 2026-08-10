@@ -113,7 +113,7 @@ function plainInputSchema(schema: AiTool['inputSchema']): Tool['inputSchema'] {
 
 export function buildMcpServer(ctx: McpServerContext): Server {
   const server = new Server(
-    { name: 'instatic', version: '1.0.0' },
+    { name: 'ecobuilder', version: '1.0.0' },
     { capabilities: { tools: {} } },
   )
 

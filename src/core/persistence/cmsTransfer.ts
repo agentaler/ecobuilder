@@ -16,6 +16,8 @@ import type { SiteBundle, BundlePreview, ImportResult, ImportStrategy, ExportReq
 import { SiteBundleSchema, BundlePreviewSchema, ImportResultSchema, ExportEstimateSchema, ExportSummarySchema } from '@core/data/bundleSchema'
 import {
   BUNDLE_ARCHIVE_MANIFEST_PATH,
+  LEGACY_BUNDLE_ARCHIVE_MANIFEST_PATH,
+  isBundleArchiveManifestPath,
   mediaArchivePath,
   SiteBundleArchiveManifestSchema,
   type SiteBundleArchiveManifest,
@@ -281,7 +283,7 @@ export function parseSiteBundleArchive(bytes: Uint8Array): SiteBundle | null {
     return null
   }
 
-  const manifestBytes = entries[BUNDLE_ARCHIVE_MANIFEST_PATH]
+  const manifestBytes = entries[BUNDLE_ARCHIVE_MANIFEST_PATH] ?? entries[LEGACY_BUNDLE_ARCHIVE_MANIFEST_PATH]
   if (!manifestBytes) return null
 
   let parsed: unknown
@@ -335,7 +337,7 @@ export async function readSiteBundleArchiveManifestFile(
 
   const metadata = new Uint8Array(await archiveFile.slice(metadataStart, metadataEnd).arrayBuffer())
   const fileName = textDecoder.decode(metadata.subarray(0, fileNameLength))
-  if (fileName !== BUNDLE_ARCHIVE_MANIFEST_PATH) return null
+  if (!isBundleArchiveManifestPath(fileName)) return null
 
   if (compression !== ZIP_STORED_METHOD) {
     throw new SiteBundleParseError('CMS archive manifest must be stored without compression', '')

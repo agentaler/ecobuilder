@@ -305,7 +305,7 @@ Use `binaryResponse` whenever a route handler returns binary content (runtime as
 ### The session flow
 
 ```text
-Cookie: instatic_admin_session=<token>
+Cookie: ecobuilder_admin_session=<token>
     │
     ▼
 hashSessionToken(token)

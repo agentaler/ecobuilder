@@ -1,6 +1,6 @@
 /**
  * Resolve plugin-build / plugin-dev configuration without an explicit
- * `instatic-plugin login` step. The dev workflow is filesystem-direct — the CLI
+ * `ecobuilder-plugin login` step. The dev workflow is filesystem-direct — the CLI
  * writes built plugin files into the running CMS's `uploads/plugins/<id>/<version>/`
  * directory, and the host's server module loader picks the changes up
  * automatically via the `?v=Date.now()` cache buster on its dynamic import.
@@ -8,8 +8,8 @@
  * That means the only thing the CLI needs to know is *where the host's
  * uploads directory lives*. Resolution order, highest-priority first:
  *
- *   1. CLI flag:   `instatic-plugin dev --uploads <path>`
- *   2. Environment: `INSTATIC_UPLOADS_DIR=<path> instatic-plugin dev`
+ *   1. CLI flag:   `ecobuilder-plugin dev --uploads <path>`
+ *   2. Environment: `ECOBUILDER_UPLOADS_DIR=<path> ecobuilder-plugin dev`
  *   3. Auto-detect: walk up from the plugin source dir looking for an
  *      `uploads/plugins/` sibling — covers the common case of editing a
  *      first-party plugin inside the instatic monorepo.
@@ -20,6 +20,7 @@
  */
 import { existsSync } from 'node:fs'
 import { dirname, isAbsolute, join, resolve } from 'node:path'
+import { readRenamedEnv } from '@core/utils/renamedEnv'
 
 export interface PluginDevTargets {
   /** Absolute path to the host's uploads directory. */
@@ -71,7 +72,7 @@ export function resolvePluginDevConfig(
     }
   }
 
-  const envUploads = env.INSTATIC_UPLOADS_DIR
+  const envUploads = readRenamedEnv('UPLOADS_DIR', env)
   if (envUploads && envUploads.trim()) {
     return {
       uploadsDir: isAbsolute(envUploads)
@@ -92,11 +93,11 @@ export function resolvePluginDevConfig(
       ``,
       `Provide it explicitly with one of:`,
       `  • --uploads <path>            (CLI flag)`,
-      `  • INSTATIC_UPLOADS_DIR=<path>        (environment variable)`,
+      `  • ECOBUILDER_UPLOADS_DIR=<path>      (environment variable)`,
       ``,
-      `…or run \`instatic-plugin dev\` from a plugin folder whose ancestor contains an`,
+      `…or run \`ecobuilder-plugin dev\` from a plugin folder whose ancestor contains an`,
       `\`uploads/plugins/\` directory (the default for first-party plugins inside`,
-      `the instatic monorepo).`,
+      `the ecobuilder monorepo).`,
     ].join('\n'),
   )
 }

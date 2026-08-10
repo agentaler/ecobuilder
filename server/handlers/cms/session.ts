@@ -13,7 +13,7 @@
  *    "no such user" branch so latency stays constant and an attacker
  *    can't enumerate emails by timing.
  */
-import { SESSION_COOKIE_NAME, hashPassword } from '../../auth/tokens'
+import { LEGACY_SESSION_COOKIE_NAME, SESSION_COOKIE_NAME, hashPassword } from '../../auth/tokens'
 import { publicOriginIsHttps } from '../../auth/security'
 
 /**
@@ -46,6 +46,16 @@ export function sessionCookie(req: Request, token: string, expires: Date): strin
 export function clearSessionCookie(req: Request): string {
   const attrs = sessionCookieAttributes(requestIsHttps(req))
   return `${SESSION_COOKIE_NAME}=; ${attrs}; Max-Age=0`
+}
+
+/**
+ * Expire the pre-rename cookie. Logout emits this alongside
+ * `clearSessionCookie` so a browser holding the legacy name does not keep
+ * presenting a revoked token on every request.
+ */
+export function clearLegacySessionCookie(req: Request): string {
+  const attrs = sessionCookieAttributes(requestIsHttps(req))
+  return `${LEGACY_SESSION_COOKIE_NAME}=; ${attrs}; Max-Age=0`
 }
 
 /**

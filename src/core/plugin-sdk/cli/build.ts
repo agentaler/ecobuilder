@@ -1,7 +1,7 @@
 /**
  * Plugin build pipeline.
  *
- * Reads `<dir>/instatic-plugin.config.ts`, evaluates it via `import()` (Bun
+ * Reads `<dir>/ecobuilder-plugin.config.ts`, evaluates it via `import()` (Bun
  * transpiles TypeScript natively), and writes the runtime zip layout that
  * the host package installer expects:
  *
@@ -28,6 +28,7 @@ import { spawn } from 'node:child_process'
 import type { PluginDefinition } from '../builders/definePlugin'
 import { assertSandboxSafe } from '@core/plugins/sandboxScan'
 import { installPackCompileEnvironment } from './packCompileEnvironment'
+import { PLUGIN_CONFIG_FILENAME, resolvePluginConfigPath } from './configPath'
 
 export interface PluginBuildResult {
   pluginId: string
@@ -39,13 +40,13 @@ export async function readPluginDefinition(sourceDir: string): Promise<PluginDef
   // The config may call definePack({ layouts }) which compiles HTML — give it
   // a DOM + the base module registry before it is evaluated.
   installPackCompileEnvironment()
-  const configPath = join(sourceDir, 'instatic-plugin.config.ts')
-  if (!existsSync(configPath)) {
-    throw new Error(`instatic-plugin.config.ts not found at ${configPath}`)
+  const configPath = resolvePluginConfigPath(sourceDir)
+  if (!configPath) {
+    throw new Error(`${PLUGIN_CONFIG_FILENAME} not found in ${sourceDir}`)
   }
   const mod = await import(pathToFileURL(configPath).href + `?ts=${Date.now()}`) as { default: PluginDefinition }
   if (!mod.default || typeof mod.default !== 'object') {
-    throw new Error(`instatic-plugin.config.ts must default-export a definePlugin() result`)
+    throw new Error(`${PLUGIN_CONFIG_FILENAME} must default-export a definePlugin() result`)
   }
   return mod.default
 }
@@ -362,7 +363,7 @@ async function zipDirectory(sourceDir: string, zipPath: string): Promise<void> {
 }
 
 export interface BuildPluginOptions {
-  /** When false, skip producing the .plugin.zip (used by `instatic-plugin dev`). */
+  /** When false, skip producing the .plugin.zip (used by `ecobuilder-plugin dev`). */
   zip?: boolean
 }
 

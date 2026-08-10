@@ -62,7 +62,7 @@ When a new Ecobuilder version is available, update by redeploying the latest ima
 Prefer your own hardware? Ecobuilder is a single Docker image:
 
 ```sh
-INSTATIC_IMAGE=ghcr.io/agentaler/ecobuilder:latest docker compose -f compose.prod.yml -f compose.sqlite.yml up -d
+ECOBUILDER_IMAGE=ghcr.io/agentaler/ecobuilder:latest docker compose -f compose.prod.yml -f compose.sqlite.yml up -d
 ```
 
 Full guides for VPS, Postgres, HTTPS with Caddy, Render, and backups are in [docs/deployment](docs/deployment/README.md).

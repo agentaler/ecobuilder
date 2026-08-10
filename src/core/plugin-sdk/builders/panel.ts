@@ -30,7 +30,7 @@
  *   })
  *
  * The plugin's bundle has zero React imports relative to the runtime — at
- * build time, `instatic-plugin build` externalizes `react`, `react/jsx-runtime`,
+ * build time, `ecobuilder-plugin build` externalizes `react`, `react/jsx-runtime`,
  * `@instatic/host-ui`, `@instatic/host-hooks`, and
  * `@instatic/plugin-sdk`. The host's import map resolves those names at
  * mount time to its own React instance and design-system primitives, so
@@ -76,7 +76,7 @@ const PANEL_ID_PATTERN = /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/
 
 /**
  * Identity wrapper — validates the id shape at definition time so authoring
- * errors surface during `instatic-plugin build`, not at editor activation.
+ * errors surface during `ecobuilder-plugin build`, not at editor activation.
  */
 export function definePluginPanel(
   config: DefinePluginEditorPanelConfig,

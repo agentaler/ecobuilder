@@ -216,6 +216,6 @@ describe('mcp http transport', () => {
     expect(res?.headers.get('Mcp-Session-Id')).toBeNull()
     const rpc = parseRpcBody(await res!.text())
     expect(rpc.result?.protocolVersion).toBe('2025-06-18')
-    expect(rpc.result?.serverInfo).toEqual({ name: 'instatic', version: '1.0.0' })
+    expect(rpc.result?.serverInfo).toEqual({ name: 'ecobuilder', version: '1.0.0' })
   })
 })

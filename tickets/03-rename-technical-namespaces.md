@@ -1,6 +1,8 @@
 # E02 — Rename: technical namespaces
 Phase: P1 · Depends on: E01 · Requirements: R-001, R-002
 
+**Status (2026-08-10): T01–T06 SHIPPED** — env vars (`renamedEnv.ts` fallback), session cookie (dual-read in `authz.ts`, dual-clear on logout), MCP identity string, plugin CLI + config filename (`configPath.ts` dual-read), localStorage/sessionStorage keys (one-time boot sweep `legacyStorageKeys.ts`), and the naming-sensitive tests (`renamedIdentifiers.test.ts`, `legacyStorageKeys.test.ts`). The published-HTML wire namespaces (`/_instatic/*`, `<instatic-hole>`, `data-instatic-*`, `@instatic/*`) remain deferred per the out-of-scope note below.
+
 Rename machine-facing identifiers that carry migration risk. Each one has persisted state behind it: env vars are set in live deployments, the session cookie lives in browsers, localStorage keys hold user prefs, `@instatic/*` specifiers are baked into built plugin bundles, and `/_instatic/*` URLs + `<instatic-hole>` elements are baked into published HTML on disk. Per open question 6 in the overview, the published-HTML wire namespaces are explicitly deferred — this epic renames what can move safely now and records the deferral.
 
 Out of scope for this epic: `/_instatic/*` URL prefixes, `<instatic-hole>`/`data-instatic-*` markup, `@instatic/*` import specifiers (deferred until a dual-serve + republish window is scheduled).

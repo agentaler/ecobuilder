@@ -10,7 +10,7 @@
  *
  * So in production the setup POST additionally requires a token:
  *
- *   1. `INSTATIC_SETUP_TOKEN` environment variable, when set. Deployments that
+ *   1. `ECOBUILDER_SETUP_TOKEN` environment variable, when set. Deployments that
  *      want a known value (config management, an operator who is not watching
  *      the logs) set this.
  *   2. Otherwise a random token generated at boot and logged once. Claiming
@@ -26,8 +26,10 @@
  * "looks like localhost" would be bypassable with a spoofed header.
  */
 import { randomBytes, timingSafeEqual } from 'node:crypto'
+import { readRenamedEnv, renamedEnvName } from '@core/utils/renamedEnv'
 
-const ENV_VAR_NAME = 'INSTATIC_SETUP_TOKEN'
+const ENV_VAR_SUFFIX = 'SETUP_TOKEN'
+const ENV_VAR_NAME = renamedEnvName(ENV_VAR_SUFFIX)
 
 /**
  * Only the GENERATED token is memoized. A generated token must stay stable for
@@ -45,7 +47,7 @@ export function isSetupTokenRequired(): boolean {
 
 /** The token the setup POST must present. */
 export function getSetupToken(): string {
-  const configured = process.env[ENV_VAR_NAME]?.trim()
+  const configured = readRenamedEnv(ENV_VAR_SUFFIX)?.trim()
   if (configured) return configured
   generatedToken ??= randomBytes(24).toString('base64url')
   return generatedToken
@@ -72,7 +74,7 @@ export function isValidSetupToken(candidate: string): boolean {
  */
 export function logSetupTokenIfPending(needsSetup: boolean): void {
   if (!needsSetup || !isSetupTokenRequired()) return
-  if (process.env[ENV_VAR_NAME]?.trim()) {
+  if (readRenamedEnv(ENV_VAR_SUFFIX)?.trim()) {
     console.warn(`[setup] This install is unclaimed. Setup requires the ${ENV_VAR_NAME} you configured.`)
     return
   }

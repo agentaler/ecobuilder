@@ -2,7 +2,8 @@
  * CMS site-transfer archive format.
  *
  * User-facing exports are ZIP files:
- *   - .instatic/site-bundle.json  metadata manifest
+ *   - .ecobuilder/site-bundle.json  metadata manifest (imports also accept the
+ *     pre-rename `.instatic/` path)
  *   - media/<storagePath>         raw media bytes
  *
  * The manifest is the first stored entry so preview can read it with a small
@@ -20,7 +21,17 @@ import {
   MediaAssetMetadataSchema,
 } from './bundleSchema'
 
-export const BUNDLE_ARCHIVE_MANIFEST_PATH = '.instatic/site-bundle.json'
+export const BUNDLE_ARCHIVE_MANIFEST_PATH = '.ecobuilder/site-bundle.json'
+/**
+ * Manifest path written by exports before the E02 rename. Archives are files
+ * users keep on disk indefinitely, so import accepts both paths forever-ish;
+ * export writes only the new one.
+ */
+export const LEGACY_BUNDLE_ARCHIVE_MANIFEST_PATH = '.instatic/site-bundle.json'
+
+export function isBundleArchiveManifestPath(path: string): boolean {
+  return path === BUNDLE_ARCHIVE_MANIFEST_PATH || path === LEGACY_BUNDLE_ARCHIVE_MANIFEST_PATH
+}
 export const BUNDLE_ARCHIVE_MEDIA_PREFIX = 'media/'
 
 export function mediaArchivePath(storagePath: string): string {

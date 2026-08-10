@@ -8,11 +8,11 @@ async function importChallengeWithEnv(env: {
   formSecret?: string
   secretKey?: string
 }): Promise<ChallengeModule> {
-  const originalFormSecret = process.env.INSTATIC_FORM_SECRET
+  const originalFormSecret = process.env.ECOBUILDER_FORM_SECRET
   const originalSecretKey = process.env.INSTATIC_SECRET_KEY
 
-  if (env.formSecret === undefined) delete process.env.INSTATIC_FORM_SECRET
-  else process.env.INSTATIC_FORM_SECRET = env.formSecret
+  if (env.formSecret === undefined) delete process.env.ECOBUILDER_FORM_SECRET
+  else process.env.ECOBUILDER_FORM_SECRET = env.formSecret
 
   if (env.secretKey === undefined) delete process.env.INSTATIC_SECRET_KEY
   else process.env.INSTATIC_SECRET_KEY = env.secretKey
@@ -21,8 +21,8 @@ async function importChallengeWithEnv(env: {
     importCounter += 1
     return await import(`../../../server/forms/challenge.ts?secret-test=${importCounter}`)
   } finally {
-    if (originalFormSecret === undefined) delete process.env.INSTATIC_FORM_SECRET
-    else process.env.INSTATIC_FORM_SECRET = originalFormSecret
+    if (originalFormSecret === undefined) delete process.env.ECOBUILDER_FORM_SECRET
+    else process.env.ECOBUILDER_FORM_SECRET = originalFormSecret
 
     if (originalSecretKey === undefined) delete process.env.INSTATIC_SECRET_KEY
     else process.env.INSTATIC_SECRET_KEY = originalSecretKey
@@ -30,7 +30,7 @@ async function importChallengeWithEnv(env: {
 }
 
 describe('public form challenge signing secret configuration', () => {
-  it('uses INSTATIC_FORM_SECRET ahead of INSTATIC_SECRET_KEY', async () => {
+  it('uses ECOBUILDER_FORM_SECRET ahead of INSTATIC_SECRET_KEY', async () => {
     const issuer = await importChallengeWithEnv({
       formSecret: 'form-secret',
       secretKey: 'old-master-key',

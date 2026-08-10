@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot, type ErrorInfo } from 'react-dom/client'
 import { flushSync } from 'react-dom'
 import { Router } from './lib/routing'
+import { migrateLegacyStorageKeys } from './lib/legacyStorageKeys'
 import { AdminRoutes } from './router'
 import { AdminContextMenuGuard } from './shared/AdminContextMenuGuard'
 import { AdminZoomGuard } from './shared/AdminZoomGuard'
@@ -21,6 +22,11 @@ import '../styles/globals.css'
 // Base module registration is also deferred to AdminEntry (the lazy admin
 // chunk) so the publisher / page-tree / sanitize stack stays out of the
 // eager entry bundle. See src/modules/base/index.ts.
+
+// Before any component reads a preference: move `instatic-*` persistence keys
+// onto the `ecobuilder-*` names. Runs ahead of React so the first render sees
+// migrated values rather than defaults.
+migrateLegacyStorageKeys()
 
 const rootElement = document.getElementById('root')
 if (!rootElement) throw new Error('Root element #root not found')

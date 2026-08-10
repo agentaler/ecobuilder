@@ -17,8 +17,8 @@ The VPS stack uses the same production image as managed platforms. Compose only 
 
 SQLite is the default for most single-site installs. Postgres is for multiple simultaneous admin writers, horizontal app scale, or operators who already want Postgres.
 
-When using a published image, set `INSTATIC_IMAGE` and omit `compose.build.yml` plus `--build`.
-Before adding AI provider credentials, saving plugin secret settings, or enabling TOTP MFA in production, set `INSTATIC_SECRET_KEY` to the output of `bun run scripts/generate-secret-key.ts`.
+When using a published image, set `ECOBUILDER_IMAGE` and omit `compose.build.yml` plus `--build`.
+Before adding AI provider credentials, saving plugin secret settings, or enabling TOTP MFA in production, set `ECOBUILDER_SECRET_KEY` to the output of `bun run scripts/generate-secret-key.ts`.
 
 ## Install From A Release Bundle
 
@@ -29,15 +29,15 @@ Before adding AI provider credentials, saving plugin secret settings, or enablin
 SQLite:
 
 ```sh
-INSTATIC_IMAGE=ghcr.io/agentaler/ecobuilder:<version> docker compose -f compose.prod.yml -f compose.sqlite.yml up -d
+ECOBUILDER_IMAGE=ghcr.io/agentaler/ecobuilder:<version> docker compose -f compose.prod.yml -f compose.sqlite.yml up -d
 ```
 
 Postgres:
 
 ```sh
 cp .env.production.example .env
-# Set POSTGRES_PASSWORD and INSTATIC_SECRET_KEY in .env.
-INSTATIC_IMAGE=ghcr.io/agentaler/ecobuilder:<version> docker compose -f compose.prod.yml up -d
+# Set POSTGRES_PASSWORD and ECOBUILDER_SECRET_KEY in .env.
+ECOBUILDER_IMAGE=ghcr.io/agentaler/ecobuilder:<version> docker compose -f compose.prod.yml up -d
 ```
 
 ## Prerequisites
@@ -57,14 +57,14 @@ For plain SQLite without TLS, source builds use `compose.prod.yml`, `compose.sql
 
 ## SQLite Install
 
-For reversible server secrets such as AI credentials, plugin secret settings, and TOTP MFA seeds, copy the env template and set `INSTATIC_SECRET_KEY` first:
+For reversible server secrets such as AI credentials, plugin secret settings, and TOTP MFA seeds, copy the env template and set `ECOBUILDER_SECRET_KEY` first:
 
 ```sh
 cp .env.production.example .env
 bun run scripts/generate-secret-key.ts
 ```
 
-Paste the printed key into `.env` as `INSTATIC_SECRET_KEY`.
+Paste the printed key into `.env` as `ECOBUILDER_SECRET_KEY`.
 
 Run:
 
@@ -105,7 +105,7 @@ Edit `.env` and set a real password:
 
 ```txt
 POSTGRES_PASSWORD=replace-with-a-long-random-password
-INSTATIC_SECRET_KEY=replace-with-output-of-generate-secret-key
+ECOBUILDER_SECRET_KEY=replace-with-output-of-generate-secret-key
 ```
 
 Generate one with:
@@ -213,7 +213,7 @@ bun run build
 DATABASE_URL=sqlite:./data/cms.db \
   STATIC_DIR=./dist \
   UPLOADS_DIR=./uploads \
-  INSTATIC_SECRET_KEY=replace-with-output-of-generate-secret-key \
+  ECOBUILDER_SECRET_KEY=replace-with-output-of-generate-secret-key \
   TRUSTED_PROXY_CIDRS=127.0.0.1/32,::1/128 \
   PORT=3001 \
   bun run server/index.ts

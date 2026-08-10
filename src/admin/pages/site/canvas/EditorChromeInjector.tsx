@@ -30,7 +30,7 @@
  * bleed into placeholder / slot-boundary chrome even at high specificity.
  *
  * Mount order inside the portal:
- *   <EditorChromeInjector>   ← <style id="instatic-editor-chrome">  (unlayered)
+ *   <EditorChromeInjector>   ← <style id="ecobuilder-editor-chrome">  (unlayered)
  *   <ClassStyleInjector>     ← <style id="mc-classes">        (@layer user-authored)
  *   <UserStylesheetInjector> ← <style id="mc-user-styles">    (@layer user-authored)
  *   {children}
@@ -41,7 +41,7 @@
 
 import { useEffect } from 'react'
 
-const STYLE_TAG_ID = 'instatic-editor-chrome'
+const STYLE_TAG_ID = 'ecobuilder-editor-chrome'
 
 /**
  * Design tokens to forward from the parent document's :root onto the iframe's
