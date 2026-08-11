@@ -1286,4 +1286,18 @@ export const sqliteMigrations: Migration[] = [
       drop index if exists users_single_active_owner_idx;
     `,
   },
+  {
+    // Session-scoped tenancy (E06-T08). A session now carries the tenant it is
+    // acting in; capabilities resolve through tenant_members for THIS tenant,
+    // not through users.role_id. Additive nullable column, backfilled to the
+    // bootstrap tenant — every existing session belongs to a user who is a
+    // 'default' member with the same role, so capability resolution is
+    // unchanged for single-tenant installs. No FK: a session pointing at a
+    // since-deleted tenant simply falls back to the user's global role.
+    id: '027_session_active_tenant',
+    sql: `
+      alter table sessions add column active_tenant_id text;
+      update sessions set active_tenant_id = 'default' where active_tenant_id is null;
+    `,
+  },
 ]

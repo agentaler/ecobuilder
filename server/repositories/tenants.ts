@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid'
 import type { DbClient } from '../db/client'
+import { normalizeCapabilities, type CoreCapability } from '../auth/capabilities'
 import type { TenantMemberRow, TenantRow, TenantStatus } from '../types'
 
 /**
@@ -163,6 +164,53 @@ export async function addTenantMember(
     returning *
   `
   return rowToMembership(result.rows[0])
+}
+
+/** The effective role a user holds inside a tenant — role identity + capabilities. */
+export interface TenantRole {
+  id: string
+  slug: string
+  name: string
+  description: string
+  isSystem: boolean
+  capabilities: CoreCapability[]
+}
+
+/**
+ * Resolve the role a user holds in a tenant, joined to its capability bundle —
+ * the authorization source of truth for the session's active tenant (E06-T08).
+ * Returns null when the user is not an active member, letting the auth path
+ * fall back to the user's global role during the transition and for any session
+ * whose tenant no longer exists.
+ */
+export async function resolveTenantRole(
+  db: DbClient,
+  tenantId: string,
+  userId: string,
+): Promise<TenantRole | null> {
+  const result = await db<{
+    id: string
+    slug: string
+    name: string
+    description: string
+    is_system: boolean | number
+    capabilities_json: unknown
+  }>`
+    select r.id, r.slug, r.name, r.description, r.is_system, r.capabilities_json
+    from tenant_members m
+    join roles r on r.id = m.role_id
+    where m.tenant_id = ${tenantId} and m.user_id = ${userId} and m.status = 'active'
+  `
+  const row = result.rows[0]
+  if (!row) return null
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    description: row.description,
+    isSystem: Boolean(row.is_system),
+    capabilities: normalizeCapabilities(row.capabilities_json),
+  }
 }
 
 export async function getTenantMembership(

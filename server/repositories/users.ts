@@ -55,6 +55,13 @@ export interface AuthUser extends CmsUser {
   passwordHash: string
   encryptedMfaTotpSecret: EncryptedTotpSecret | null
   mfaRecoveryCodeHashes: string[]
+  /**
+   * The tenant this session is acting in, when resolved through a session
+   * (E06-T08). `role` + `capabilities` above reflect this tenant's membership.
+   * Null for AuthUsers hydrated outside a session context (user listing,
+   * findUserById) where there is no active tenant.
+   */
+  activeTenantId: string | null
 }
 
 export interface JoinedUserRow extends UserRow {
@@ -216,6 +223,8 @@ export function rowToUser(row: JoinedUserRow): AuthUser {
     gravatarHash: computeGravatarHash(row.email),
     createdAt: isoDateOrNull(row.created_at)!,
     updatedAt: isoDateOrNull(row.updated_at)!,
+    // Set only by the session path once the active tenant is known.
+    activeTenantId: null,
   }
 }
 

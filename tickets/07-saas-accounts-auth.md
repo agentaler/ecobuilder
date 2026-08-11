@@ -81,6 +81,8 @@ Session carries an active `tenant_id`; `requireCapability`/`requireStepUp` resol
 **Acceptance criteria:**
 - A user who is admin in tenant A and viewer in tenant B gets 403 on admin actions while B is active (integration test).
 
+**Status: implemented.** Migration `027_session_active_tenant` adds `sessions.active_tenant_id` (backfilled to `'default'`). `findUserBySessionHash` (`server/auth/sessions.ts`) resolves the effective role + capabilities through `resolveTenantRole` (`server/repositories/tenants.ts`) for the session's active tenant, overriding the global role loaded via `users.role_id`; when no membership exists it falls back to the global role (safe default, behaviour-preserving for single-tenant). `AuthUser` gains `activeTenantId`; `requireCapability` reads `user.capabilities` unchanged — the resolution moved underneath it. `createSession`/`rotateSessionToken` carry the active tenant (default bootstrap). Covered by `src/__tests__/server/sessionTenantResolution.test.ts` (same user → owner in A, member in B; fallback when the tenant has no membership). The legacy installation-wide `users.role_id` display/management reads are intentionally untouched.
+
 ### E06-T09 · Auth/tenancy test suite `test` `P1`
 **Covers:** R-003, R-009
 **Depends on:** E06-T04…T08

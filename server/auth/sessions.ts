@@ -1,5 +1,6 @@
 import { placeholder, type DbClient } from '../db/client'
 import { rowToUser, USER_JOINED_COLUMNS, type AuthUser, type JoinedUserRow } from '../repositories/users'
+import { BOOTSTRAP_TENANT_ID, resolveTenantRole } from '../repositories/tenants'
 import { deriveDeviceLabel } from './deviceLabel'
 
 const SESSION_IDLE_TIMEOUT_MS = 1000 * 60 * 60 * 24 * 30
@@ -27,6 +28,7 @@ const lastSeenTouchedAt = new Map<string, number>()
 
 interface SessionUserRow extends JoinedUserRow {
   session_mfa_passed_at: Date | string | null
+  session_active_tenant_id: string | null
 }
 
 interface SessionRotationRow {
@@ -37,6 +39,7 @@ interface SessionRotationRow {
   device_label: string
   mfa_passed_at: Date | string | null
   step_up_expires_at: Date | string | null
+  active_tenant_id: string | null
 }
 
 interface RotatedSession {
@@ -73,12 +76,18 @@ export async function createSession(
      * dance when verifying handlers that require a step-up gate.
      */
     stepUpExpiresAt?: Date | null
+    /**
+     * The tenant this session acts in. Defaults to the bootstrap tenant, which
+     * is correct for single-tenant installs (every user is a 'default' member).
+     * Multi-tenant login (E06-T04) passes the chosen tenant explicitly.
+     */
+    activeTenantId?: string
   },
 ): Promise<void> {
   const deviceLabel = input.deviceLabel ?? deriveDeviceLabel(input.userAgent)
   await db`
-    insert into sessions (id_hash, user_id, expires_at, ip_address, user_agent, device_label, mfa_passed_at, step_up_expires_at)
-    values (${input.idHash}, ${input.userId}, ${input.expiresAt}, ${input.ipAddress}, ${input.userAgent}, ${deviceLabel}, ${input.mfaPassedAt ?? null}, ${input.stepUpExpiresAt ?? null})
+    insert into sessions (id_hash, user_id, expires_at, ip_address, user_agent, device_label, mfa_passed_at, step_up_expires_at, active_tenant_id)
+    values (${input.idHash}, ${input.userId}, ${input.expiresAt}, ${input.ipAddress}, ${input.userAgent}, ${deviceLabel}, ${input.mfaPassedAt ?? null}, ${input.stepUpExpiresAt ?? null}, ${input.activeTenantId ?? BOOTSTRAP_TENANT_ID})
   `
 }
 
@@ -94,7 +103,8 @@ async function findSessionUserRow(
   // column list still lives in exactly one place.
   const { rows } = await db.unsafe<SessionUserRow>(
     `select ${USER_JOINED_COLUMNS},
-            sessions.mfa_passed_at as session_mfa_passed_at
+            sessions.mfa_passed_at as session_mfa_passed_at,
+            sessions.active_tenant_id as session_active_tenant_id
      from sessions
      join users on users.id = sessions.user_id
      join roles on roles.id = users.role_id
@@ -120,6 +130,21 @@ export async function findUserBySessionHash(
   if (!row) return null
   const user = rowToUser(row)
   if (user.mfaEnabled && row.session_mfa_passed_at == null) return null
+
+  // Capabilities resolve through the session's active tenant (E06-T08): the
+  // user's role and capability set become those of their membership in that
+  // tenant. When there is no active membership — a session whose tenant was
+  // deleted, or a not-yet-migrated edge — the global role loaded above stands,
+  // which is both the safe default and behaviour-preserving for single-tenant.
+  const activeTenantId = row.session_active_tenant_id
+  user.activeTenantId = activeTenantId
+  if (activeTenantId) {
+    const tenantRole = await resolveTenantRole(db, activeTenantId, user.id)
+    if (tenantRole) {
+      user.role = tenantRole
+      user.capabilities = tenantRole.capabilities
+    }
+  }
 
   await touchSessionLastSeen(db, idHash, now)
   return user
@@ -210,7 +235,8 @@ export async function rotateSessionToken(
              user_agent,
              device_label,
              mfa_passed_at,
-             step_up_expires_at
+             step_up_expires_at,
+             active_tenant_id
       from sessions
       where id_hash = ${currentIdHash}
         and revoked_at is null
@@ -242,7 +268,8 @@ export async function rotateSessionToken(
         user_agent,
         device_label,
         mfa_passed_at,
-        step_up_expires_at
+        step_up_expires_at,
+        active_tenant_id
       )
       values (
         ${input.nextIdHash},
@@ -252,7 +279,8 @@ export async function rotateSessionToken(
         ${current.user_agent},
         ${current.device_label},
         ${mfaPassedAt},
-        ${stepUpExpiresAt}
+        ${stepUpExpiresAt},
+        ${current.active_tenant_id ?? BOOTSTRAP_TENANT_ID}
       )
     `
 

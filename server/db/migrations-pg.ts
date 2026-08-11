@@ -1210,4 +1210,14 @@ export const pgMigrations: Migration[] = [
       drop index if exists users_single_active_owner_idx;
     `,
   },
+  {
+    // Session-scoped tenancy (E06-T08) — see migrations-sqlite.ts:027. Additive
+    // nullable column backfilled to the bootstrap tenant; behaviour-preserving
+    // for single-tenant installs.
+    id: '027_session_active_tenant',
+    sql: `
+      alter table sessions add column if not exists active_tenant_id text;
+      update sessions set active_tenant_id = 'default' where active_tenant_id is null;
+    `,
+  },
 ]
