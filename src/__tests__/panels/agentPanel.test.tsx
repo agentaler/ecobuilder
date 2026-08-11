@@ -230,6 +230,7 @@ function testUser(capabilities: CmsCurrentUser['capabilities'] = ['ai.chat']): C
     mfaRecoveryCodesRemaining: 0,
     stepUpAuthMode: 'password',
     stepUpWindowMinutes: 15,
+    activeTenantId: null,
     avatarMediaId: null,
     avatarUrl: null,
     gravatarHash: '',

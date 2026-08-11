@@ -53,6 +53,7 @@ function user(id: string, capabilities: CoreCapability[]): CmsCurrentUser {
     mfaRecoveryCodesRemaining: 0,
     stepUpAuthMode: 'required',
     stepUpWindowMinutes: 15,
+    activeTenantId: null,
     avatarMediaId: null,
     avatarUrl: null,
     gravatarHash: 'hash',

@@ -128,6 +128,7 @@ function currentUser(capabilities: CoreCapability[] = MEDIA_MANAGER_CAPABILITIES
     mfaRecoveryCodesRemaining: 0,
     stepUpAuthMode: 'password',
     stepUpWindowMinutes: 15,
+    activeTenantId: null,
     avatarMediaId: null,
     avatarUrl: null,
     gravatarHash: '',

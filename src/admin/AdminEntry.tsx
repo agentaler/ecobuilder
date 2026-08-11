@@ -3,6 +3,7 @@ import type { CmsCurrentUser } from '@core/persistence'
 import { AppLoadingScreen } from './AppLoadingScreen'
 import type { AdminWorkspace } from './workspace'
 import { AdminPreAuthForm, type PreAuthPhase } from './preauth/AdminPreAuthForm'
+import { OnboardingWorkspace } from './onboarding/OnboardingWorkspace'
 import { useAdminBoot } from './preauth/useAdminBoot'
 import { prewarmedLazy } from './lib/prewarmedLazy'
 import { useEditorAppearancePreferences } from '@site/preferences/editorPreferences'
@@ -75,6 +76,18 @@ export default function AdminEntry({ section = 'dashboard' }: AdminEntryProps) {
 
   if (livePhase === 'editor') {
     if (!liveUser) return <AppLoadingScreen />
+    // A signed-in account with no workspace yet (null activeTenantId) lands in
+    // onboarding to create its first workspace, not the editor. Creating one
+    // switches the session into it and refreshes the user, which re-renders
+    // here with a non-null activeTenantId → the editor.
+    if (liveUser.activeTenantId === null) {
+      return (
+        <OnboardingWorkspace
+          user={liveUser}
+          onCreated={(user) => setOverride({ phase: 'editor', user })}
+        />
+      )
+    }
     return (
       <Suspense fallback={<AppLoadingScreen />}>
         <AuthenticatedAdmin section={section} currentUser={liveUser} />

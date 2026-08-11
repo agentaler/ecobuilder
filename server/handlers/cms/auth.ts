@@ -50,6 +50,7 @@ import {
   requireAuthenticatedUser,
   getSessionHash,
 } from '../../auth/authz'
+import { resolveDefaultTenantForUser } from '../../repositories/tenants'
 import { stepUpWindowMs } from '../../auth/stepUpPolicy'
 import { createAuditEvent } from '../../repositories/audit'
 import {
@@ -312,11 +313,15 @@ async function respondLoginSuccess(
 
   const token = createSessionToken()
   const expiresAt = sessionExpiry()
+  // Seed the session with the user's workspace (their oldest active membership),
+  // or null when they have none yet — the client routes null to onboarding.
+  const activeTenantId = await resolveDefaultTenantForUser(db, user.id)
   await createSession(db, {
     idHash: await hashSessionToken(token),
     userId: user.id,
     expiresAt,
     mfaPassedAt: user.mfaEnabled ? null : new Date(),
+    activeTenantId,
     ...requestAuditContext(req),
   })
 

@@ -179,3 +179,31 @@ backing media asset scoped to the caller's tenant.
 **Deferred (noted, not built here):** per-tenant bundle export/import and the
 AI/MCP media-list tool (`server/ai/tools/content/readTools.ts`) — separate
 surfaces (E08/E11) that will scope to a tenant when those epics land.
+
+## D11 — Signup = account only; workspace via onboarding (E06-T06)
+
+**Choice (revised from D8/earlier):** On the SaaS (`app.ecobuilder.ai`), signup
+creates the **account only** — no workspace. The user is auto-signed-in with a
+session whose `active_tenant_id` is **null**, and the client routes a null
+`activeTenantId` to an **onboarding** step (`OnboardingWorkspace`) that calls
+`POST /admin/api/cms/tenants` to create the first workspace. Creating a
+workspace switches the session into it server-side, so the user lands in the
+editor as its owner. Login resolves the session's active workspace from the
+user's oldest active membership (`resolveDefaultTenantForUser`), or null →
+onboarding when they have none.
+
+**Why:** the earlier "signup creates user + workspace in one shot" bundled two
+concerns and had no room for social login or multi-step onboarding. Decoupling
+them matches the intended flow: sign up (email/password, later social) →
+onboarding (create your site/workspace) → use the app. It also removes the
+"platform owner / init password" concept from the customer path — there is no
+operator setup on `app`; the super-admin console is a separate surface
+(`admin.ecobuilder.ai`, not built yet).
+
+**Surface:** `activeTenantId` is now on `CmsUser` / the `/me` response and the
+client `CmsCurrentUserSchema`. `createSession` accepts `null` (no workspace)
+distinctly from `undefined` (legacy → bootstrap tenant, self-hosted compat).
+
+**Deferred:** social login (E06-T05, needs the provider OAuth apps), removing
+the self-hosted setup wizard on a fresh SaaS deploy, and the
+`admin.ecobuilder.ai` super-admin console.

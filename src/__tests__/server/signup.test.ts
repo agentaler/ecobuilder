@@ -1,10 +1,12 @@
 /**
- * Self-service signup, email verification, and password reset (E06-T04).
+ * Self-service signup, onboarding, email verification, and password reset
+ * (E06-T04 / E06-T06).
  *
- * Signup must, in one shot: create the user (unverified), create their own
- * workspace with them as owner, seed starter content into that workspace, sign
- * them in with the workspace active, and email a verification link. Then the
- * verification and reset tokens must be single-use and time-bound.
+ * Signup creates the ACCOUNT only (unverified) and signs the user in with NO
+ * workspace — the response flags `needsOnboarding`. Onboarding (POST /tenants)
+ * then creates the first workspace, makes the user its owner, seeds starter
+ * content, and switches the session into it. The verification and reset tokens
+ * must be single-use and time-bound.
  */
 import { describe, expect, it } from 'bun:test'
 import { createTestDb } from '../helpers/createTestDb'
@@ -18,13 +20,28 @@ const ORIGIN = 'http://localhost'
 function post(path: string, body: unknown, cookie?: string): Request {
   const headers = new Headers({ 'content-type': 'application/json', origin: ORIGIN })
   if (cookie) headers.set('cookie', cookie)
-  return new Request(`${ORIGIN}${path}`, { method: 'POST', headers, body: JSON.stringify(body) })
+  const req = new Request(`${ORIGIN}${path}`, { method: 'POST', headers, body: JSON.stringify(body) })
+  // `cookie` is a forbidden init header in the test env's Request — set it after.
+  if (cookie) req.headers.set('cookie', cookie)
+  return req
+}
+
+function get(path: string, cookie: string): Request {
+  const req = new Request(`${ORIGIN}${path}`, { method: 'GET', headers: new Headers({ origin: ORIGIN }) })
+  req.headers.set('cookie', cookie)
+  return req
+}
+
+function sessionCookieFrom(res: Response): string {
+  const setCookie = res.headers.get('set-cookie') ?? ''
+  const token = /ecobuilder_admin_session=([^;]+)/.exec(setCookie)?.[1] ?? ''
+  return `ecobuilder_admin_session=${token}`
 }
 
 const SIGNUP = '/admin/api/cms/signup'
 
 describe('signup', () => {
-  it('creates a user, their workspace as owner, seeds content, and signs them in', async () => {
+  it('creates the account only and signs in with no workspace (needsOnboarding)', async () => {
     const { db, cleanup } = await createTestDb()
     try {
       const res = await handleCmsRequest(
@@ -32,24 +49,56 @@ describe('signup', () => {
         db,
       )
       expect(res.status).toBe(201)
+      expect(await res.json()).toMatchObject({ ok: true, needsOnboarding: true })
       // Auto-signed-in: a session cookie is set.
       expect(res.headers.get('set-cookie') ?? '').toContain('ecobuilder_admin_session=')
 
       const user = await findUserByEmail(db, 'newbie@example.com')
       expect(user).not.toBeNull()
 
-      // Owns exactly one workspace, as owner.
+      // No workspace yet, and the session's /me reports a null active workspace.
       const tenants = await listTenantsForUser(db, user!.id)
-      expect(tenants).toHaveLength(1)
-      const membership = await getTenantMembership(db, tenants[0].id, user!.id)
-      expect(membership?.roleId).toBe('owner')
+      expect(tenants).toHaveLength(0)
+      const me = await handleCmsRequest(get('/admin/api/cms/me', sessionCookieFrom(res)), db)
+      expect(me.status).toBe(200)
+      expect((await me.json()).user.activeTenantId).toBeNull()
+    } finally {
+      await cleanup()
+    }
+  })
 
-      // Starter content is scoped to the NEW tenant, not 'default'.
-      const rows = await db<{ slug: string; tenant_id: string }>`
-        select slug, tenant_id from data_rows where tenant_id = ${tenants[0].id}
-      `
-      const slugs = rows.rows.map((r) => r.slug).sort()
-      expect(slugs).toEqual(['index', 'post-template'])
+  it('onboarding creates the first workspace, seeds content, and switches into it', async () => {
+    const { db, cleanup } = await createTestDb()
+    try {
+      const signup = await handleCmsRequest(
+        post(SIGNUP, { email: 'founder@example.com', password: 'long-enough-password', displayName: 'Founder' }),
+        db,
+      )
+      const cookie = sessionCookieFrom(signup)
+
+      const created = await handleCmsRequest(
+        post('/admin/api/cms/tenants', { name: 'Acme Studio' }, cookie),
+        db,
+      )
+      expect(created.status).toBe(201)
+      const tenantId = (await created.json()).tenant.id
+
+      const user = await findUserByEmail(db, 'founder@example.com')
+      // Owner of exactly one workspace now.
+      const tenants = await listTenantsForUser(db, user!.id)
+      expect(tenants.map((t) => t.id)).toEqual([tenantId])
+      expect((await getTenantMembership(db, tenantId, user!.id))?.roleId).toBe('owner')
+
+      // Starter content seeded into the new workspace.
+      const rows = await db<{ slug: string }>`select slug from data_rows where tenant_id = ${tenantId}`
+      expect(rows.rows.map((r) => r.slug).sort()).toEqual(['index', 'post-template'])
+
+      // The session switched into the new workspace: /me now reports it active,
+      // with owner capabilities resolved through the membership.
+      const me = await handleCmsRequest(get('/admin/api/cms/me', cookie), db)
+      const body = await me.json()
+      expect(body.user.activeTenantId).toBe(tenantId)
+      expect(body.user.role.slug).toBe('owner')
     } finally {
       await cleanup()
     }

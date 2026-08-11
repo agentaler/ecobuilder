@@ -15,12 +15,6 @@ import type { DbClient } from '../../db/client'
 import { hashPassword, createSessionToken, hashSessionToken, sessionExpiry } from '../../auth/tokens'
 import { createSession } from '../../auth/sessions'
 import { createUser, markEmailVerified, resetUserPassword, findUserByEmail } from '../../repositories/users'
-import {
-  addTenantMember,
-  createTenant,
-  uniqueTenantSlug,
-} from '../../repositories/tenants'
-import { seedTenantContent } from '../../repositories/tenantSeed'
 import { issueAuthToken, consumeAuthToken } from '../../repositories/authTokens'
 import { sendEmail, publicAppOrigin } from '../../email'
 import {
@@ -34,7 +28,6 @@ import { Type } from '@core/utils/typeboxHelpers'
 import { sessionCookie } from './session'
 import { CMS_API_PREFIX, requestAuditContext } from './shared'
 import { createAuditEvent } from '../../repositories/audit'
-import { serializeCollabAwareWrite } from '../../repositories/rowWriteEvents'
 
 const VERIFY_TTL_MS = 1000 * 60 * 60 * 24 // 24h
 const RESET_TTL_MS = 1000 * 60 * 60 // 1h
@@ -43,7 +36,6 @@ const SignupBodySchema = Type.Object({
   email: Type.String(),
   password: Type.String(),
   displayName: Type.Optional(Type.String()),
-  workspaceName: Type.Optional(Type.String()),
 })
 
 async function sendVerificationEmail(db: DbClient, userId: string, email: string): Promise<void> {
@@ -71,52 +63,43 @@ async function handleSignup(req: Request, db: DbClient): Promise<Response> {
   }
 
   const passwordHash = await hashPassword(password)
-  const workspaceName = body.workspaceName?.trim() || `${displayName || email.split('@')[0]}'s Workspace`
 
-  const result = await serializeCollabAwareWrite(async () =>
-    db.transaction(async (tx) => {
-      // Global account role is 'member'; workspace ownership is the tenant
-      // membership, not the installation-wide role.
-      const user = await createUser(tx, {
-        id: nanoid(),
-        email,
-        displayName,
-        passwordHash,
-        roleId: 'member',
-        emailVerified: false,
-      })
-      const slug = await uniqueTenantSlug(tx, workspaceName)
-      const tenant = await createTenant(tx, { slug, name: workspaceName })
-      await addTenantMember(tx, { tenantId: tenant.id, userId: user.id, roleId: 'owner' })
-      await seedTenantContent(tx, tenant.id)
-      await createAuditEvent(tx, {
-        actorUserId: null,
-        action: 'user.signup',
-        targetType: 'user',
-        targetId: user.id,
-        metadata: { tenantId: tenant.id },
-        ...requestAuditContext(req),
-      })
-      return { user, tenant }
-    }),
-  )
+  // Signup creates the ACCOUNT only. The workspace is created in onboarding
+  // (POST /tenants) right after — a fresh account has no workspace yet, so the
+  // session starts with no active tenant and the client routes to onboarding.
+  const user = await createUser(db, {
+    id: nanoid(),
+    email,
+    displayName,
+    passwordHash,
+    roleId: 'member',
+    emailVerified: false,
+  })
+  await createAuditEvent(db, {
+    actorUserId: null,
+    action: 'user.signup',
+    targetType: 'user',
+    targetId: user.id,
+    metadata: {},
+    ...requestAuditContext(req),
+  })
 
   // Verification email is best-effort and must not block signup completion.
-  await sendVerificationEmail(db, result.user.id, email)
+  await sendVerificationEmail(db, user.id, email)
 
-  // Auto-sign-in with the new workspace active.
+  // Auto-sign-in with NO workspace (null active tenant) → onboarding.
   const token = createSessionToken()
   const expiresAt = sessionExpiry()
   await createSession(db, {
     idHash: await hashSessionToken(token),
-    userId: result.user.id,
+    userId: user.id,
     expiresAt,
     mfaPassedAt: new Date(),
-    activeTenantId: result.tenant.id,
+    activeTenantId: null,
     ...requestAuditContext(req),
   })
   return setCookieHeader(
-    jsonResponse({ ok: true, emailVerificationRequired: true }, { status: 201 }),
+    jsonResponse({ ok: true, needsOnboarding: true, emailVerificationRequired: true }, { status: 201 }),
     sessionCookie(req, token, expiresAt),
   )
 }

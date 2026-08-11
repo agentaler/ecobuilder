@@ -96,6 +96,11 @@ export const CmsCurrentUserSchema = Type.Object({
    * Always populated for authenticated users.
    */
   gravatarHash: Type.String(),
+  /**
+   * The workspace this session is acting in, or null when the account has no
+   * workspace yet. Null drives the onboarding flow (create your first workspace).
+   */
+  activeTenantId: Type.Union([Type.String(), Type.Null()]),
   createdAt: Type.String(),
   updatedAt: Type.String(),
 })
@@ -158,22 +163,26 @@ export async function setupCms(
 }
 
 interface CmsSignupInput {
-  workspaceName: string
   displayName: string
   email: string
   password: string
 }
 
 const CmsSignupResponseSchema = Type.Object(
-  { ok: Type.Boolean(), emailVerificationRequired: Type.Optional(Type.Boolean()) },
+  {
+    ok: Type.Boolean(),
+    needsOnboarding: Type.Optional(Type.Boolean()),
+    emailVerificationRequired: Type.Optional(Type.Boolean()),
+  },
   { additionalProperties: true },
 )
 
 /**
- * Self-service SaaS signup: creates the user + their own workspace (tenant) +
- * owner membership and auto-signs them in (the server sets the session cookie).
- * The caller then reads `/me` to hydrate the authenticated session. Distinct
- * from `setupCms`, which is the one-shot self-hosted install bootstrap.
+ * Self-service SaaS signup: creates the ACCOUNT only and auto-signs the user in
+ * (the server sets the session cookie) with no workspace yet. The caller then
+ * reads `/me` — a null `activeTenantId` routes to onboarding, where
+ * `createWorkspaceCms` creates the first workspace. Distinct from `setupCms`,
+ * the one-shot self-hosted install bootstrap.
  */
 export async function signupCms(
   input: CmsSignupInput,
@@ -188,6 +197,39 @@ export async function signupCms(
     fallbackMessage: 'Sign up failed',
   })
   return { emailVerificationRequired: body.emailVerificationRequired === true }
+}
+
+const CmsWorkspaceSchema = Type.Object({
+  id: Type.String(),
+  slug: Type.String(),
+  name: Type.String(),
+}, { additionalProperties: true })
+
+const CmsCreateWorkspaceResponseSchema = Type.Object(
+  { tenant: CmsWorkspaceSchema, activeTenantId: Type.Optional(Type.String()) },
+  { additionalProperties: true },
+)
+
+export type CmsWorkspace = Static<typeof CmsWorkspaceSchema>
+
+/**
+ * Create a workspace and switch the session into it — the onboarding step and
+ * the "New workspace" action both use this. On success the caller re-reads
+ * `/me` to pick up the now-active workspace.
+ */
+export async function createWorkspaceCms(
+  input: { name: string },
+  fetchImpl: FetchLike = globalThis.fetch.bind(globalThis),
+  basePath = '/admin/api/cms',
+): Promise<CmsWorkspace> {
+  const body = await apiRequest(`${basePath}/tenants`, {
+    method: 'POST',
+    body: input,
+    schema: CmsCreateWorkspaceResponseSchema,
+    fetchImpl,
+    fallbackMessage: 'Could not create workspace',
+  })
+  return body.tenant
 }
 
 export async function loginCms(
