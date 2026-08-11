@@ -147,15 +147,17 @@ function makeDb(options: {
       }
     }
     if (sql.startsWith('insert into data_rows')) {
+      // Column order gained tenant_id at index 2 (E07).
       createdRows.push({
         id: params[0],
         table_id: params[1],
-        cells_json: params[2],
-        slug: params[3],
-        status: params[4],
-        author_user_id: params[5],
-        created_by_user_id: params[6],
-        updated_by_user_id: params[7],
+        tenant_id: params[2],
+        cells_json: params[3],
+        slug: params[4],
+        status: params[5],
+        author_user_id: params[6],
+        created_by_user_id: params[7],
+        updated_by_user_id: params[8],
       })
       return { rows: [{ id: params[0] }], rowCount: 1 }
     }

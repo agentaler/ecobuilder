@@ -289,6 +289,12 @@ export async function createUser(
     roleId: string
     status?: UserStatus
     allowOwnerRole?: boolean
+    /**
+     * Whether the email starts verified. Trusted creation paths (setup,
+     * admin-invited users) default to true; self-service signup passes false so
+     * the account must confirm its address before it can publish.
+     */
+    emailVerified?: boolean
   },
 ): Promise<CmsUser> {
   const email = input.email.trim()
@@ -307,13 +313,47 @@ export async function createUser(
     throw new UserMutationError('Owner role is setup-only')
   }
 
+  const emailVerifiedAt = (input.emailVerified ?? true) ? new Date() : null
   await db`
-    insert into users (id, email, email_normalized, display_name, password_hash, status, role_id)
-    values (${id}, ${email}, ${emailNormalized}, ${displayName}, ${input.passwordHash}, ${status}, ${input.roleId})
+    insert into users (id, email, email_normalized, display_name, password_hash, status, role_id, email_verified_at)
+    values (${id}, ${email}, ${emailNormalized}, ${displayName}, ${input.passwordHash}, ${status}, ${input.roleId}, ${emailVerifiedAt})
   `
   const created = await findUserById(db, id)
   if (!created) throw new UserMutationError('User was not created', 500)
   return toPublicUser(created)
+}
+
+/** Mark a user's email confirmed (E06-T04 email verification). Idempotent. */
+export async function markEmailVerified(db: DbClient, userId: string): Promise<void> {
+  await db`
+    update users set email_verified_at = current_timestamp, updated_at = current_timestamp
+    where id = ${userId} and email_verified_at is null and deleted_at is null
+  `
+}
+
+/**
+ * Set a new password hash and revoke every existing session for the user — a
+ * password reset must log out anyone holding the old credential. Bumps
+ * `password_updated_at` so session-invalidation logic that keys off it agrees.
+ */
+export async function resetUserPassword(
+  db: DbClient,
+  userId: string,
+  passwordHash: string,
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx`
+      update users
+      set password_hash = ${passwordHash},
+          password_updated_at = current_timestamp,
+          updated_at = current_timestamp
+      where id = ${userId} and deleted_at is null
+    `
+    await tx`
+      update sessions set revoked_at = current_timestamp
+      where user_id = ${userId} and revoked_at is null
+    `
+  })
 }
 
 export async function updateUser(

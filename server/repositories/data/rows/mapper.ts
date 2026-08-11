@@ -39,6 +39,13 @@ export interface InsertDataRowInput {
    * tables that have no slug field.
    */
   slug: string
+  /**
+   * Owning tenant. Defaults to the bootstrap tenant `'default'` so existing
+   * single-tenant call sites are unaffected; multi-tenant callers (signup
+   * seeding, tenant-scoped handlers) pass the row's real tenant so isolation
+   * and the `(tenant_id, table_id, slug)` unique both hold. (E07.)
+   */
+  tenantId?: string
 }
 
 export interface UpdateDataRowDraftInput {

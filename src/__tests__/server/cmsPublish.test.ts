@@ -40,16 +40,19 @@ function createPublishFakeDb() {
       return { rows: state.site ? [state.site] : [], rowCount: state.site ? 1 : 0 }
     }
     // createDataRow — insert into data_rows returning id
+    // Column order: id, table_id, tenant_id, cells_json, slug, status, author,
+    // created_by, updated_by, plugin_actor (tenant_id added in E07).
     if (sql.startsWith('insert into data_rows')) {
       const row = {
         id: params[0],
         table_id: params[1],
-        cells_json: params[2],
-        slug: params[3],
-        status: params[4],
-        author_user_id: params[5],
-        created_by_user_id: params[6],
-        updated_by_user_id: params[7],
+        tenant_id: params[2],
+        cells_json: params[3],
+        slug: params[4],
+        status: params[5],
+        author_user_id: params[6],
+        created_by_user_id: params[7],
+        updated_by_user_id: params[8],
         active_version_id: null,
         published_by_user_id: null,
         published_at: null,

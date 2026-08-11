@@ -1249,4 +1249,28 @@ export const pgMigrations: Migration[] = [
         on data_row_redirects (tenant_id, from_route_base, from_slug);
     `,
   },
+  {
+    // Self-service signup support (E06-T04) — see migrations-sqlite.ts:029.
+    // Existing users backfilled as verified; new signups start unverified.
+    id: '029_signup_email_verification',
+    sql: `
+      alter table users add column if not exists email_verified_at timestamptz;
+      update users set email_verified_at = now()
+        where email_verified_at is null and deleted_at is null;
+
+      create table if not exists auth_tokens (
+        id text primary key,
+        user_id text not null references users(id) on delete cascade,
+        kind text not null,
+        token_hash text not null,
+        expires_at timestamptz not null,
+        used_at timestamptz,
+        created_at timestamptz not null default now(),
+        constraint auth_tokens_kind_check check (kind in ('email_verify', 'password_reset'))
+      );
+
+      create unique index if not exists auth_tokens_hash_idx on auth_tokens (token_hash);
+      create index if not exists auth_tokens_user_kind_idx on auth_tokens (user_id, kind);
+    `,
+  },
 ]

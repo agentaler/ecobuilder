@@ -31,6 +31,7 @@ import { jsonResponse } from '../../http'
 import { isStateChangingMethod, originAllowed } from '../../auth/security'
 import type { CmsHandlerOptions } from './shared'
 import { handleSetupRoutes } from './setup'
+import { handleSignupRoutes } from './signup'
 import { handleAuthRoutes } from './auth'
 import { handleMeRoutes } from './me'
 import { handleUserPreferencesRoutes } from './userPreferences'
@@ -78,6 +79,7 @@ export async function handleCmsRequest(
   // try the next one".
   const response =
     (await handleSetupRoutes(req, db))
+    ?? (await handleSignupRoutes(req, db))
     ?? (await handleMeRoutes(req, db, options))
     ?? (await handleAuthRoutes(req, db))
     // User preferences sit next to /me/* because they share the same
