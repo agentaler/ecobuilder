@@ -1300,4 +1300,40 @@ export const sqliteMigrations: Migration[] = [
       update sessions set active_tenant_id = 'default' where active_tenant_id is null;
     `,
   },
+  {
+    // Tenant-scoped content data layer (E07-T01). Threads tenant_id through the
+    // content tables and replaces the global unique indexes with tenant-scoped
+    // composites, so two tenants can each own a page at /about.
+    //
+    // The column is NOT NULL DEFAULT 'default' rather than nullable: that
+    // backfills existing rows AND makes the composite uniques correct
+    // immediately, because a content repository that has not yet been threaded
+    // with a tenant id still inserts a concrete 'default' — a nullable column
+    // would let NULL != NULL defeat (tenant_id, slug) uniqueness for new rows.
+    // Real tenant ids override the default once the repositories are threaded.
+    id: '028_tenant_scoped_content',
+    sql: `
+      alter table site add column tenant_id text not null default 'default';
+      alter table data_tables add column tenant_id text not null default 'default';
+      alter table data_rows add column tenant_id text not null default 'default';
+      alter table data_row_versions add column tenant_id text not null default 'default';
+      alter table data_row_redirects add column tenant_id text not null default 'default';
+      alter table site_snapshots add column tenant_id text not null default 'default';
+      alter table collab_documents add column tenant_id text not null default 'default';
+
+      drop index if exists data_tables_slug_active_idx;
+      create unique index if not exists data_tables_slug_active_idx
+        on data_tables (tenant_id, slug)
+        where deleted_at is null;
+
+      drop index if exists data_rows_table_slug_active_idx;
+      create unique index if not exists data_rows_table_slug_active_idx
+        on data_rows (tenant_id, table_id, slug)
+        where deleted_at is null and slug <> '';
+
+      drop index if exists data_row_redirects_source_idx;
+      create unique index if not exists data_row_redirects_source_idx
+        on data_row_redirects (tenant_id, from_route_base, from_slug);
+    `,
+  },
 ]

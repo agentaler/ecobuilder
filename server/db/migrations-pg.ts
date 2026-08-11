@@ -1220,4 +1220,33 @@ export const pgMigrations: Migration[] = [
       update sessions set active_tenant_id = 'default' where active_tenant_id is null;
     `,
   },
+  {
+    // Tenant-scoped content data layer (E07-T01) — see migrations-sqlite.ts:028.
+    // NOT NULL DEFAULT 'default' backfills existing rows and keeps the composite
+    // uniques correct for inserts from not-yet-threaded repositories.
+    id: '028_tenant_scoped_content',
+    sql: `
+      alter table site add column if not exists tenant_id text not null default 'default';
+      alter table data_tables add column if not exists tenant_id text not null default 'default';
+      alter table data_rows add column if not exists tenant_id text not null default 'default';
+      alter table data_row_versions add column if not exists tenant_id text not null default 'default';
+      alter table data_row_redirects add column if not exists tenant_id text not null default 'default';
+      alter table site_snapshots add column if not exists tenant_id text not null default 'default';
+      alter table collab_documents add column if not exists tenant_id text not null default 'default';
+
+      drop index if exists data_tables_slug_active_idx;
+      create unique index if not exists data_tables_slug_active_idx
+        on data_tables (tenant_id, slug)
+        where deleted_at is null;
+
+      drop index if exists data_rows_table_slug_active_idx;
+      create unique index if not exists data_rows_table_slug_active_idx
+        on data_rows (tenant_id, table_id, slug)
+        where deleted_at is null and slug <> '';
+
+      drop index if exists data_row_redirects_source_idx;
+      create unique index if not exists data_row_redirects_source_idx
+        on data_row_redirects (tenant_id, from_route_base, from_slug);
+    `,
+  },
 ]
