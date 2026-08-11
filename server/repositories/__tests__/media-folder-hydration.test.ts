@@ -32,6 +32,7 @@ function spyUnsafe(db: DbClient): { spy: DbClient; unsafeSqls: string[] } {
 async function seedAsset(db: DbClient, id: string): Promise<void> {
   await createMediaAsset(db, {
     id,
+    tenantId: 'default',
     filename: `${id}.png`,
     mimeType: 'image/png',
     sizeBytes: 10,

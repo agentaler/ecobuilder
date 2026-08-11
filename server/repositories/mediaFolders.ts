@@ -8,8 +8,25 @@
  * Asset membership is many-to-many through `media_asset_folders` — see
  * `repositories/media.ts → assignAssetToFolders` for that join.
  */
-import type { DbClient } from '../db/client'
+import { type DbClient, placeholder } from '../db/client'
 import { isoDate } from '@core/utils/isoDate'
+
+/**
+ * Optional tenant scope for the folder read/mutate paths (E07 media isolation).
+ * The folder handler passes `user.activeTenantId`; the bundle export path omits
+ * it and stays unscoped. `nextParam` is the 1-based index of the first free
+ * placeholder in the query the caller is building.
+ */
+function tenantScope(
+  db: DbClient,
+  tenantId: string | undefined,
+  nextParam: number,
+): { clause: string; params: unknown[] } {
+  if (tenantId === undefined) return { clause: '', params: [] }
+  return { clause: ` and tenant_id = ${placeholder(db.dialect, nextParam)}`, params: [tenantId] }
+}
+
+const FOLDER_COLUMNS = 'id, parent_id, name, slug, sort_order, created_by_user_id, created_at'
 
 interface MediaFolder {
   id: string
@@ -23,6 +40,7 @@ interface MediaFolder {
 
 interface CreateMediaFolderInput {
   id: string
+  tenantId: string
   parentId: string | null
   name: string
   slug: string
@@ -59,24 +77,29 @@ function mapFolder(row: MediaFolderRow): MediaFolder {
   }
 }
 
-export async function listMediaFolders(db: DbClient): Promise<MediaFolder[]> {
-  const { rows } = await db<MediaFolderRow>`
-    select id, parent_id, name, slug, sort_order, created_by_user_id, created_at
-    from media_folders
-    order by sort_order asc, lower(name) asc
-  `
+export async function listMediaFolders(db: DbClient, tenantId?: string): Promise<MediaFolder[]> {
+  const where = tenantId === undefined ? '' : ` where tenant_id = ${placeholder(db.dialect, 1)}`
+  const { rows } = await db.unsafe<MediaFolderRow>(
+    `select ${FOLDER_COLUMNS}
+     from media_folders${where}
+     order by sort_order asc, lower(name) asc`,
+    tenantId === undefined ? [] : [tenantId],
+  )
   return rows.map(mapFolder)
 }
 
 export async function getMediaFolder(
   db: DbClient,
   id: string,
+  tenantId?: string,
 ): Promise<MediaFolder | null> {
-  const { rows } = await db<MediaFolderRow>`
-    select id, parent_id, name, slug, sort_order, created_by_user_id, created_at
-    from media_folders
-    where id = ${id}
-  `
+  const scope = tenantScope(db, tenantId, 2)
+  const { rows } = await db.unsafe<MediaFolderRow>(
+    `select ${FOLDER_COLUMNS}
+     from media_folders
+     where id = ${placeholder(db.dialect, 1)}${scope.clause}`,
+    [id, ...scope.params],
+  )
   return rows[0] ? mapFolder(rows[0]) : null
 }
 
@@ -86,9 +109,10 @@ export async function createMediaFolder(
 ): Promise<MediaFolder> {
   const sortOrder = input.sortOrder ?? 0
   const { rows } = await db<MediaFolderRow>`
-    insert into media_folders (id, parent_id, name, slug, sort_order, created_by_user_id)
+    insert into media_folders (id, tenant_id, parent_id, name, slug, sort_order, created_by_user_id)
     values (
       ${input.id},
+      ${input.tenantId},
       ${input.parentId},
       ${input.name},
       ${input.slug},
@@ -149,10 +173,13 @@ export async function updateMediaFolder(
 export async function deleteMediaFolder(
   db: DbClient,
   id: string,
+  tenantId?: string,
 ): Promise<boolean> {
-  const result = await db`
-    delete from media_folders where id = ${id}
-  `
+  const scope = tenantScope(db, tenantId, 2)
+  const result = await db.unsafe(
+    `delete from media_folders where id = ${placeholder(db.dialect, 1)}${scope.clause}`,
+    [id, ...scope.params],
+  )
   return result.rowCount > 0
 }
 
@@ -223,36 +250,32 @@ export async function isMediaFolderSlugTaken(
   db: DbClient,
   parentId: string | null,
   slug: string,
+  tenantId?: string,
   excludeId?: string,
 ): Promise<boolean> {
-  if (excludeId) {
-    if (parentId === null) {
-      const { rows } = await db<{ id: string }>`
-        select id from media_folders
-        where parent_id is null and slug = ${slug} and id <> ${excludeId}
-        limit 1
-      `
-      return rows.length > 0
-    }
-    const { rows } = await db<{ id: string }>`
-      select id from media_folders
-      where parent_id = ${parentId} and slug = ${slug} and id <> ${excludeId}
-      limit 1
-    `
-    return rows.length > 0
-  }
+  // Build the predicate positionally so the null-parent branch, the tenant
+  // scope, and the self-exclusion all share one query shape across dialects.
+  const params: unknown[] = []
+  const clauses: string[] = []
   if (parentId === null) {
-    const { rows } = await db<{ id: string }>`
-      select id from media_folders
-      where parent_id is null and slug = ${slug}
-      limit 1
-    `
-    return rows.length > 0
+    clauses.push('parent_id is null')
+  } else {
+    params.push(parentId)
+    clauses.push(`parent_id = ${placeholder(db.dialect, params.length)}`)
   }
-  const { rows } = await db<{ id: string }>`
-    select id from media_folders
-    where parent_id = ${parentId} and slug = ${slug}
-    limit 1
-  `
+  params.push(slug)
+  clauses.push(`slug = ${placeholder(db.dialect, params.length)}`)
+  if (tenantId !== undefined) {
+    params.push(tenantId)
+    clauses.push(`tenant_id = ${placeholder(db.dialect, params.length)}`)
+  }
+  if (excludeId !== undefined) {
+    params.push(excludeId)
+    clauses.push(`id <> ${placeholder(db.dialect, params.length)}`)
+  }
+  const { rows } = await db.unsafe<{ id: string }>(
+    `select id from media_folders where ${clauses.join(' and ')} limit 1`,
+    params,
+  )
   return rows.length > 0
 }

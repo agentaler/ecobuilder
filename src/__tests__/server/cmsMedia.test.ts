@@ -133,21 +133,23 @@ function makeFakeDb() {
       return { rows: [], rowCount: 0 }
     }
 
-    // createMediaAsset — values[0..8] = id, filename, mimeType, sizeBytes,
-    // storagePath, publicPath, uploadedByUserId, storageAdapterId,
-    // externallyHosted. The fake DB router matches before importMediaAsset
-    // because importMediaAsset's column list is much longer.
-    if (normalized.includes('insert into media_assets') && values.length === 9) {
+    // createMediaAsset — values[0..9] = id, tenantId, filename, mimeType,
+    // sizeBytes, storagePath, publicPath, uploadedByUserId, storageAdapterId,
+    // externallyHosted (tenant_id at index 1 per E07 media isolation). The
+    // fake DB router matches before importMediaAsset because importMediaAsset's
+    // column list is much longer.
+    if (normalized.includes('insert into media_assets') && values.length === 10) {
       const row = mediaRow({
         id: values[0],
-        filename: values[1],
-        mime_type: values[2],
-        size_bytes: values[3],
-        storage_path: values[4],
-        public_path: values[5],
-        uploaded_by_user_id: values[6],
-        storage_adapter_id: values[7],
-        externally_hosted: values[8],
+        tenant_id: values[1],
+        filename: values[2],
+        mime_type: values[3],
+        size_bytes: values[4],
+        storage_path: values[5],
+        public_path: values[6],
+        uploaded_by_user_id: values[7],
+        storage_adapter_id: values[8],
+        externally_hosted: values[9],
         created_at: new Date('2026-01-03').toISOString(),
       })
       media.push(row)
@@ -205,10 +207,11 @@ function makeFakeDb() {
     }
 
     // softDeleteMediaAsset — values[0] = deletedAt timestamp, values[1] = id
+    // (values[2] = tenantId when scoped). restoreMediaAsset sets the column to
+    // a literal null, so `set deleted_at = null` in the SQL distinguishes the
+    // two regardless of how many scope params trail.
     if (normalized.startsWith('update media_assets set deleted_at')) {
-      // Two branches share this prefix: the soft-delete (sets a timestamp)
-      // and the restore (clears it back to null). Disambiguate via values.
-      const isRestore = values[0] === null || values.length === 1
+      const isRestore = normalized.includes('set deleted_at = null')
       if (isRestore) {
         const row = media.find((asset) => asset.id === values[0])
         if (!row) return { rows: [], rowCount: 0 }
@@ -293,6 +296,7 @@ describe('CMS media repository', () => {
 
     await createMediaAsset(db, {
       id: 'asset_1',
+      tenantId: 'default',
       filename: 'hero.png',
       mimeType: 'image/png',
       sizeBytes: 12,
@@ -325,6 +329,7 @@ describe('CMS media repository', () => {
 
     await createMediaAsset(db, {
       id: 'asset_1',
+      tenantId: 'default',
       filename: 'hero.png',
       mimeType: 'image/png',
       sizeBytes: 12,
@@ -346,6 +351,7 @@ describe('CMS media repository', () => {
 
     await createMediaAsset(db, {
       id: 'asset_1',
+      tenantId: 'default',
       filename: 'hero.png',
       mimeType: 'image/png',
       sizeBytes: 12,
@@ -572,6 +578,7 @@ describe('CMS media handlers', () => {
     const cookie = await createCookie(db)
     await createMediaAsset(db, {
       id: 'asset_1',
+      tenantId: 'default',
       filename: 'hero.png',
       mimeType: 'image/png',
       sizeBytes: 12,
@@ -600,6 +607,7 @@ describe('CMS media handlers', () => {
     const cookie = await createCookie(db)
     await createMediaAsset(db, {
       id: 'asset_1',
+      tenantId: 'default',
       filename: 'hero.png',
       mimeType: 'image/png',
       sizeBytes: 12,
@@ -632,6 +640,7 @@ describe('CMS media handlers', () => {
     mediaStorageRegistry.configureLocalDisk({ uploadsDir })
     await createMediaAsset(db, {
       id: 'asset_1',
+      tenantId: 'default',
       filename: 'hero.png',
       mimeType: 'image/png',
       sizeBytes: 12,
@@ -672,6 +681,7 @@ describe('CMS media handlers', () => {
     mediaStorageRegistry.configureLocalDisk({ uploadsDir })
     await createMediaAsset(db, {
       id: 'asset_1',
+      tenantId: 'default',
       filename: 'hero.png',
       mimeType: 'image/png',
       sizeBytes: 12,

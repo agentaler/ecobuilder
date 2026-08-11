@@ -41,6 +41,7 @@ import {
   updateUserPasswordHash,
 } from '../../repositories/users'
 import { revokeAllOtherSessions } from '../../repositories/sessions'
+import { BOOTSTRAP_TENANT_ID } from '../../repositories/tenants'
 import { createAuditEvent } from '../../repositories/audit'
 import { badRequest, jsonResponse, methodNotAllowed, readValidatedBody } from '../../http'
 import {
@@ -320,6 +321,11 @@ export async function handleMeRoutes(
       allowedMimes: IMAGE_MIMES,
       role: 'avatar',
       uploadedByUserId: user.id,
+      // Avatars are per-user, but the media row still carries a tenant — stamp
+      // the uploader's active workspace. Avatars resolve by direct id-join off
+      // the user row (never the tenant-scoped library list), so the value is
+      // immaterial to avatar rendering and just keeps the column consistent.
+      tenantId: user.activeTenantId ?? BOOTSTRAP_TENANT_ID,
       oversizedMessage: 'Avatar must be smaller than 5 MB',
       unsupportedMessage: 'Avatars must be a JPEG, PNG, GIF, or WebP image',
     })

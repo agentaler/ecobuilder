@@ -18,6 +18,8 @@ export type { MediaAsset, MediaVariant } from './mediaTypes'
 
 interface CreateMediaAssetInput {
   id: string
+  /** The workspace this asset belongs to (E07 media isolation). */
+  tenantId: string
   filename: string
   mimeType: string
   sizeBytes: number
@@ -28,6 +30,22 @@ interface CreateMediaAssetInput {
   storageAdapterId: string
   /** True when this row's bytes are stored outside the host's uploads dir. */
   externallyHosted: boolean
+}
+
+/**
+ * Optional tenant scope for the by-id read/mutate paths (E07 media isolation).
+ * Session-driven admin handlers pass `user.activeTenantId` so a cross-tenant id
+ * resolves to null (a 404, never another workspace's asset). The publisher's
+ * render prefetch and the bundle import/export paths legitimately omit it and
+ * stay unscoped. `nextParam` is the 1-based index of the first free placeholder.
+ */
+function tenantScope(
+  db: DbClient,
+  tenantId: string | undefined,
+  nextParam: number,
+): { clause: string; params: unknown[] } {
+  if (tenantId === undefined) return { clause: '', params: [] }
+  return { clause: ` and tenant_id = ${placeholder(db.dialect, nextParam)}`, params: [tenantId] }
 }
 
 export interface UpdateMediaAssetMetadataInput {
@@ -94,6 +112,7 @@ export async function createMediaAsset(
   // cannot desync.
   const valuesByColumn: Record<(typeof MEDIA_ASSET_INSERT_COLUMNS)[number], unknown> = {
     id: input.id,
+    tenant_id: input.tenantId,
     filename: input.filename,
     mime_type: input.mimeType,
     size_bytes: input.sizeBytes,
@@ -117,12 +136,14 @@ export async function createMediaAsset(
 export async function getMediaAsset(
   db: DbClient,
   id: string,
+  tenantId?: string,
 ): Promise<MediaAsset | null> {
+  const scope = tenantScope(db, tenantId, 2)
   const { rows } = await db.unsafe<MediaAssetRow>(
     `select ${MEDIA_ASSET_COLUMNS}
      from media_assets
-     where id = ${placeholder(db.dialect, 1)}`,
-    [id],
+     where id = ${placeholder(db.dialect, 1)}${scope.clause}`,
+    [id, ...scope.params],
   )
   if (rows.length === 0) return null
   const assets = await hydrateAssets(db, rows)
@@ -140,23 +161,26 @@ export async function getMediaAsset(
  */
 export async function listMediaAssets(
   db: DbClient,
-  options: { includeDeleted?: boolean } = {},
+  options: { includeDeleted?: boolean; tenantId?: string } = {},
 ): Promise<MediaAsset[]> {
-  // Two queries, not one, because cross-dialect optional WHERE clauses in
-  // tagged templates require literal SQL text — `includeDeleted` is the
-  // only branch.
+  // The tenant predicate is the first placeholder when scoped, so both
+  // branches share one param array. `includeDeleted` selects the deleted-at
+  // filter + ordering; the tenant clause is spliced in on top.
+  const scope = tenantScope(db, options.tenantId, 1)
   const { rows } = options.includeDeleted
     ? await db.unsafe<MediaAssetRow>(
         `select ${MEDIA_ASSET_COLUMNS}
          from media_assets
-         where deleted_at is not null
+         where deleted_at is not null${scope.clause}
          order by deleted_at desc`,
+        scope.params,
       )
     : await db.unsafe<MediaAssetRow>(
         `select ${MEDIA_ASSET_COLUMNS}
          from media_assets
-         where deleted_at is null
+         where deleted_at is null${scope.clause}
          order by created_at desc`,
+        scope.params,
       )
   return hydrateAssets(db, rows)
 }
@@ -186,6 +210,7 @@ export async function updateMediaAssetMetadata(
   db: DbClient,
   id: string,
   input: UpdateMediaAssetMetadataInput,
+  tenantId?: string,
 ): Promise<MediaAsset | null> {
   // Canonical form for the tag column: lowercased, dedup, sorted so equality
   // checks against a "{ tag }" filter behave predictably and the JSON
@@ -200,6 +225,7 @@ export async function updateMediaAssetMetadata(
   const title = input.title ?? null
 
   const p = (n: number) => placeholder(db.dialect, n)
+  const scope = tenantScope(db, tenantId, 7)
   const { rows } = await db.unsafe<MediaAssetRow>(
     `update media_assets set
        filename = coalesce(${p(1)}, filename),
@@ -207,9 +233,9 @@ export async function updateMediaAssetMetadata(
        caption = coalesce(${p(3)}, caption),
        title = coalesce(${p(4)}, title),
        tags_json = coalesce(${p(5)}, tags_json)
-     where id = ${p(6)}
+     where id = ${p(6)}${scope.clause}
      returning ${MEDIA_ASSET_COLUMNS}`,
-    [filename, altText, caption, title, tags, id],
+    [filename, altText, caption, title, tags, id, ...scope.params],
   )
   if (rows.length === 0) return null
   const assets = await hydrateAssets(db, rows)
@@ -261,15 +287,20 @@ export async function setMediaAssetVariants(
 export async function softDeleteMediaAsset(
   db: DbClient,
   id: string,
+  tenantId?: string,
 ): Promise<MediaAsset | null> {
   const nowIso = new Date().toISOString()
+  const scope = tenantScope(db, tenantId, 3)
   const { rows } = await db.unsafe<MediaAssetRow>(
     `update media_assets set deleted_at = ${placeholder(db.dialect, 1)}
-     where id = ${placeholder(db.dialect, 2)} and deleted_at is null
+     where id = ${placeholder(db.dialect, 2)} and deleted_at is null${scope.clause}
      returning ${MEDIA_ASSET_COLUMNS}`,
-    [nowIso, id],
+    [nowIso, id, ...scope.params],
   )
-  if (rows.length === 0) return getMediaAsset(db, id)
+  // A no-op UPDATE means either "already trashed" or "not in this tenant" —
+  // re-read under the same scope so the caller can't distinguish a cross-tenant
+  // id from an already-deleted one (both yield null when out of scope).
+  if (rows.length === 0) return getMediaAsset(db, id, tenantId)
   const assets = await hydrateAssets(db, rows)
   return assets[0] ?? null
 }
@@ -277,12 +308,14 @@ export async function softDeleteMediaAsset(
 export async function restoreMediaAsset(
   db: DbClient,
   id: string,
+  tenantId?: string,
 ): Promise<MediaAsset | null> {
+  const scope = tenantScope(db, tenantId, 2)
   const { rows } = await db.unsafe<MediaAssetRow>(
     `update media_assets set deleted_at = null
-     where id = ${placeholder(db.dialect, 1)}
+     where id = ${placeholder(db.dialect, 1)}${scope.clause}
      returning ${MEDIA_ASSET_COLUMNS}`,
-    [id],
+    [id, ...scope.params],
   )
   if (rows.length === 0) return null
   const assets = await hydrateAssets(db, rows)
@@ -296,12 +329,15 @@ export async function restoreMediaAsset(
 export async function deleteMediaAsset(
   db: DbClient,
   id: string,
+  tenantId?: string,
 ): Promise<{ storagePath: string } | null> {
-  const { rows } = await db<DeletedMediaAssetRow>`
-    delete from media_assets
-    where id = ${id}
-    returning storage_path
-  `
+  const scope = tenantScope(db, tenantId, 2)
+  const { rows } = await db.unsafe<DeletedMediaAssetRow>(
+    `delete from media_assets
+     where id = ${placeholder(db.dialect, 1)}${scope.clause}
+     returning storage_path`,
+    [id, ...scope.params],
+  )
   const row = rows[0]
   return row ? { storagePath: row.storage_path } : null
 }
@@ -329,9 +365,11 @@ export async function replaceMediaAssetBinary(
     storageAdapterId: string
     externallyHosted: boolean
   },
+  tenantId?: string,
 ): Promise<MediaAsset | null> {
   const nowIso = new Date().toISOString()
   const p = (n: number) => placeholder(db.dialect, n)
+  const scope = tenantScope(db, tenantId, 10)
   const { rows } = await db.unsafe<MediaAssetRow>(
     `update media_assets set
        filename = ${p(1)},
@@ -342,7 +380,7 @@ export async function replaceMediaAssetBinary(
        storage_adapter_id = ${p(6)},
        externally_hosted = ${p(7)},
        replaced_at = ${p(8)}
-     where id = ${p(9)}
+     where id = ${p(9)}${scope.clause}
      returning ${MEDIA_ASSET_COLUMNS}`,
     [
       input.filename,
@@ -354,6 +392,7 @@ export async function replaceMediaAssetBinary(
       input.externallyHosted,
       nowIso,
       id,
+      ...scope.params,
     ],
   )
   if (rows.length === 0) return null
@@ -369,10 +408,13 @@ export async function replaceMediaAssetBinary(
 export async function getMediaAssetStoragePath(
   db: DbClient,
   id: string,
+  tenantId?: string,
 ): Promise<string | null> {
-  const { rows } = await db<{ storage_path: string }>`
-    select storage_path from media_assets where id = ${id}
-  `
+  const scope = tenantScope(db, tenantId, 2)
+  const { rows } = await db.unsafe<{ storage_path: string }>(
+    `select storage_path from media_assets where id = ${placeholder(db.dialect, 1)}${scope.clause}`,
+    [id, ...scope.params],
+  )
   return rows[0]?.storage_path ?? null
 }
 
@@ -385,10 +427,13 @@ export async function getMediaAssetStoragePath(
 export async function getMediaAssetVariants(
   db: DbClient,
   id: string,
+  tenantId?: string,
 ): Promise<MediaVariant[]> {
-  const { rows } = await db<{ variants_json: unknown }>`
-    select variants_json from media_assets where id = ${id}
-  `
+  const scope = tenantScope(db, tenantId, 2)
+  const { rows } = await db.unsafe<{ variants_json: unknown }>(
+    `select variants_json from media_assets where id = ${placeholder(db.dialect, 1)}${scope.clause}`,
+    [id, ...scope.params],
+  )
   if (rows.length === 0) return []
   return parseVariants(rows[0].variants_json)
 }
@@ -402,15 +447,26 @@ export async function assignAssetToFolders(
   db: DbClient,
   assetId: string,
   input: { add?: string[]; remove?: string[] },
+  tenantId?: string,
 ): Promise<MediaAsset | null> {
   return db.transaction(async (tx) => {
+    // The asset must be in the caller's tenant; otherwise this is a
+    // cross-tenant id and resolves to null (a 404) with no membership change.
+    const asset = await getMediaAsset(tx, assetId, tenantId)
+    if (!asset) return null
+
     for (const folderId of input.remove ?? []) {
       await tx`
         delete from media_asset_folders
         where asset_id = ${assetId} and folder_id = ${folderId}
       `
     }
-    for (const folderId of input.add ?? []) {
+    // Only link folders that exist within the same tenant — a folder id from
+    // another workspace is silently ignored, never linked across the boundary.
+    const addable = tenantId === undefined
+      ? (input.add ?? [])
+      : await inTenantFolderIds(tx, tenantId, input.add ?? [])
+    for (const folderId of addable) {
       // Cross-dialect upsert — PG 9.5+ and SQLite 3.24+ both accept
       // `ON CONFLICT DO NOTHING` on a primary key conflict.
       await tx`
@@ -419,8 +475,24 @@ export async function assignAssetToFolders(
         on conflict do nothing
       `
     }
-    return getMediaAsset(tx, assetId)
+    return getMediaAsset(tx, assetId, tenantId)
   })
+}
+
+/** Filter a set of folder ids down to those that live in `tenantId`. */
+async function inTenantFolderIds(
+  db: DbClient,
+  tenantId: string,
+  folderIds: string[],
+): Promise<string[]> {
+  if (folderIds.length === 0) return []
+  const placeholders = folderIds.map((_, i) => placeholder(db.dialect, i + 2)).join(', ')
+  const { rows } = await db.unsafe<{ id: string }>(
+    `select id from media_folders
+     where tenant_id = ${placeholder(db.dialect, 1)} and id in (${placeholders})`,
+    [tenantId, ...folderIds],
+  )
+  return rows.map((r) => r.id)
 }
 
 // ---------------------------------------------------------------------------

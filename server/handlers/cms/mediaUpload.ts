@@ -210,6 +210,8 @@ interface AcceptUploadInput {
   role: MediaAssetRole
   /** User who triggered the upload; persisted on the media row. */
   uploadedByUserId: string | null
+  /** Workspace the asset belongs to (E07 media isolation). */
+  tenantId: string
   /** Error message for the size-limit response (keeps the prose per-surface). */
   oversizedMessage: string
   /** Error message when the sniffed MIME isn't in `allowedMimes`. */
@@ -300,6 +302,7 @@ export async function acceptUploadedMedia(
 
   const asset = await createMediaAsset(db, {
     id: nanoid(),
+    tenantId: input.tenantId,
     filename: input.file.name || storageName,
     mimeType: validated.detectedMime,
     sizeBytes: input.file.size,
@@ -358,11 +361,11 @@ export async function acceptReplacementMedia(
   const validated = await validateUploadedMedia(input)
   if (validated instanceof Response) return validated
 
-  const previous = await getMediaAsset(db, assetId)
+  const previous = await getMediaAsset(db, assetId, input.tenantId)
   if (!previous) {
     return jsonResponse({ error: 'Media asset not found' }, { status: 404 })
   }
-  const previousStoragePath = await getMediaAssetStoragePath(db, assetId)
+  const previousStoragePath = await getMediaAssetStoragePath(db, assetId, input.tenantId)
   if (!previousStoragePath) {
     return jsonResponse({ error: 'Media asset not found' }, { status: 404 })
   }
@@ -370,7 +373,7 @@ export async function acceptReplacementMedia(
   // can sweep them off the backend after the replace lands. The new
   // variant ladder is derived from the new binary's dimensions, so the
   // old files are guaranteed to be orphaned regardless of width overlap.
-  const previousVariants = await getMediaAssetVariants(db, assetId)
+  const previousVariants = await getMediaAssetVariants(db, assetId, input.tenantId)
 
   const storageName = `${safeStorageStem(input.file.name)}${EXTENSION_FOR_MIME[validated.detectedMime]}`
   const suggestedStoragePath = buildSuggestedStoragePath(safeStorageStem(input.file.name), EXTENSION_FOR_MIME[validated.detectedMime])
@@ -398,7 +401,7 @@ export async function acceptReplacementMedia(
     publicPath: dispatched.publicUrl,
     storageAdapterId: dispatched.storageAdapterId,
     externallyHosted: dispatched.externallyHosted,
-  })
+  }, input.tenantId)
   if (!updated) {
     // The asset disappeared between the lookup and the update (race against
     // a parallel hard-delete). Clean up the bytes we just wrote so we

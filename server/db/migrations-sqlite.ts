@@ -1394,4 +1394,24 @@ export const sqliteMigrations: Migration[] = [
         on tenant_invitations (tenant_id, status);
     `,
   },
+  {
+    // Tenant-scoped media library (E07). Threads tenant_id through the media
+    // asset + folder tables so each workspace has its own library. Additive
+    // NOT NULL DEFAULT 'default' backfills every existing row into the
+    // bootstrap tenant (matching the content tables in 028). The folder
+    // uniqueness index becomes tenant-scoped so two workspaces can each own a
+    // folder with the same parent+slug. The media_asset_folders join table
+    // needs no tenant_id — both sides it references are already tenant-scoped,
+    // and the handlers resolve asset and folder within the caller's tenant
+    // before linking them.
+    id: '031_tenant_scoped_media',
+    sql: `
+      alter table media_assets add column tenant_id text not null default 'default';
+      alter table media_folders add column tenant_id text not null default 'default';
+
+      drop index if exists media_folders_parent_slug_idx;
+      create unique index if not exists media_folders_parent_slug_idx
+        on media_folders (tenant_id, coalesce(parent_id, ''), slug);
+    `,
+  },
 ]

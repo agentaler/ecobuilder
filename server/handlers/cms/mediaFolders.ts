@@ -32,6 +32,7 @@ import {
   updateMediaFolder,
   type UpdateMediaFolderInput,
 } from '../../repositories/mediaFolders'
+import { BOOTSTRAP_TENANT_ID } from '../../repositories/tenants'
 import { slugFromTitle } from '@core/utils/slug'
 import { badRequest, jsonResponse, readValidatedBody } from '../../http'
 import { Type } from '@core/utils/typeboxHelpers'
@@ -47,7 +48,7 @@ const FOLDERS_PATH = `${CMS_API_PREFIX}/media/folders`
 async function handleListFolders(req: Request, db: DbClient): Promise<Response> {
   const user = await requireCapability(req, db, 'media.read')
   if (user instanceof Response) return user
-  return jsonResponse({ folders: await listMediaFolders(db) })
+  return jsonResponse({ folders: await listMediaFolders(db, user.activeTenantId ?? BOOTSTRAP_TENANT_ID) })
 }
 
 async function handleCreateFolder(req: Request, db: DbClient): Promise<Response> {
@@ -63,19 +64,21 @@ async function handleCreateFolder(req: Request, db: DbClient): Promise<Response>
   const name = body.name.trim()
   if (!name) return badRequest('Folder name is required')
   const parentId = body.parentId ?? null
+  const tenantId = user.activeTenantId ?? BOOTSTRAP_TENANT_ID
 
   if (parentId !== null) {
-    const parent = await getMediaFolder(db, parentId)
+    const parent = await getMediaFolder(db, parentId, tenantId)
     if (!parent) return badRequest('Parent folder does not exist')
   }
 
   const slug = slugFromTitle(name) || nanoid(8).toLowerCase()
-  if (await isMediaFolderSlugTaken(db, parentId, slug)) {
+  if (await isMediaFolderSlugTaken(db, parentId, slug, tenantId)) {
     return badRequest(`A folder with the slug "${slug}" already exists here`)
   }
 
   const folder = await createMediaFolder(db, {
     id: nanoid(),
+    tenantId,
     parentId,
     name,
     slug,
@@ -93,6 +96,7 @@ async function handleUpdateFolder(
   if (user instanceof Response) return user
 
   const folderId = params.id
+  const tenantId = user.activeTenantId ?? BOOTSTRAP_TENANT_ID
 
   const PatchFolderBodySchema = Type.Object({
     name: Type.Optional(Type.String()),
@@ -103,7 +107,9 @@ async function handleUpdateFolder(
   })
   const body = await readValidatedBody(req, PatchFolderBodySchema)
   if (!body) return badRequest('Invalid request body')
-  const existing = await getMediaFolder(db, folderId)
+  // Scoped existence check guards the by-id update below: a cross-tenant
+  // folder id is a 404 here before any mutation runs.
+  const existing = await getMediaFolder(db, folderId, tenantId)
   if (!existing) return jsonResponse({ error: 'Folder not found' }, { status: 404 })
 
   const patch: UpdateMediaFolderInput = {}
@@ -116,7 +122,7 @@ async function handleUpdateFolder(
     // The slug derives from the name — the user can't set it directly.
     // Re-check uniqueness against the new (parent, slug) pair.
     const effectiveParent = body.parentId !== undefined ? body.parentId : existing.parentId
-    if (await isMediaFolderSlugTaken(db, effectiveParent, slug, folderId)) {
+    if (await isMediaFolderSlugTaken(db, effectiveParent, slug, tenantId, folderId)) {
       return badRequest(`A folder with the slug "${slug}" already exists here`)
     }
     patch.slug = slug
@@ -135,10 +141,10 @@ async function handleUpdateFolder(
         if (cursor === folderId) {
           return badRequest('A folder cannot be moved into its own descendant')
         }
-        const ancestor = await getMediaFolder(db, cursor)
+        const ancestor = await getMediaFolder(db, cursor, tenantId)
         cursor = ancestor?.parentId ?? null
       }
-      const parent = await getMediaFolder(db, parentRaw)
+      const parent = await getMediaFolder(db, parentRaw, tenantId)
       if (!parent) return badRequest('Target parent folder does not exist')
     }
     patch.parentId = parentRaw
@@ -163,7 +169,7 @@ async function handleDeleteFolder(
   const user = await requireCapability(req, db, 'media.delete')
   if (user instanceof Response) return user
 
-  const ok = await deleteMediaFolder(db, params.id)
+  const ok = await deleteMediaFolder(db, params.id, user.activeTenantId ?? BOOTSTRAP_TENANT_ID)
   if (!ok) return jsonResponse({ error: 'Folder not found' }, { status: 404 })
   return jsonResponse({ ok: true })
 }

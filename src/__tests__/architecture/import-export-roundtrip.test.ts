@@ -643,6 +643,7 @@ describe('full-site round-trip — folders, membership, redirects', () => {
 
     const folder = await createMediaFolder(sourceDb, {
       id: 'folder-logos',
+      tenantId: 'default',
       parentId: null,
       name: 'Logos',
       slug: 'logos',
@@ -660,6 +661,7 @@ describe('full-site round-trip — folders, membership, redirects', () => {
     )
     const asset = await createMediaAsset(sourceDb, {
       id: 'asset-logo',
+      tenantId: 'default',
       filename: 'logo.png',
       mimeType: 'image/png',
       sizeBytes: 14,

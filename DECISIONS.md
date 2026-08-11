@@ -148,3 +148,34 @@ owner (409).
 **Shared slug derivation:** `uniqueTenantSlug` moved from `signup.ts` into the
 tenants repository so both signup and create-workspace derive collision-free
 slugs from one implementation.
+
+## D10 — Tenant-scoped media library (E07)
+
+**Choice:** `media_assets` and `media_folders` gain a `tenant_id`
+(migration 031, additive NOT NULL DEFAULT 'default', backfilling every existing
+row into the bootstrap tenant like the content tables in 028). The folder
+uniqueness index becomes `(tenant_id, coalesce(parent_id,''), slug)` so two
+workspaces can each own a "Logos" folder. Isolation follows the **same
+optional-`tenantId` pattern as the content rows (D-E07-T01)**: the by-id
+read/mutate repository functions take an optional `tenantId` that adds
+`and tenant_id = ?`; the session-driven admin handlers pass
+`user.activeTenantId ?? 'default'`, so a cross-tenant asset/folder id resolves
+to null — a 404, never another workspace's media and never a 403 that would
+confirm existence. The `media_asset_folders` join needs no `tenant_id`: both
+sides it references are tenant-scoped, and `assignAssetToFolders` resolves the
+asset within the caller's tenant and filters `add` folder ids to that tenant
+before linking, so a cross-tenant folder id is silently ignored.
+
+**Callers that stay unscoped (deliberate):** the publisher's render-time
+`prefetchMediaAssets` (a published page only ever references its own tenant's
+assets, and the render has no session), and the whole-instance bundle
+export/import (`listMediaAssetsForExport`, `importMediaAsset`,
+`importMediaFolder`) which operate at the installation level. The avatar upload
+(`/me/avatar`) stamps the uploader's active tenant but avatars resolve by a
+direct id-join off the user row, never through the tenant-scoped library list,
+so the value is immaterial to avatar rendering. Custom fonts resolve their
+backing media asset scoped to the caller's tenant.
+
+**Deferred (noted, not built here):** per-tenant bundle export/import and the
+AI/MCP media-list tool (`server/ai/tools/content/readTools.ts`) — separate
+surfaces (E08/E11) that will scope to a tenant when those epics land.

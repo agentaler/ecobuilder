@@ -75,6 +75,7 @@ describe('media-asset mapping (single source of truth)', () => {
       // the fields the drifted publisher copy used to drop.
       await createMediaAsset(db, {
         id: 'a1',
+        tenantId: 'default',
         filename: 'hero.png',
         mimeType: 'image/png',
         sizeBytes: 2048,
@@ -137,6 +138,7 @@ describe('media-asset mapping (single source of truth)', () => {
     try {
       await createMediaAsset(db, {
         id: 'a2',
+        tenantId: 'default',
         filename: 'logo.png',
         mimeType: 'image/png',
         sizeBytes: 512,
@@ -197,6 +199,7 @@ describe('media-asset column / insert integrity', () => {
     try {
       const asset = await createMediaAsset(db, {
         id: 'a3',
+        tenantId: 'default',
         filename: 'pic.png',
         mimeType: 'image/png',
         sizeBytes: 10,

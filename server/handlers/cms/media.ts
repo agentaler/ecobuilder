@@ -38,6 +38,7 @@
  */
 import type { DbClient } from '../../db/client'
 import { requireCapability } from '../../auth/authz'
+import { BOOTSTRAP_TENANT_ID } from '../../repositories/tenants'
 import {
   assignAssetToFolders,
   deleteMediaAsset,
@@ -125,7 +126,10 @@ async function handleListMedia(req: Request, db: DbClient): Promise<Response> {
   const query = url.searchParams.get('query')?.trim().toLowerCase() ?? ''
   const limit = readLimit(url)
 
-  let assets = await listMediaAssets(db, { includeDeleted: trash })
+  let assets = await listMediaAssets(db, {
+    includeDeleted: trash,
+    tenantId: user.activeTenantId ?? BOOTSTRAP_TENANT_ID,
+  })
 
   // JS-side text filter (follows the intentional design of this repo — see
   // listMediaAssets comment about JS-side filtering for small media libraries).
@@ -159,6 +163,7 @@ async function handleUploadMedia(req: Request, db: DbClient): Promise<Response> 
     allowedMimes: MEDIA_LIBRARY_MIMES,
     role: 'original',
     uploadedByUserId: user.id,
+    tenantId: user.activeTenantId ?? BOOTSTRAP_TENANT_ID,
     oversizedMessage: 'File exceeds the 50 MB hard limit',
     unsupportedMessage: 'Only JPEG, PNG, GIF, WebP, SVG, MP4, WebM, and web font (WOFF, WOFF2, TTF, OTF) files can be uploaded',
   })
@@ -174,7 +179,7 @@ async function handleRestoreMedia(
   const user = await requireCapability(req, db, 'media.write')
   if (user instanceof Response) return user
 
-  const restored = await restoreMediaAsset(db, params.id)
+  const restored = await restoreMediaAsset(db, params.id, user.activeTenantId ?? BOOTSTRAP_TENANT_ID)
   if (!restored) return notFound()
   return jsonResponse({ asset: restored })
 }
@@ -199,6 +204,7 @@ async function handleReplaceMedia(
     allowedMimes: MEDIA_LIBRARY_MIMES,
     role: 'original',
     uploadedByUserId: user.id,
+    tenantId: user.activeTenantId ?? BOOTSTRAP_TENANT_ID,
     oversizedMessage: 'File exceeds the 50 MB hard limit',
     unsupportedMessage: 'Only JPEG, PNG, GIF, WebP, SVG, MP4, WebM, and web font (WOFF, WOFF2, TTF, OTF) files can be uploaded',
   })
@@ -225,7 +231,12 @@ async function handleAssignMediaFolders(
   if (add.length === 0 && remove.length === 0) {
     return badRequest('Provide `add` or `remove` folder ids')
   }
-  const asset = await assignAssetToFolders(db, params.id, { add, remove })
+  const asset = await assignAssetToFolders(
+    db,
+    params.id,
+    { add, remove },
+    user.activeTenantId ?? BOOTSTRAP_TENANT_ID,
+  )
   if (!asset) return notFound()
   return jsonResponse({ asset })
 }
@@ -244,7 +255,12 @@ async function handleUpdateMediaMetadata(
   if (patch instanceof Response) return patch
   if (Object.keys(patch).length === 0) return badRequest('No editable fields supplied')
 
-  const asset = await updateMediaAssetMetadata(db, params.id, patch)
+  const asset = await updateMediaAssetMetadata(
+    db,
+    params.id,
+    patch,
+    user.activeTenantId ?? BOOTSTRAP_TENANT_ID,
+  )
   if (!asset) return notFound()
   return jsonResponse({ asset })
 }
@@ -259,9 +275,10 @@ async function handleDeleteMedia(
 
   const url = new URL(req.url)
   const purge = readQueryFlag(url, 'purge')
+  const tenantId = user.activeTenantId ?? BOOTSTRAP_TENANT_ID
 
   if (!purge) {
-    const asset = await softDeleteMediaAsset(db, params.id)
+    const asset = await softDeleteMediaAsset(db, params.id, tenantId)
     if (!asset) return notFound()
     return jsonResponse({ asset })
   }
@@ -269,7 +286,7 @@ async function handleDeleteMedia(
   // Hard delete — only legal on already-trashed assets so a single
   // click can't bypass the trash safety net. Caller must explicitly
   // soft-delete first and then purge from the Trash view.
-  const existing = await getMediaAsset(db, params.id)
+  const existing = await getMediaAsset(db, params.id, tenantId)
   if (!existing) return notFound()
   if (!existing.deletedAt) return badRequest('Asset must be soft-deleted before purge')
 
@@ -277,7 +294,7 @@ async function handleDeleteMedia(
   // extra bytes to sweep from each variant's adapter alongside the original.
   const variants = existing.variants
   const adapterId = existing.storageAdapterId
-  const deleted = await deleteMediaAsset(db, params.id)
+  const deleted = await deleteMediaAsset(db, params.id, tenantId)
   if (!deleted) return notFound()
 
   await dispatchDelete(adapterId, deleted.storagePath).catch((err) => {
