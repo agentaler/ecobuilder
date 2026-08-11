@@ -4,6 +4,7 @@ export {
   getCurrentCmsUser,
   loginCms,
   setupCms,
+  signupCms,
   verifyCmsMfa,
 } from '../cmsAuth'
 export type {

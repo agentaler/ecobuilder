@@ -7,7 +7,6 @@ import {
   listCmsDataAuthors,
   listCmsDataRows,
   listCmsDataTables,
-  publishCmsDataRow,
   saveCmsDataRowDraft,
   updateCmsDataRowAuthor,
   updateCmsDataRowTable,
@@ -15,6 +14,7 @@ import {
   updateCmsDataRowStatus,
 } from '@core/persistence'
 import { useWorkspaceLayout } from '@admin/state/workspaceLayout'
+import { publishRowAndWarn } from '@admin/lib/publishRow'
 import type {
   DataTable,
   DataRow,
@@ -454,7 +454,7 @@ export function useContentWorkspace({
 
   const publishEntry = async (entry: DataRow) => {
     setError(null)
-    const updatedRow = await publishCmsDataRow(entry.id)
+    const updatedRow = await publishRowAndWarn(entry.id)
     setEntries((current) => updateRowList(current, updatedRow))
     if (selectedEntry?.id === entry.id) selectEntry(updatedRow)
     return updatedRow

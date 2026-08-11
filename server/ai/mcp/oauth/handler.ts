@@ -61,7 +61,7 @@ function protectedResourceMetadata(req: Request): Response {
   const endpoints = mcpOAuthEndpoints(req)
   return metadataResponse({
     resource: mcpResource(req),
-    resource_name: 'Instatic MCP',
+    resource_name: 'Ecobuilder MCP',
     authorization_servers: [endpoints.issuer],
     scopes_supported: [...MCP_OAUTH_SUPPORTED_SCOPES],
     bearer_methods_supported: ['header'],

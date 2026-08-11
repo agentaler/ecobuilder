@@ -32,6 +32,7 @@ import {
   type ResolvedCustomFontFile,
 } from '../../fonts/googleFontsInstaller'
 import { getMediaAsset } from '../../repositories/media'
+import { BOOTSTRAP_TENANT_ID } from '../../repositories/tenants'
 import { listGoogleFonts } from '@core/fonts'
 import { parseVariant } from '@core/fonts'
 import { badRequest, jsonResponse, readValidatedBody } from '../../http'
@@ -126,7 +127,9 @@ async function handleCustomFont(req: Request, db: DbClient): Promise<Response> {
       return badRequest(`Invalid font variant: "${variant}"`)
     }
 
-    const asset = await getMediaAsset(db, mediaAssetId)
+    // Scope the lookup to the caller's workspace — a font asset id from another
+    // tenant resolves to null, so custom fonts can't reference cross-tenant media.
+    const asset = await getMediaAsset(db, mediaAssetId, user.activeTenantId ?? BOOTSTRAP_TENANT_ID)
     if (!asset) return badRequest(`Media asset not found: ${mediaAssetId}`)
     const format = fontFormatForMime(asset.mimeType)
     if (!format) {

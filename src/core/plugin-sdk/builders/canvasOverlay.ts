@@ -63,7 +63,7 @@ const OVERLAY_ID_PATTERN = /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/
 
 /**
  * Identity wrapper — validates the id at definition time so authoring errors
- * surface during `instatic-plugin build`, not at editor activation.
+ * surface during `ecobuilder-plugin build`, not at editor activation.
  */
 export function definePluginCanvasOverlay(
   config: DefinePluginCanvasOverlayConfig,

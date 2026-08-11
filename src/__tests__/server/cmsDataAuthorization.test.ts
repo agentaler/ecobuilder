@@ -46,7 +46,7 @@ async function login(db: DbClient, email: string): Promise<string> {
   })
   expect(res.status).toBe(200)
   const cookie = (res.headers.get('set-cookie') ?? '').split(';')[0]
-  expect(cookie).toContain('instatic_admin_session=')
+  expect(cookie).toContain('ecobuilder_admin_session=')
   return cookie
 }
 
@@ -58,7 +58,7 @@ async function stepUp(db: DbClient, cookie: string): Promise<string> {
   })
   expect(res.status).toBe(200)
   const steppedCookie = (res.headers.get('set-cookie') ?? '').split(';')[0]
-  expect(steppedCookie).toContain('instatic_admin_session=')
+  expect(steppedCookie).toContain('ecobuilder_admin_session=')
   return steppedCookie
 }
 

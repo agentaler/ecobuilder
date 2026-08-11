@@ -5,6 +5,8 @@ interface ServerConfig {
   staticDir: string
   trustedProxyCidrs: string[]
   publicOrigins: string[]
+  /** Optional shared cache. Unset means single-process, in-memory only. */
+  redisUrl: string | undefined
 }
 
 function readCsvList(value: string | undefined): string[] {
@@ -88,5 +90,6 @@ export function readServerConfig(
     staticDir: env.STATIC_DIR ?? './dist',
     trustedProxyCidrs: readCsvList(env.TRUSTED_PROXY_CIDRS),
     publicOrigins: resolvePublicOrigins(env),
+    redisUrl: env.REDIS_URL || undefined,
   }
 }

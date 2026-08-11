@@ -13,6 +13,11 @@ interface CmsSetupInput {
   password: string
   /** The owner's public name. Omitted or empty means author bindings render nothing. */
   displayName?: string
+  /**
+   * Bootstrap token, required when `CmsSetupStatus.setupTokenRequired` is set.
+   * The server prints it to the deployment log of an unclaimed install.
+   */
+  setupToken?: string
 }
 
 interface CmsLoginInput {
@@ -150,6 +155,39 @@ export async function setupCms(
     fetchImpl,
     fallbackMessage: 'CMS setup failed',
   })
+}
+
+interface CmsSignupInput {
+  workspaceName: string
+  displayName: string
+  email: string
+  password: string
+}
+
+const CmsSignupResponseSchema = Type.Object(
+  { ok: Type.Boolean(), emailVerificationRequired: Type.Optional(Type.Boolean()) },
+  { additionalProperties: true },
+)
+
+/**
+ * Self-service SaaS signup: creates the user + their own workspace (tenant) +
+ * owner membership and auto-signs them in (the server sets the session cookie).
+ * The caller then reads `/me` to hydrate the authenticated session. Distinct
+ * from `setupCms`, which is the one-shot self-hosted install bootstrap.
+ */
+export async function signupCms(
+  input: CmsSignupInput,
+  fetchImpl: FetchLike = globalThis.fetch.bind(globalThis),
+  basePath = '/admin/api/cms',
+): Promise<{ emailVerificationRequired: boolean }> {
+  const body = await apiRequest(`${basePath}/signup`, {
+    method: 'POST',
+    body: input,
+    schema: CmsSignupResponseSchema,
+    fetchImpl,
+    fallbackMessage: 'Sign up failed',
+  })
+  return { emailVerificationRequired: body.emailVerificationRequired === true }
 }
 
 export async function loginCms(

@@ -114,7 +114,12 @@ async function fireOne(db: DbClient, rowId: string, uploadsDir?: string): Promis
     // wasn't initiated by a logged-in user, it was the scheduler tick.
     // The `published_by_user_id` column lands as null which downstream
     // UI renders as "Scheduled publish" instead of a user attribution.
-    await publishDataRow(db, rowId, null, uploadsDir)
+    const result = await publishDataRow(db, rowId, null, uploadsDir)
+    // No user is watching a scheduled publish, so a row that published into an
+    // unreachable route would go unnoticed. The log is the only channel here.
+    for (const warning of result.warnings) {
+      console.warn(`[publish-scheduler] row ${rowId}: ${warning.message}`)
+    }
     await emitContentEntryUpdated(db, rowId, ['status'], { kind: 'system' })
   } catch (err) {
     console.error(`[publish-scheduler] failed to publish row ${rowId}:`, err)

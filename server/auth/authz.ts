@@ -1,5 +1,5 @@
 import type { DbClient } from '../db/client'
-import { SESSION_COOKIE_NAME, hashSessionToken } from './tokens'
+import { LEGACY_SESSION_COOKIE_NAME, SESSION_COOKIE_NAME, hashSessionToken } from './tokens'
 import { roleHasCapability, type CoreCapability } from './capabilities'
 import { findUserBySessionHash, getSessionStepUpExpiresAt, sessionRequiresMfa } from './sessions'
 import { jsonResponse } from '../http'
@@ -34,7 +34,11 @@ function readCookie(req: Request, name: string): string {
  * fallback.
  */
 export async function getSessionHash(req: Request): Promise<string | null> {
-  const token = readCookie(req, SESSION_COOKIE_NAME)
+  // Dual-read across the cookie rename: prefer the new name, accept the legacy
+  // one so a session established before the rename is not force-logged-out.
+  // `readCookie` returns '' (not null) for a missing cookie, so the fallback
+  // must be truthiness-based — `??` would never reach the legacy name.
+  const token = readCookie(req, SESSION_COOKIE_NAME) || readCookie(req, LEGACY_SESSION_COOKIE_NAME)
   return token ? hashSessionToken(token) : null
 }
 

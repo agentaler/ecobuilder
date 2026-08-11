@@ -12,11 +12,11 @@ import type { DataField, DataRow, DataTable } from '@core/data/schemas'
 import {
   createCmsDataRow,
   getCmsDataRow,
-  publishCmsDataRow,
   saveCmsDataRowDraft,
   scheduleCmsDataRowPublish,
 } from '@core/persistence'
 import { useMcpWorkspaceBridge } from '@admin/ai/useMcpWorkspaceBridge'
+import { publishRowAndWarn } from '@admin/lib/publishRow'
 import { executeContentTool } from './contentBridge'
 import {
   setContentBridgeHandle,
@@ -321,7 +321,7 @@ async function applyStatus(
     return
   }
   if (status === 'published') {
-    ws.applyEntryUpdate(await publishCmsDataRow(row.id))
+    ws.applyEntryUpdate(await publishRowAndWarn(row.id))
     return
   }
   await ws.updateEntryStatus(row, status)

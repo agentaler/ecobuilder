@@ -19,9 +19,9 @@ RUN bun install --frozen-lockfile --production
 FROM oven/bun:1.3.11 AS runtime
 WORKDIR /app
 
-ARG INSTATIC_VERSION=dev
-ARG INSTATIC_REVISION=unknown
-ARG INSTATIC_CREATED=unknown
+ARG ECOBUILDER_VERSION=dev
+ARG ECOBUILDER_REVISION=unknown
+ARG ECOBUILDER_CREATED=unknown
 
 LABEL org.opencontainers.image.title="Instatic"
 LABEL org.opencontainers.image.description="Self-hosted CMS with an integrated visual editor."
@@ -29,9 +29,9 @@ LABEL org.opencontainers.image.source="https://github.com/corebunch/instatic"
 LABEL org.opencontainers.image.url="https://github.com/corebunch/instatic"
 LABEL org.opencontainers.image.documentation="https://github.com/corebunch/instatic/tree/main/docs/deployment"
 LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.version="${INSTATIC_VERSION}"
-LABEL org.opencontainers.image.revision="${INSTATIC_REVISION}"
-LABEL org.opencontainers.image.created="${INSTATIC_CREATED}"
+LABEL org.opencontainers.image.version="${ECOBUILDER_VERSION}"
+LABEL org.opencontainers.image.revision="${ECOBUILDER_REVISION}"
+LABEL org.opencontainers.image.created="${ECOBUILDER_CREATED}"
 
 ENV NODE_ENV=production
 ENV PORT=3001

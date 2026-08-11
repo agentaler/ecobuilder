@@ -182,7 +182,7 @@ describe('AI credential handler', () => {
 
     expect(res.status).toBe(500)
     const body = await readJson<{ error: string }>(res)
-    expect(body.error).toContain('INSTATIC_SECRET_KEY')
+    expect(body.error).toContain('ECOBUILDER_SECRET_KEY')
     expect(body.error).not.toContain('sk-proj-test')
   })
 

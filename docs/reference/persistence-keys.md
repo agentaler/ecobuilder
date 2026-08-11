@@ -6,10 +6,11 @@ Catalog of every `localStorage` / `sessionStorage` key the admin app writes, and
 
 ## TL;DR
 
-- All client-side persistence keys are prefixed `instatic-` (or `spotlight:` for Spotlight-specific ones). Don't collide with site / module CSS class names.
+- All client-side persistence keys are prefixed `ecobuilder-` (or `spotlight:` for Spotlight-specific ones). Don't collide with site / module CSS class names.
+- Keys written before the E02 rename used an `instatic-` prefix. A one-time sweep at admin boot (`migrateLegacyStorageKeys` in `src/admin/lib/legacyStorageKeys.ts`) moves them to the `ecobuilder-` names, so no reader needs a dual-read branch.
 - All server-side per-user preferences live in `user_preferences` rows keyed by `user_id` + `key`.
 - Reads go through `parseJsonWithFallback(...)` (corrupted data falls back to defaults) — see [docs/reference/typebox-patterns.md](typebox-patterns.md).
-- The convention: `instatic-<feature>[-v<version>]`. Bumping `-v<N>` invalidates older shapes silently (the schema's `additionalProperties: true` keeps reads tolerant).
+- The convention: `ecobuilder-<feature>[-v<version>]`. Bumping `-v<N>` invalidates older shapes silently (the schema's `additionalProperties: true` keeps reads tolerant).
 
 ---
 
@@ -19,15 +20,15 @@ Catalog of every `localStorage` / `sessionStorage` key the admin app writes, and
 
 | Key                                       | Owner                                                                 | Source-of-truth file                                            |
 |-------------------------------------------|-----------------------------------------------------------------------|-----------------------------------------------------------------|
-| `instatic-editor-prefs`                         | All editor preferences (auto-save, hover-preview, admin theme, UI text size, density, layers options) — see [docs/features/editor-preferences.md](../features/editor-preferences.md) | `src/admin/pages/site/preferences/editorPreferences.ts` → `EDITOR_PREFS_KEY` |
-| `instatic-editor-layout-v2`                     | Per-workspace sidebar widths + open states (site / content / data / media) and floating panel positions | `src/admin/state/workspaceLayoutStorage.ts` → `EDITOR_LAYOUT_STORAGE_KEY` |
-| `instatic-clipboard-v1`                         | The editor clipboard (copy / cut / paste of layer subtrees)            | `src/admin/pages/site/store/clipboard/clipboardStorage.ts` → `CLIPBOARD_STORAGE_KEY` |
-| `instatic-class-usage`                          | Recently-used classes in the ClassPicker autocomplete                 | `src/admin/pages/site/preferences/classUsage.ts` → `CLASS_USAGE_STORAGE_KEY` |
-| `instatic-data-grid-primary-widths-v1`          | Per-table primary-column widths in the Data workspace grid            | `src/admin/pages/data/components/DataGrid/usePrimaryColumnWidth.ts` |
-| `instatic-media-page-view-mode`                 | Shared Media workspace and media-gallery view mode (grid / list)      | `src/admin/pages/media/utils/viewMode.ts`                         |
-| `instatic-media-explorer-view-mode`             | Media Explorer panel view mode (site workspace)                       | `src/admin/pages/site/panels/MediaExplorerPanel/mediaExplorerUtils.ts` → `VIEW_MODE_STORAGE_KEY` |
-| `instatic-module-inserter-v1`                   | Module inserter view mode and recent inserts | `src/admin/pages/site/module-picker/moduleInserterPrefs.ts`      |
-| `instatic-onboarding-dismissed`                 | Dashboard onboarding panel: dismissed / open per-device              | `src/admin/pages/dashboard/hooks/useOnboardingState.ts`         |
+| `ecobuilder-editor-prefs`                         | All editor preferences (auto-save, hover-preview, admin theme, UI text size, density, layers options) — see [docs/features/editor-preferences.md](../features/editor-preferences.md) | `src/admin/pages/site/preferences/editorPreferences.ts` → `EDITOR_PREFS_KEY` |
+| `ecobuilder-editor-layout-v2`                     | Per-workspace sidebar widths + open states (site / content / data / media) and floating panel positions | `src/admin/state/workspaceLayoutStorage.ts` → `EDITOR_LAYOUT_STORAGE_KEY` |
+| `ecobuilder-clipboard-v1`                         | The editor clipboard (copy / cut / paste of layer subtrees)            | `src/admin/pages/site/store/clipboard/clipboardStorage.ts` → `CLIPBOARD_STORAGE_KEY` |
+| `ecobuilder-class-usage`                          | Recently-used classes in the ClassPicker autocomplete                 | `src/admin/pages/site/preferences/classUsage.ts` → `CLASS_USAGE_STORAGE_KEY` |
+| `ecobuilder-data-grid-primary-widths-v1`          | Per-table primary-column widths in the Data workspace grid            | `src/admin/pages/data/components/DataGrid/usePrimaryColumnWidth.ts` |
+| `ecobuilder-media-page-view-mode`                 | Shared Media workspace and media-gallery view mode (grid / list)      | `src/admin/pages/media/utils/viewMode.ts`                         |
+| `ecobuilder-media-explorer-view-mode`             | Media Explorer panel view mode (site workspace)                       | `src/admin/pages/site/panels/MediaExplorerPanel/mediaExplorerUtils.ts` → `VIEW_MODE_STORAGE_KEY` |
+| `ecobuilder-module-inserter-v1`                   | Module inserter view mode and recent inserts | `src/admin/pages/site/module-picker/moduleInserterPrefs.ts`      |
+| `ecobuilder-onboarding-dismissed`                 | Dashboard onboarding panel: dismissed / open per-device              | `src/admin/pages/dashboard/hooks/useOnboardingState.ts`         |
 | `spotlight:recent-commands`               | Spotlight recents — last N executed command ids                       | `src/admin/spotlight/recentStore.ts`                            |
 | `spotlight:telemetry:v1`                  | Local Spotlight telemetry (command frequency)                         | `src/admin/spotlight/telemetry.ts`                              |
 
@@ -35,13 +36,13 @@ Catalog of every `localStorage` / `sessionStorage` key the admin app writes, and
 
 | Key                                       | Owner                                                                 | Source-of-truth file                                            |
 |-------------------------------------------|-----------------------------------------------------------------------|-----------------------------------------------------------------|
-| `instatic-spotlight-pending-action`             | The cross-page-reload action a Spotlight command is waiting for (e.g. step-up then resume) | `src/admin/spotlight/pendingAction.ts`             |
+| `ecobuilder-spotlight-pending-action`             | The cross-page-reload action a Spotlight command is waiting for (e.g. step-up then resume) | `src/admin/spotlight/pendingAction.ts`             |
 
 ### Cookies (HttpOnly — not directly readable)
 
 | Cookie                                    | Owner                                                                 | Source-of-truth file                                            |
 |-------------------------------------------|-----------------------------------------------------------------------|-----------------------------------------------------------------|
-| `instatic_admin_session`                        | Admin session token (raw; hashed before lookup)                       | `server/auth/tokens.ts` → `SESSION_COOKIE_NAME`                 |
+| `ecobuilder_admin_session`                        | Admin session token (raw; hashed before lookup)                       | `server/auth/tokens.ts` → `SESSION_COOKIE_NAME`                 |
 
 The session cookie is `HttpOnly`, `Secure` (in production behind TLS), `SameSite=Lax`, `Path=/admin`. The client never reads it directly.
 
@@ -49,7 +50,7 @@ The session cookie is `HttpOnly`, `Secure` (in production behind TLS), `SameSite
 
 ## Server-side per-user preferences
 
-Stored in the `user_preferences` table — one row per `(user_id, key)`. Keys are namespaced under `instatic-`. Persisted server-side so they sync across devices.
+Stored in the `user_preferences` table — one row per `(user_id, key)`. Keys are plain, unprefixed names (`'dashboard-layout'`, `'module-inserter'` — see `USER_PREFERENCE_KEYS` in `src/core/persistence/userPreferences.ts`); the `ecobuilder-` prefix convention applies only to client-side localStorage keys. Persisted server-side so they sync across devices.
 
 | Key                                       | Owner                                                                 | Source-of-truth file                                            |
 |-------------------------------------------|-----------------------------------------------------------------------|-----------------------------------------------------------------|
@@ -82,12 +83,12 @@ The pattern is always:
 import { safeParseJson, parseJsonWithFallback } from '@core/utils/jsonValidate'
 
 // Hard: corruption is an error
-const result = safeParseJson(localStorage.getItem('instatic-...') ?? '', Schema)
+const result = safeParseJson(localStorage.getItem('ecobuilder-...') ?? '', Schema)
 if (!result.ok) throw result.error
 
 // Soft (typical): corruption falls back to defaults
 const value = parseJsonWithFallback(
-  localStorage.getItem('instatic-...') ?? '',
+  localStorage.getItem('ecobuilder-...') ?? '',
   Schema,
   DEFAULTS,
 )
@@ -107,7 +108,7 @@ const Schema = Type.Object({
 }, { additionalProperties: true })
 
 const next = { view: 'grid' as const }
-localStorage.setItem('instatic-...', JSON.stringify(next))
+localStorage.setItem('ecobuilder-...', JSON.stringify(next))
 ```
 
 `additionalProperties: true` on the schema lets older clients read newer data (unknown keys are preserved on round-trip) — important when a feature ships a new key while existing tabs are still running the old code.
@@ -119,7 +120,7 @@ localStorage.setItem('instatic-...', JSON.stringify(next))
 When a stored shape changes incompatibly, bump the suffix:
 
 ```text
-instatic-editor-layout-v2    →    instatic-editor-layout-v3
+ecobuilder-editor-layout-v2    →    ecobuilder-editor-layout-v3
 ```
 
 The old key stays in localStorage for users who haven't upgraded; the new key starts fresh. Don't migrate — let the old data be GC'd by the user agent over time.
@@ -137,7 +138,7 @@ The old key stays in localStorage for users who haven't upgraded; the new key st
 import { Type, type Static } from '@core/utils/typeboxHelpers'
 import { parseJsonWithFallback } from '@core/utils/jsonValidate'
 
-const KEY = 'instatic-my-feature-v1'
+const KEY = 'ecobuilder-my-feature-v1'
 
 const Schema = Type.Object({
   enabled:  Type.Boolean(),
@@ -174,13 +175,13 @@ Add the matching client-side hook that fetches `GET /me/preferences/my-feature`.
 
 ### Clear a key for testing
 
-`localStorage.removeItem('instatic-...')` resets the user's state. The next read falls back to defaults.
+`localStorage.removeItem('ecobuilder-...')` resets the user's state. The next read falls back to defaults.
 
-For end-to-end tests, the canonical reset is to clear all `instatic-` keys:
+For end-to-end tests, the canonical reset is to clear all `ecobuilder-` keys:
 
 ```ts
 for (const key of Object.keys(localStorage)) {
-  if (key.startsWith('instatic-') || key.startsWith('spotlight:')) {
+  if (key.startsWith('ecobuilder-') || key.startsWith('spotlight:')) {
     localStorage.removeItem(key)
   }
 }
@@ -192,8 +193,8 @@ for (const key of Object.keys(localStorage)) {
 
 | Pattern                                                              | Use instead                                              |
 |----------------------------------------------------------------------|----------------------------------------------------------|
-| Storing keys without a `instatic-` prefix                                  | Always prefix `instatic-` (or `spotlight:` for spotlight-owned) |
-| `JSON.parse(localStorage.getItem('instatic-...') ?? '{}')`                 | `parseJsonWithFallback(raw, Schema, DEFAULTS)`           |
+| Storing keys without a `ecobuilder-` prefix                                | Always prefix `ecobuilder-` (or `spotlight:` for spotlight-owned) |
+| `JSON.parse(localStorage.getItem('ecobuilder-...') ?? '{}')`                 | `parseJsonWithFallback(raw, Schema, DEFAULTS)`           |
 | Catching `JSON.parse` errors silently                                | The helpers do it for you                                |
 | Storing secrets (tokens, passwords) in localStorage                  | Cookies (`HttpOnly`) are the only place secrets live    |
 | Cross-tab broadcasting via setTimeout polling                        | Use the native `storage` event (cross-tab) or a CustomEvent (same tab) — see `editorPreferences.ts` for the pattern |

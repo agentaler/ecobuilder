@@ -1,5 +1,5 @@
 /**
- * Build a capability-scoped MCP `Server` over Instatic's existing tool engine.
+ * Build a capability-scoped MCP `Server` over Ecobuilder's existing tool engine.
  *
  * We use the low-level SDK `Server` + `setRequestHandler` so our canonical
  * TypeBox `inputSchema` remains the source of truth and is advertised verbatim
@@ -43,8 +43,8 @@ const NOOP_BRIDGE: AiBrowserBridge = {
 }
 
 const NO_WORKSPACE_MESSAGE: Record<EditorBridgeScope, string> = {
-  site: 'This tool runs in the Instatic Site editor. Open the Site editor in a browser (signed in as the connector owner) and try again.',
-  content: 'This tool runs in the Instatic Content workspace. Open the Content workspace in a browser (signed in as the connector owner) and try again.',
+  site: 'This tool runs in the Ecobuilder Site editor. Open the Site editor in a browser (signed in as the connector owner) and try again.',
+  content: 'This tool runs in the Ecobuilder Content workspace. Open the Content workspace in a browser (signed in as the connector owner) and try again.',
 }
 
 /**
@@ -59,8 +59,8 @@ const NO_WORKSPACE_MESSAGE: Record<EditorBridgeScope, string> = {
  * the model ask the user to open the workspace before it spends anything.
  */
 const BROWSER_WORKSPACE_REQUIREMENT: Record<EditorBridgeScope, string> = {
-  site: 'Requires the Instatic Site editor to be open in a browser, signed in as the connector owner; this tool edits that live workspace and cannot run headlessly.',
-  content: 'Requires the Instatic Content workspace to be open in a browser, signed in as the connector owner; this tool edits that live workspace and cannot run headlessly.',
+  site: 'Requires the Ecobuilder Site editor to be open in a browser, signed in as the connector owner; this tool edits that live workspace and cannot run headlessly.',
+  content: 'Requires the Ecobuilder Content workspace to be open in a browser, signed in as the connector owner; this tool edits that live workspace and cannot run headlessly.',
 }
 
 /** Tool description as advertised over MCP — browser tools carry their precondition. */
@@ -113,7 +113,7 @@ function plainInputSchema(schema: AiTool['inputSchema']): Tool['inputSchema'] {
 
 export function buildMcpServer(ctx: McpServerContext): Server {
   const server = new Server(
-    { name: 'instatic', version: '1.0.0' },
+    { name: 'ecobuilder', version: '1.0.0' },
     { capabilities: { tools: {} } },
   )
 

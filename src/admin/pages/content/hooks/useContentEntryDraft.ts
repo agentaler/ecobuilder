@@ -1,6 +1,5 @@
 import { useCallback, useLayoutEffect, useState } from 'react'
 import {
-  publishCmsDataRow,
   saveCmsDataRowDraft,
   updateCmsDataRowStatus,
 } from '@core/persistence'
@@ -16,6 +15,7 @@ import {
 } from '@core/data/cells'
 import { slugFromTitle } from '@core/utils/slug'
 import { getErrorMessage } from '@core/utils/errorMessage'
+import { publishRowAndWarn } from '@admin/lib/publishRow'
 
 export type SaveMessage = 'idle' | 'saving' | 'saved' | 'publishing' | 'published' | 'error'
 
@@ -136,7 +136,7 @@ export function useContentEntryDraft({
     try {
       const savedRow = await saveDraft()
       if (!savedRow) return
-      const publishedRow = await publishCmsDataRow(savedRow.id)
+      const publishedRow = await publishRowAndWarn(savedRow.id)
       updateSelectedEntry({
         ...savedRow,
         status: publishedRow.status,

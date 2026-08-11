@@ -33,7 +33,7 @@ export async function readAgentImageBlob(
   if (!image.src.startsWith('data:')) {
     const url = new URL(image.src, window.location.href)
     if (url.origin !== window.location.origin) {
-      throw new Error('Only images from this Instatic site can be saved or copied.')
+      throw new Error('Only images from this Ecobuilder site can be saved or copied.')
     }
   }
   const blob = await apiBlobRequest(image.src, {

@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible problem in Instatic.
+description: Report a reproducible problem in Ecobuilder.
 title: "[Bug]: "
 labels:
   - bug
@@ -21,7 +21,7 @@ body:
       label: Steps to reproduce
       description: List the smallest sequence that reproduces the issue.
       placeholder: |
-        1. Start Instatic with ...
+        1. Start Ecobuilder with ...
         2. Open ...
         3. Click ...
     validations:

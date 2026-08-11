@@ -1,5 +1,5 @@
 {
-  "name": "instatic",
+  "name": "ecobuilder",
   "private": true,
   "version": "0.0.14",
   "engines": {
@@ -7,14 +7,14 @@
   },
   "description": "Self-hosted CMS with an integrated visual editor.",
   "author": "David Babinec",
-  "license": "MIT",
-  "homepage": "https://instatic.com",
+  "license": "UNLICENSED",
+  "homepage": "https://ecobuilder.ai",
   "repository": {
     "type": "git",
-    "url": "https://github.com/corebunch/instatic.git"
+    "url": "https://github.com/agentaler/ecobuilder.git"
   },
   "bugs": {
-    "url": "https://github.com/corebunch/instatic/issues"
+    "url": "https://github.com/agentaler/ecobuilder/issues"
   },
   "type": "module",
   "scripts": {
@@ -42,7 +42,7 @@
     "icons:check": "bun run scripts/sync-icons.ts --check",
     "bootstrap:sync": "bun run scripts/sync-plugin-bootstrap.ts",
     "bootstrap:check": "bun run scripts/sync-plugin-bootstrap.ts --check",
-    "instatic-plugin": "bun run src/core/plugin-sdk/cli/index.ts",
+    "ecobuilder-plugin": "bun run src/core/plugin-sdk/cli/index.ts",
     "bench": "bun run scripts/bench/index.ts",
     "bench:bundle": "bun run scripts/bench/index.ts --only=bundle",
     "bench:publisher": "bun run scripts/bench/index.ts --only=publisher",
@@ -55,7 +55,9 @@
     "bench:health": "bun run scripts/bench/index.ts --only=health",
     "bench:browser": "bun run scripts/bench/index.ts --only=browser",
     "bench:browser:install": "bunx playwright install chromium",
-    "doctor": "react-doctor"
+    "doctor": "react-doctor",
+    "landing:build": "bun run landing/build.ts",
+    "landing:dev": "bun run landing/build.ts && bun run landing/server.ts"
   },
   "dependencies": {
     "@codemirror/lang-css": "^6.3.1",

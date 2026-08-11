@@ -97,7 +97,7 @@ export function createSandboxSrcDoc({
         white-space: pre-wrap;
       }
     </style>
-    <style id="instatic-class-styles">${escapeStyleContent(classCSS)}</style>
+    <style id="ecobuilder-class-styles">${escapeStyleContent(classCSS)}</style>
   </head>
   <body>
     <div id="root"></div>
@@ -105,7 +105,7 @@ export function createSandboxSrcDoc({
       let context = ${safeJson(context)};
       const moduleUrl = ${safeJson(moduleUrl)};
       const root = document.getElementById('root');
-      const classStyleEl = document.getElementById('instatic-class-styles');
+      const classStyleEl = document.getElementById('ecobuilder-class-styles');
       root.className = context.className || '';
       let runtime = null;
       let cleanup = null;

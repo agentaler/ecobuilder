@@ -40,6 +40,11 @@ const ALLOWLIST: ReadonlyMap<string, string> = new Map([
   // only the two fields already rendered on every published page (site
   // name + favicon URL).
   ['setup.ts', 'Public bootstrap + site identity — gates aren\'t applicable.'],
+  // Self-service auth: signup, email verification, password reset are all
+  // pre-authentication by definition. Their safety is single-use tokens,
+  // uniform responses (no account oracle), and the CSRF Origin check in
+  // index.ts — not a capability gate.
+  ['signup.ts', 'Public signup / email-verify / password-reset — pre-auth by design.'],
   // Dispatcher / index — composes the per-resource handlers and runs
   // the CSRF Origin check. Per-handler files apply the actual auth gates.
   ['index.ts', 'Top-level dispatcher; per-handler files own the auth gates.'],

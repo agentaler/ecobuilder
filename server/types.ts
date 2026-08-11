@@ -45,3 +45,24 @@ export interface UserRow {
   updated_at: Date | string
   deleted_at: Date | string | null
 }
+
+export type TenantStatus = 'active' | 'suspended'
+
+export interface TenantRow {
+  id: string
+  slug: string
+  name: string
+  status: TenantStatus | string
+  settings_json: Record<string, unknown>
+  created_at: Date | string
+  updated_at: Date | string
+}
+
+export interface TenantMemberRow {
+  tenant_id: string
+  user_id: string
+  role_id: string
+  status: TenantStatus | string
+  created_at: Date | string
+  updated_at: Date | string
+}

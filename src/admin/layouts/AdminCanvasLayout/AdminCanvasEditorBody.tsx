@@ -157,7 +157,7 @@ function ImportHtmlModalLoading() {
       open={true}
       onClose={closeModal}
       title="Import HTML"
-      eyebrow="Instatic"
+      eyebrow="Ecobuilder"
       size="lg"
       className={styles.importHtmlLoadingDialog}
       bodyClassName={styles.importHtmlLoadingBody}

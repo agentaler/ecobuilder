@@ -178,16 +178,21 @@ export async function persistDataRowPublish(
     if (!updateRows[0]) throw new Error('data row publish update failed')
 
     if (previousRoute && previousRouteChanged(previousRoute, row.slug)) {
+      // The redirect belongs to the same tenant as the row. Redirects are not
+      // yet fully tenant-threaded, so this lands in the bootstrap tenant, which
+      // matches the row's tenant_id today (all 'default'); the conflict target
+      // is the tenant-scoped composite unique from migration 028.
       await tx`
-        insert into data_row_redirects (id, table_id, from_route_base, from_slug, target_row_id)
+        insert into data_row_redirects (id, table_id, tenant_id, from_route_base, from_slug, target_row_id)
         values (
           ${nanoid()},
           ${row.tableId},
+          ${'default'},
           ${normalizeRouteBase(previousRoute.routeBase)},
           ${previousRoute.slug},
           ${row.id}
         )
-        on conflict (from_route_base, from_slug) do update
+        on conflict (tenant_id, from_route_base, from_slug) do update
           set table_id = excluded.table_id,
               target_row_id = excluded.target_row_id
       `
@@ -513,19 +518,22 @@ export async function deleteAllDataRowRedirects(db: DbClient): Promise<void> {
 
 /**
  * Insert a redirect preserving its original id, upserting on the unique
- * (from_route_base, from_slug) source key. Used by the bundle import handler.
+ * (tenant_id, from_route_base, from_slug) source key. Used by the bundle import
+ * handler. Imports land in the bootstrap tenant for now; the conflict target
+ * matches the tenant-scoped composite unique from migration 028.
  */
 export async function importDataRowRedirect(db: DbClient, input: ExportableRedirect): Promise<void> {
   await db`
-    insert into data_row_redirects (id, table_id, from_route_base, from_slug, target_row_id)
+    insert into data_row_redirects (id, table_id, tenant_id, from_route_base, from_slug, target_row_id)
     values (
       ${input.id},
       ${input.tableId},
+      ${'default'},
       ${input.fromRouteBase},
       ${input.fromSlug},
       ${input.targetRowId}
     )
-    on conflict (from_route_base, from_slug) do update
+    on conflict (tenant_id, from_route_base, from_slug) do update
       set table_id = excluded.table_id,
           target_row_id = excluded.target_row_id
   `

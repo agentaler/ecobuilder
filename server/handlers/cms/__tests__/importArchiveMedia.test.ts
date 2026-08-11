@@ -56,8 +56,8 @@ describe('importStagedArchiveMediaEntries — media byte security validation', (
 
   beforeEach(async () => {
     testDb = await createTestDb()
-    stagingDir = await mkdtemp(join(tmpdir(), 'instatic-test-staging-'))
-    uploadsDir = await mkdtemp(join(tmpdir(), 'instatic-test-uploads-'))
+    stagingDir = await mkdtemp(join(tmpdir(), 'ecobuilder-test-staging-'))
+    uploadsDir = await mkdtemp(join(tmpdir(), 'ecobuilder-test-uploads-'))
   })
 
   afterEach(async () => {

@@ -1,6 +1,6 @@
-# Contributing To Instatic
+# Contributing To Ecobuilder
 
-Thanks for helping improve Instatic. The project is pre-1.0, self-hosted, and intentionally moving quickly, so contributions should favor clean architecture over compatibility shims.
+Thanks for helping improve Ecobuilder. The project is pre-1.0, self-hosted, and intentionally moving quickly, so contributions should favor clean architecture over compatibility shims.
 
 ## Start Here
 
@@ -31,7 +31,7 @@ bun run lint
 For Docker changes:
 
 ```sh
-docker build -t instatic:local .
+docker build -t ecobuilder:local .
 docker compose -f compose.prod.yml -f compose.sqlite.yml -f compose.build.yml config
 ```
 
@@ -46,7 +46,7 @@ docker compose -f compose.prod.yml -f compose.sqlite.yml -f compose.build.yml co
 
 ## Project Conventions
 
-Instatic is pre-release. Do not add deprecation shims or backwards-compatibility wrappers for old internal APIs. If a shape is wrong, update the source of truth and all callers in the same change.
+Ecobuilder is pre-release. Do not add deprecation shims or backwards-compatibility wrappers for old internal APIs. If a shape is wrong, update the source of truth and all callers in the same change.
 
 Important rules live in:
 

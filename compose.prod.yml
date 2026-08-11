@@ -20,7 +20,7 @@ services:
       retries: 10
 
   app:
-    image: ${INSTATIC_IMAGE:-ghcr.io/corebunch/instatic:latest}
+    image: ${ECOBUILDER_IMAGE:-${INSTATIC_IMAGE:-ghcr.io/agentaler/ecobuilder:latest}}
     restart: unless-stopped
     ports:
       - "${HOST_PORT:-3001}:3001"
@@ -29,6 +29,8 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-instatic}:${POSTGRES_PASSWORD:-CHANGEME_set_POSTGRES_PASSWORD_in_env}@postgres:5432/${POSTGRES_DB:-instatic}
       UPLOADS_DIR: /app/uploads
       STATIC_DIR: /app/dist
+      ECOBUILDER_SECRET_KEY: ${ECOBUILDER_SECRET_KEY:-}
+      # Legacy name, still honoured by the server with a boot warning.
       INSTATIC_SECRET_KEY: ${INSTATIC_SECRET_KEY:-}
       TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-}
     volumes:

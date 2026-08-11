@@ -66,7 +66,7 @@ import { totpSecretErrorResponse, verifyEncryptedTotpCode } from '../../auth/tot
 import { jsonResponse, readValidatedBody, setCookieHeader } from '../../http'
 import { Type } from '@core/utils/typeboxHelpers'
 import { CMS_API_PREFIX, requestAuditContext } from './shared'
-import { clearSessionCookie, getDummyPasswordHash, sessionCookie } from './session'
+import { clearLegacySessionCookie, clearSessionCookie, getDummyPasswordHash, sessionCookie } from './session'
 import { runRouteTable, type Route } from './routeTable'
 
 /**
@@ -532,7 +532,12 @@ async function handleLogout(req: Request, db: DbClient): Promise<Response> {
       ...requestAuditContext(req),
     })
   }
-  return setCookieHeader(jsonResponse({ ok: true }), clearSessionCookie(req))
+  // Expire both names: a browser that still holds the pre-rename cookie would
+  // otherwise keep sending a revoked token on every subsequent request.
+  return setCookieHeader(
+    setCookieHeader(jsonResponse({ ok: true }), clearSessionCookie(req)),
+    clearLegacySessionCookie(req),
+  )
 }
 
 async function handleMe(req: Request, db: DbClient): Promise<Response> {

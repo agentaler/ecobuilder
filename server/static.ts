@@ -1,7 +1,7 @@
 import { extname, resolve, sep } from 'node:path'
 import { brotliCompressSync, constants as zlibConstants } from 'node:zlib'
 import { readdirSync } from 'node:fs'
-import { SESSION_COOKIE_NAME } from './auth/tokens'
+import { LEGACY_SESSION_COOKIE_NAME, SESSION_COOKIE_NAME } from './auth/tokens'
 
 const MIME_TYPES: Record<string, string> = {
   '.css': 'text/css; charset=utf-8',
@@ -197,7 +197,8 @@ function requestHasSessionCookie(req: Request | undefined): boolean {
   for (const part of cookie.split(';')) {
     const eq = part.indexOf('=')
     if (eq < 0) continue
-    if (part.slice(0, eq).trim() === SESSION_COOKIE_NAME) return true
+    const name = part.slice(0, eq).trim()
+    if (name === SESSION_COOKIE_NAME || name === LEGACY_SESSION_COOKIE_NAME) return true
   }
   return false
 }

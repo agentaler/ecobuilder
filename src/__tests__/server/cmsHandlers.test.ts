@@ -387,6 +387,26 @@ function makeFakeDb() {
       })
       return { rows: [], rowCount: 1 }
     }
+    // Tenancy (migration 025): setup now creates the bootstrap tenant + owner
+    // membership. This fake DB has no tenant tables, so answer the three
+    // statements setup issues with plausible rows.
+    if (normalized.includes('from tenants where slug')) {
+      return { rows: [], rowCount: 0 } // no existing tenant with this slug
+    }
+    if (normalized.includes('insert into tenants')) {
+      const now = new Date().toISOString()
+      return {
+        rows: [{ id: values[0], slug: values[1], name: values[2], status: 'active', settings_json: {}, created_at: now, updated_at: now } as Row],
+        rowCount: 1,
+      }
+    }
+    if (normalized.includes('insert into tenant_members')) {
+      const now = new Date().toISOString()
+      return {
+        rows: [{ tenant_id: values[0], user_id: values[1], role_id: values[2], status: values[3], created_at: now, updated_at: now } as Row],
+        rowCount: 1,
+      }
+    }
     throw new Error(`Unhandled SQL: ${sql}`)
   }
 
@@ -433,7 +453,15 @@ describe('CMS handlers', () => {
     const db = makeFakeDb()
     const res = await handleCmsRequest(new Request('http://localhost/admin/api/cms/setup/status'), db)
     expect(res.status).toBe(200)
-    expect(await json(res)).toEqual({ hasSite: false, hasAdmin: false, hasOwner: false, needsSetup: true })
+    // `setupTokenRequired` tells the setup screen whether to ask for the
+    // bootstrap token; false outside production. See setupTokenGate.test.ts.
+    expect(await json(res)).toEqual({
+      hasSite: false,
+      hasAdmin: false,
+      hasOwner: false,
+      needsSetup: true,
+      setupTokenRequired: false,
+    })
   })
 
   it('creates the first site and owner account', async () => {
@@ -792,7 +820,7 @@ describe('CMS handlers', () => {
         headers: { 'content-type': 'application/json' },
       }), db)
       const sessionCookie = (loginRes.headers.get('set-cookie') ?? '')
-        .split(';')[0] // just `instatic_admin_session=<token>`
+        .split(';')[0] // just `ecobuilder_admin_session=<token>`
 
       const logoutRes = await handleCmsRequest(new Request('http://localhost/admin/api/cms/logout', {
         method: 'POST',

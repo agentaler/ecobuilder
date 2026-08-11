@@ -10,8 +10,11 @@
  *                                       brand instead of the default mark.
  *
  * The setup POST is a one-shot bootstrap: it 409s if anyone has already
- * run setup, so the endpoint can stay public without becoming an account
- * creation backdoor. The `public-site` GET only exposes the two fields
+ * run setup, so it can never become an ongoing account-creation backdoor.
+ * That alone does not make it safe to expose, though — until the install is
+ * claimed, "one-shot" means "whoever gets there first". In production it
+ * therefore also requires a bootstrap token (`server/auth/setupToken.ts`).
+ * The `public-site` GET only exposes the two fields
  * that are already rendered on every published page (site name, favicon),
  * so it adds no new information leak.
  */
@@ -19,6 +22,13 @@ import { nanoid } from 'nanoid'
 import type { DbClient } from '../../db/client'
 import { hashPassword } from '../../auth/tokens'
 import { createSite, getSetupStatus } from '../../repositories/setup'
+import {
+  BOOTSTRAP_TENANT_ID,
+  BOOTSTRAP_TENANT_SLUG,
+  addTenantMember,
+  createTenant,
+} from '../../repositories/tenants'
+import { isSetupTokenRequired, isValidSetupToken } from '../../auth/setupToken'
 import { createUser } from '../../repositories/users'
 import { createAuditEvent } from '../../repositories/audit'
 import { createDataRow } from '../../repositories/data'
@@ -40,7 +50,10 @@ export async function handleSetupRoutes(req: Request, db: DbClient): Promise<Res
 
   if (url.pathname === `${CMS_API_PREFIX}/setup/status`) {
     if (req.method !== 'GET') return methodNotAllowed()
-    return jsonResponse(await getSetupStatus(db))
+    const status = await getSetupStatus(db)
+    // Tells the setup screen whether to ask for the bootstrap token. Exposing
+    // the *requirement* leaks nothing — the token itself never crosses here.
+    return jsonResponse({ ...status, setupTokenRequired: isSetupTokenRequired() })
   }
 
   if (url.pathname === `${CMS_API_PREFIX}/public-site`) {
@@ -62,9 +75,19 @@ export async function handleSetupRoutes(req: Request, db: DbClient): Promise<Res
       // Optional: the owner's public name. Left empty, author bindings render
       // nothing rather than the email address.
       displayName: Type.Optional(Type.String()),
+      // Required in production — see `server/auth/setupToken.ts`. Without it a
+      // publicly reachable unclaimed install is owned by whoever finds it.
+      setupToken: Type.Optional(Type.String()),
     })
     const body = await readValidatedBody(req, SetupBodySchema)
     if (!body) return badRequest('Invalid request body')
+
+    if (isSetupTokenRequired() && !isValidSetupToken(body.setupToken?.trim() ?? '')) {
+      // 403, not 401: no credential can be *acquired* here, and the deliberately
+      // vague message keeps this from being a token-probing oracle.
+      return jsonResponse({ error: 'Invalid or missing setup token' }, { status: 403 })
+    }
+
     const siteName = body.siteName.trim()
     const email = body.email.trim().toLowerCase()
     const password = body.password.trim()
@@ -76,6 +99,7 @@ export async function handleSetupRoutes(req: Request, db: DbClient): Promise<Res
 
     return serializeCollabAwareWrite(async () => {
       let homePageId = ''
+      let postTemplateId = ''
       const response = await db.transaction(async (tx) => {
         await createSite(tx, siteName, {})
         const owner = await createUser(tx, {
@@ -94,6 +118,12 @@ export async function handleSetupRoutes(req: Request, db: DbClient): Promise<Res
           metadata: { roleId: 'owner', source: 'setup' },
           ...requestAuditContext(req),
         })
+        // Create the bootstrap tenant + owner membership so a freshly set-up
+        // install matches the shape migration 025 backfills existing installs
+        // into: exactly one tenant ('default') with the owner as its owner.
+        // Single-tenant self-hosted mode simply never creates a second one.
+        await createTenant(tx, { id: BOOTSTRAP_TENANT_ID, slug: BOOTSTRAP_TENANT_SLUG, name: siteName })
+        await addTenantMember(tx, { tenantId: BOOTSTRAP_TENANT_ID, userId: owner.id, roleId: 'owner' })
         // Seed a starter homepage as a data_row in the 'pages' system table.
         const rootNode = createNode('base.body')
         const homePage: Page = {
@@ -111,10 +141,42 @@ export async function handleSetupRoutes(req: Request, db: DbClient): Promise<Res
           null,
           { collabInternal: true },
         )
+
+        // Seed an entry template for the `posts` post type. Without one, a
+        // published post resolves to a row but has no template chain to render
+        // through, so `renderPublishedDataRowTemplate` returns null and the
+        // public URL 404s while the UI reports the publish as successful — a
+        // silent dead end on every fresh install. The template is a normal
+        // page the user can edit or delete; it just has to exist.
+        const templateRoot = createNode('base.body')
+        const templateOutlet = createNode('base.outlet')
+        templateRoot.children = [templateOutlet.id]
+        templateOutlet.parentId = templateRoot.id
+        const postTemplate: Page = {
+          id: nanoid(),
+          title: 'Post template',
+          slug: 'post-template',
+          nodes: { [templateRoot.id]: templateRoot, [templateOutlet.id]: templateOutlet },
+          rootNodeId: templateRoot.id,
+          template: { enabled: true, target: { kind: 'postTypes', tableSlugs: ['posts'] }, priority: 0 },
+        }
+        postTemplateId = postTemplate.id
+        await createDataRow(
+          tx,
+          {
+            id: postTemplate.id,
+            tableId: 'pages',
+            cells: pageToCells(postTemplate),
+            slug: postTemplate.slug,
+          },
+          owner.id,
+          null,
+          { collabInternal: true },
+        )
         return jsonResponse({ ok: true }, { status: 201 })
       })
       notifyShellWrite()
-      notifyRowWrite({ tableId: 'pages', rowIds: [homePageId], kind: 'create' })
+      notifyRowWrite({ tableId: 'pages', rowIds: [homePageId, postTemplateId], kind: 'create' })
       return response
     })
   }

@@ -35,10 +35,15 @@ export async function listDataRows(
   db: DbClient,
   tableId: string,
   visibility: ListDataRowsVisibility = {},
+  /** When set, only rows in this tenant are returned (E07 isolation). */
+  tenantId?: string,
 ): Promise<DataRow[]> {
+  const scoped = tenantId !== undefined
   const dataRows = await selectHydratedDataRows(db, {
-    where: `data_rows.table_id = ${placeholder(db.dialect, 1)} and data_rows.deleted_at is null`,
-    params: [tableId],
+    where: scoped
+      ? `data_rows.table_id = ${placeholder(db.dialect, 1)} and data_rows.tenant_id = ${placeholder(db.dialect, 2)} and data_rows.deleted_at is null`
+      : `data_rows.table_id = ${placeholder(db.dialect, 1)} and data_rows.deleted_at is null`,
+    params: scoped ? [tableId, tenantId] : [tableId],
     tail: 'order by data_rows.updated_at desc, data_rows.created_at desc',
   })
   if (visibility.ownerUserId) {
@@ -154,10 +159,19 @@ export async function listChangedDataRowRefsSince(
 export async function getDataRow(
   db: DbClient,
   rowId: string,
+  /**
+   * When set, the row must also belong to this tenant — a cross-tenant id reads
+   * as `null` (→ 404), the server-side isolation guarantee (E07). Omitted by
+   * internal callers (publish, collab) that already operate within one site.
+   */
+  tenantId?: string,
 ): Promise<DataRow | null> {
+  const scoped = tenantId !== undefined
   const rows = await selectHydratedDataRows(db, {
-    where: `data_rows.id = ${placeholder(db.dialect, 1)} and data_rows.deleted_at is null`,
-    params: [rowId],
+    where: scoped
+      ? `data_rows.id = ${placeholder(db.dialect, 1)} and data_rows.tenant_id = ${placeholder(db.dialect, 2)} and data_rows.deleted_at is null`
+      : `data_rows.id = ${placeholder(db.dialect, 1)} and data_rows.deleted_at is null`,
+    params: scoped ? [rowId, tenantId] : [rowId],
     tail: 'limit 1',
   })
   return rows[0] ?? null
@@ -191,14 +205,23 @@ export async function getDataRowBySlug(
   db: DbClient,
   tableId: string,
   slug: string,
+  /** When set, the lookup is scoped to this tenant (E07 — slug clashes are
+   * per-workspace, matching the `(tenant_id, table_id, slug)` unique). */
+  tenantId?: string,
 ): Promise<DataRow | null> {
-  const { rows } = await db<{ id: string }>`
-    select id from data_rows
-    where table_id = ${tableId}
-      and slug = ${slug}
-      and deleted_at is null
-    limit 1
-  `
+  const { rows } =
+    tenantId !== undefined
+      ? await db<{ id: string }>`
+          select id from data_rows
+          where table_id = ${tableId} and slug = ${slug}
+            and tenant_id = ${tenantId} and deleted_at is null
+          limit 1
+        `
+      : await db<{ id: string }>`
+          select id from data_rows
+          where table_id = ${tableId} and slug = ${slug} and deleted_at is null
+          limit 1
+        `
   return rows[0] ? getDataRow(db, rows[0].id) : null
 }
 

@@ -4,7 +4,7 @@
  * - Show keyboard shortcuts
  * - Open documentation
  * - Report an issue
- * - About Instatic
+ * - About Ecobuilder
  * - Copy environment info (for bug reports)
  */
 
@@ -30,7 +30,7 @@ export function getHelpCommands(): Command[] {
     {
       id: 'help.documentation',
       title: 'Open documentation',
-      subtitle: 'View the Instatic docs',
+      subtitle: 'View the Ecobuilder docs',
       group: 'help',
       iconName: 'book-open-solid',
       keywords: ['docs', 'documentation', 'help', 'guide', 'reference'],
@@ -57,7 +57,7 @@ export function getHelpCommands(): Command[] {
 
     {
       id: 'help.about',
-      title: 'About Instatic',
+      title: 'About Ecobuilder',
       subtitle: 'Version information and license',
       group: 'help',
       iconName: 'book-open-solid',
@@ -81,7 +81,7 @@ export function getHelpCommands(): Command[] {
       run: (ctx) => {
         ctx.closeSpotlight()
         const info = [
-          `Instatic`,
+          `Ecobuilder`,
           `Browser: ${navigator.userAgent}`,
           `Platform: ${navigator.platform}`,
           `URL: ${window.location.href}`,

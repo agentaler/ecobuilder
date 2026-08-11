@@ -1224,4 +1224,194 @@ export const sqliteMigrations: Migration[] = [
        where trim(lower(display_name)) = trim(lower(email));
     `,
   },
+  {
+    // Multi-tenancy foundation (E06-T02). `tenants` is the account boundary
+    // every later epic scopes to; `tenant_members` binds a user to a tenant
+    // with a role — roles stay global capability bundles, membership makes
+    // them per-tenant. Additive and non-destructive: existing single-install
+    // data is backfilled into one bootstrap tenant with id 'default', and the
+    // legacy single-owner / single-site model keeps working unchanged until
+    // later migrations retire it. On a fresh (pre-setup) DB the backfill
+    // selects nothing and setup creates the first tenant instead.
+    id: '025_tenancy',
+    sql: `
+      create table if not exists tenants (
+        id text primary key,
+        slug text not null unique,
+        name text not null,
+        status text not null default 'active',
+        settings_json text not null default '{}',
+        created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        updated_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        constraint tenants_status_check check (status in ('active', 'suspended'))
+      );
+
+      create table if not exists tenant_members (
+        tenant_id text not null references tenants(id) on delete cascade,
+        user_id text not null references users(id) on delete cascade,
+        role_id text not null references roles(id) on delete restrict,
+        status text not null default 'active',
+        created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        updated_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        primary key (tenant_id, user_id),
+        constraint tenant_members_status_check check (status in ('active', 'suspended'))
+      );
+
+      create index if not exists tenant_members_user_idx
+        on tenant_members (user_id);
+
+      -- Backfill the bootstrap tenant from the existing site row (if setup has
+      -- run), then make every non-deleted user a member with their current role.
+      insert into tenants (id, slug, name)
+        select 'default', 'default', name from site limit 1
+        on conflict (id) do nothing;
+
+      insert into tenant_members (tenant_id, user_id, role_id, status)
+        select 'default', id, role_id, status from users where deleted_at is null
+        on conflict (tenant_id, user_id) do nothing;
+    `,
+  },
+  {
+    // Retire the installation-wide single-active-owner rule (E06-T03). This
+    // unique index enforced AT MOST one active owner across the whole install —
+    // structurally impossible to have two tenants each with an owner. Ownership
+    // is now per-tenant on `tenant_members`, and "a tenant cannot lose its last
+    // active owner" is a minimum-one guard (can't be a unique index) enforced in
+    // the tenant repository. Dropping an index is non-destructive; no data
+    // changes. The app-level installation guard (countActiveOwners) is untouched
+    // and keeps protecting the legacy single-tenant user-management flow until
+    // E06-T08 makes that path membership-aware.
+    id: '026_retire_single_owner_index',
+    sql: `
+      drop index if exists users_single_active_owner_idx;
+    `,
+  },
+  {
+    // Session-scoped tenancy (E06-T08). A session now carries the tenant it is
+    // acting in; capabilities resolve through tenant_members for THIS tenant,
+    // not through users.role_id. Additive nullable column, backfilled to the
+    // bootstrap tenant — every existing session belongs to a user who is a
+    // 'default' member with the same role, so capability resolution is
+    // unchanged for single-tenant installs. No FK: a session pointing at a
+    // since-deleted tenant simply falls back to the user's global role.
+    id: '027_session_active_tenant',
+    sql: `
+      alter table sessions add column active_tenant_id text;
+      update sessions set active_tenant_id = 'default' where active_tenant_id is null;
+    `,
+  },
+  {
+    // Tenant-scoped content data layer (E07-T01). Threads tenant_id through the
+    // content tables and replaces the global unique indexes with tenant-scoped
+    // composites, so two tenants can each own a page at /about.
+    //
+    // The column is NOT NULL DEFAULT 'default' rather than nullable: that
+    // backfills existing rows AND makes the composite uniques correct
+    // immediately, because a content repository that has not yet been threaded
+    // with a tenant id still inserts a concrete 'default' — a nullable column
+    // would let NULL != NULL defeat (tenant_id, slug) uniqueness for new rows.
+    // Real tenant ids override the default once the repositories are threaded.
+    id: '028_tenant_scoped_content',
+    sql: `
+      alter table site add column tenant_id text not null default 'default';
+      alter table data_tables add column tenant_id text not null default 'default';
+      alter table data_rows add column tenant_id text not null default 'default';
+      alter table data_row_versions add column tenant_id text not null default 'default';
+      alter table data_row_redirects add column tenant_id text not null default 'default';
+      alter table site_snapshots add column tenant_id text not null default 'default';
+      alter table collab_documents add column tenant_id text not null default 'default';
+
+      drop index if exists data_tables_slug_active_idx;
+      create unique index if not exists data_tables_slug_active_idx
+        on data_tables (tenant_id, slug)
+        where deleted_at is null;
+
+      drop index if exists data_rows_table_slug_active_idx;
+      create unique index if not exists data_rows_table_slug_active_idx
+        on data_rows (tenant_id, table_id, slug)
+        where deleted_at is null and slug <> '';
+
+      drop index if exists data_row_redirects_source_idx;
+      create unique index if not exists data_row_redirects_source_idx
+        on data_row_redirects (tenant_id, from_route_base, from_slug);
+    `,
+  },
+  {
+    // Self-service signup support (E06-T04): email verification state + a
+    // single-use token table shared by email-verify and password-reset. Existing
+    // users predate signup (created via setup / admin), so they are backfilled
+    // as verified — only new signups start unverified.
+    id: '029_signup_email_verification',
+    sql: `
+      alter table users add column email_verified_at text;
+      update users set email_verified_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+        where email_verified_at is null and deleted_at is null;
+
+      create table if not exists auth_tokens (
+        id text primary key,
+        user_id text not null references users(id) on delete cascade,
+        kind text not null,
+        token_hash text not null,
+        expires_at text not null,
+        used_at text,
+        created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        constraint auth_tokens_kind_check check (kind in ('email_verify', 'password_reset'))
+      );
+
+      create unique index if not exists auth_tokens_hash_idx on auth_tokens (token_hash);
+      create index if not exists auth_tokens_user_kind_idx on auth_tokens (user_id, kind);
+    `,
+  },
+  {
+    // Team invitations (E06-T07): invite by email with a role; the invitee
+    // accepts to become a tenant_member. The raw accept token lives only in the
+    // emailed link; only its hash is stored. One pending invite per (tenant,
+    // email) — a re-invite supersedes. Status walks pending → accepted /
+    // cancelled / expired.
+    id: '030_tenant_invitations',
+    sql: `
+      create table if not exists tenant_invitations (
+        id text primary key,
+        tenant_id text not null references tenants(id) on delete cascade,
+        email_normalized text not null,
+        role_id text not null references roles(id) on delete restrict,
+        invited_by_user_id text references users(id) on delete set null,
+        token_hash text not null,
+        status text not null default 'pending',
+        expires_at text not null,
+        created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        updated_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        constraint tenant_invitations_status_check
+          check (status in ('pending', 'accepted', 'cancelled', 'expired'))
+      );
+
+      create unique index if not exists tenant_invitations_token_idx
+        on tenant_invitations (token_hash);
+      create unique index if not exists tenant_invitations_pending_idx
+        on tenant_invitations (tenant_id, email_normalized)
+        where status = 'pending';
+      create index if not exists tenant_invitations_tenant_idx
+        on tenant_invitations (tenant_id, status);
+    `,
+  },
+  {
+    // Tenant-scoped media library (E07). Threads tenant_id through the media
+    // asset + folder tables so each workspace has its own library. Additive
+    // NOT NULL DEFAULT 'default' backfills every existing row into the
+    // bootstrap tenant (matching the content tables in 028). The folder
+    // uniqueness index becomes tenant-scoped so two workspaces can each own a
+    // folder with the same parent+slug. The media_asset_folders join table
+    // needs no tenant_id — both sides it references are already tenant-scoped,
+    // and the handlers resolve asset and folder within the caller's tenant
+    // before linking them.
+    id: '031_tenant_scoped_media',
+    sql: `
+      alter table media_assets add column tenant_id text not null default 'default';
+      alter table media_folders add column tenant_id text not null default 'default';
+
+      drop index if exists media_folders_parent_slug_idx;
+      create unique index if not exists media_folders_parent_slug_idx
+        on media_folders (tenant_id, coalesce(parent_id, ''), slug);
+    `,
+  },
 ]

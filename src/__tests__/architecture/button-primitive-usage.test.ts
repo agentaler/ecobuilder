@@ -211,6 +211,14 @@ const ALLOWLIST = new Set([
   // click — the same multi-line custom-layout card class as §8.7 / §8.14 that
   // Button's inline-flex size tokens cannot represent.
   'admin/pages/site/panels/FrameworkPanel/FrameworkHome.tsx',
+
+  // ── §8.16 Pre-auth login ↔ signup inline text toggle ─────────────────────
+  // AdminPreAuthForm's front-door toggle ("New to X? Create a workspace" /
+  // "Already have an account? Sign in") is an inline text link inside a
+  // sentence, not an action button. Button's token-driven padded inline-flex
+  // sizes cannot sit inside prose as a bare text link — same 11.5px inline
+  // text-action class as §8.12 / §8.13's All / None links.
+  'admin/preauth/AdminPreAuthForm.tsx',
 ])
 
 // ---------------------------------------------------------------------------

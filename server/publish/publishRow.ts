@@ -14,7 +14,7 @@
  * direction is one-way: publish → repositories, never back.
  */
 import type { DbClient } from '../db/client'
-import type { DataRow, DataRowVersion } from '@core/data/schemas'
+import type { DataRow, DataRowVersion, PublishWarning } from '@core/data/schemas'
 import { resolveTemplateChain } from '@core/templates'
 import {
   getPublishedDataRowByRoute,
@@ -36,6 +36,12 @@ import { runPublishFlush } from './publishFlush'
 export interface PublishDataRowResult {
   row: DataRow
   version: DataRowVersion
+  /**
+   * Non-fatal problems that leave the published row unreachable. The publish
+   * itself succeeded — callers surface these rather than treating them as
+   * failures. Empty on the happy path.
+   */
+  warnings: PublishWarning[]
 }
 
 export async function publishDataRow(
@@ -66,6 +72,8 @@ async function publishDataRowLocked(
 ): Promise<PublishDataRowResult> {
   const { row, version, previousRoute } = await persistDataRowPublish(db, rowId, publisherUserId)
 
+  const warnings = await collectReachabilityWarnings(db, row)
+
   // Layer A: incremental artefact update outside the transaction.
   // Disk artefacts are derived state — errors are logged but do not fail
   // the publish. The next full publish (publishDraftSite) will rebuild.
@@ -83,7 +91,42 @@ async function publishDataRowLocked(
   // re-renders against the freshly committed row version.
   bumpPublishVersion()
 
-  return { row, version }
+  return { row, version, warnings }
+}
+
+/**
+ * Check whether the row just published can actually be served.
+ *
+ * An entry route renders the row *inside* its post type's entry template
+ * (`renderPublishedDataRowTemplate`), and returns null — a 404 — when the
+ * template chain is empty. The chain is resolved against the last PUBLISHED
+ * site snapshot, so a template that only exists as a draft does not count:
+ * the user still has to publish the site before the entry becomes reachable.
+ * Both cases produce the same warning because the remedy is the same.
+ *
+ * Rows that have no public route at all (a table with no route base) are not
+ * expected to be reachable, so they warn about nothing.
+ */
+async function collectReachabilityWarnings(db: DbClient, row: DataRow): Promise<PublishWarning[]> {
+  const tableInfo = await getRowTableRouteInfo(db, row.id)
+  if (!tableInfo) return []
+
+  const siteSnapshot = await getLatestPublishedSiteSnapshot(db)
+  const chain = siteSnapshot
+    ? resolveTemplateChain(siteSnapshot.site, { kind: 'entry', tableSlug: tableInfo.tableSlug })
+    : []
+  if (chain.length > 0) return []
+
+  return [
+    {
+      code: 'missingEntryTemplate',
+      message:
+        `Published, but “${tableInfo.tableSlug}” has no published entry template, so ` +
+        `${publicDataPath(tableInfo.tableRouteBase, row.slug)} will return 404. ` +
+        `Create a page, turn on “Use as template” targeting “${tableInfo.tableSlug}”, ` +
+        `and publish the site.`,
+    },
+  ]
 }
 
 /**

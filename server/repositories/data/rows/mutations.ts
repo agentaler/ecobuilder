@@ -53,6 +53,7 @@ export async function createDataRow(
     insert into data_rows (
       id,
       table_id,
+      tenant_id,
       cells_json,
       slug,
       status,
@@ -64,6 +65,7 @@ export async function createDataRow(
     values (
       ${input.id ?? nanoid()},
       ${input.tableId},
+      ${input.tenantId ?? 'default'},
       ${input.cells},
       ${input.slug},
       ${'draft'},

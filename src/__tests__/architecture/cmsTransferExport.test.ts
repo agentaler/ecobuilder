@@ -339,7 +339,7 @@ describe('handleExportRoute — GET ?includeMedia=1', () => {
     expect(source).not.toContain('readFile(join(uploadsDir')
   })
 
-  test('returns a zip archive with media metadata in the Instatic manifest and bytes under media/', async () => {
+  test('returns a zip archive with media metadata in the Ecobuilder manifest and bytes under media/', async () => {
     const mediaDb = createSqliteClient(':memory:')
     await runMigrations(mediaDb, sqliteMigrations)
     const mediaCookie = await seedAuth(mediaDb)
@@ -348,6 +348,7 @@ describe('handleExportRoute — GET ?includeMedia=1', () => {
       await writeFile(join(uploadsDir, 'logo.png'), Buffer.from('fake-png-bytes'))
       await createMediaAsset(mediaDb, {
         id: 'asset-logo',
+        tenantId: 'default',
         filename: 'logo.png',
         mimeType: 'image/png',
         sizeBytes: 14,
@@ -520,6 +521,7 @@ describe('handleExportRoute — POST /export/estimate with embedded media', () =
       await writeFile(join(uploadsDir, 'seed.bin'), fileBytes)
       await createMediaAsset(mediaDb, {
         id: 'asset-1',
+        tenantId: 'default',
         filename: 'seed.bin',
         mimeType: 'application/octet-stream',
         sizeBytes: fileBytes.length,

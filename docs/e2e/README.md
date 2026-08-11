@@ -1,6 +1,6 @@
 # User E2E Testing
 
-This folder defines the agent-run browser testing workflow for Instatic.
+This folder defines the agent-run browser testing workflow for Ecobuilder.
 
 - `protocol.md` explains how an agent should run user-facing E2E audits.
 - `feature-validation.tsv` is the canonical feature, test, and defect

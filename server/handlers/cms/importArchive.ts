@@ -33,6 +33,7 @@ import {
 } from '@core/data/bundleSchema'
 import {
   BUNDLE_ARCHIVE_MANIFEST_PATH,
+  isBundleArchiveManifestPath,
   mediaArchivePath,
   SiteBundleArchiveManifestSchema,
   type SiteBundleArchiveManifest,
@@ -260,7 +261,7 @@ async function stageArchiveMediaEntries(input: {
   selectedManifest: SiteBundleArchiveManifest
 }): Promise<StagedArchiveMedia> {
   const stagedMedia: StagedArchiveMedia = {
-    stagingDir: await mkdtemp(join(tmpdir(), 'instatic-import-media-')),
+    stagingDir: await mkdtemp(join(tmpdir(), 'ecobuilder-import-media-')),
     entries: [],
   }
 
@@ -474,7 +475,7 @@ function filterArchiveManifestMedia(
 async function readArchiveManifest(reader: ZipBodyReader): Promise<SiteBundleArchiveManifest> {
   const header = await reader.readLocalHeader()
   if (!header) throw new Error('CMS bundle archive is empty')
-  if (header.path !== BUNDLE_ARCHIVE_MANIFEST_PATH) {
+  if (!isBundleArchiveManifestPath(header.path)) {
     throw new Error(`CMS bundle archive must start with "${BUNDLE_ARCHIVE_MANIFEST_PATH}"`)
   }
   if (header.compression !== ZIP_STORED_METHOD) {

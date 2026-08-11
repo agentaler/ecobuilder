@@ -710,7 +710,7 @@ Conversations and their message history are persisted server-side in `ai_convers
 
 **Persisted images, browser history, and provider replay are deliberately different views.** Every accepted user JPEG is stored inline in `ai_messages.content_json`; conversations have no image-count quota. A conversation-detail response replaces each base64 block with `GET /admin/api/ai/conversations/:conversationId/messages/:messageId/images/:blockIndex`. The ownership-guarded endpoint returns only a canonical JPEG with `private, no-store`; native lazy image loading means reopening a large collection does not embed all bytes in one JSON response. Before a provider call, `projectUserImagesForModel` creates a non-mutating outbound projection:
 
-- a vision model first receives every persisted image in conversation order; there is no Instatic replay count cap;
+- a vision model first receives every persisted image in conversation order; there is no Ecobuilder replay count cap;
 - a non-vision model receives no image bytes at all; every persisted image becomes a text breadcrumb, so switching models cannot poison the conversation;
 - the database rows are never rewritten by projection, so the UI history remains intact and switching back to a vision model restores the complete persisted image history.
 
@@ -783,7 +783,7 @@ unblocks deletion of the credential that had been protected by the default FK.
 | Pattern | Use instead |
 |---|---|
 | Importing any provider SDK (`@anthropic-ai/sdk`, `@anthropic-ai/claude-agent-sdk`, `@openai/agents`, `@openrouter/agent`) | Banned repo-wide — no exceptions, including inside `server/ai/drivers/`. Drivers talk directly to the REST API. Gated by `ai-driver-isolation.test.ts`. |
-| Importing the split `@modelcontextprotocol/*` v2 packages outside `server/ai/mcp/` | The MCP SDK packages are scoped to Instatic's MCP server implementation only. Drivers and browser code must not import them. Gated by `ai-driver-isolation.test.ts`. |
+| Importing the split `@modelcontextprotocol/*` v2 packages outside `server/ai/mcp/` | The MCP SDK packages are scoped to Ecobuilder's MCP server implementation only. Drivers and browser code must not import them. Gated by `ai-driver-isolation.test.ts`. |
 | Importing `zod` anywhere | Banned repo-wide — TypeBox schemas pass directly as JSON Schema to every provider. Gated by `ai-driver-isolation.test.ts`. |
 | Writing a private `parseToolArguments` / `parseJsonOrEmpty` copy inside a driver | Import `parseToolArguments` from `./http/toolArgs`. Private copies diverge silently — the same malformed model output produces different outcomes per provider. Gated by `ai-driver-shared-helpers.test.ts`. |
 | Redefining `SYSTEM_PROMPT_DYNAMIC_BOUNDARY` in a driver or prompt builder | Import it from `server/ai/runtime/types.ts`. One source — if a driver or builder drifts the literal, prompt caching silently breaks for that driver. Gated by `ai-driver-shared-helpers.test.ts`. |

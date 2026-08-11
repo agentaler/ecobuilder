@@ -168,8 +168,13 @@ async function setupHarness(): Promise<Ctx> {
   const harness = await createCapabilityTestHarness()
   const cookie = await harness.setupOwner()
   const pages = await storedRows(harness, 'pages')
-  expect(pages.size).toBe(1)
-  const homeId = [...pages.keys()][0]
+  // Setup seeds two pages: the `index` homepage and the `post-template` entry
+  // template for the posts post type (without which every published post 404s).
+  // These cases exercise the homepage, so pick it by slug rather than position.
+  expect(pages.size).toBe(2)
+  const homeEntry = [...pages.entries()].find(([, row]) => row.slug === 'index')
+  expect(homeEntry).toBeDefined()
+  const homeId = homeEntry![0]
   const shellRes = await harness.cms('/admin/api/cms/site', { method: 'GET', cookie })
   expect(shellRes.status).toBe(200)
   const { site: shell } = await readJson<{ site: SiteShell }>(shellRes)

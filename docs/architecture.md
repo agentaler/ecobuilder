@@ -1,8 +1,8 @@
 # Architecture
 
-System-level overview of Instatic — what runs, what depends on what, and where to look first.
+System-level overview of Ecobuilder — what runs, what depends on what, and where to look first.
 
-Instatic is a self-hosted CMS with a built-in visual editor. One Bun process serves the public website, the admin editor, the CMS API, published pages, and uploaded media, backed by either Postgres or SQLite. The visual editor's output is plain semantic HTML and hand-clean CSS — no framework runtime is injected into published pages.
+Ecobuilder is a self-hosted CMS with a built-in visual editor. One Bun process serves the public website, the admin editor, the CMS API, published pages, and uploaded media, backed by either Postgres or SQLite. The visual editor's output is plain semantic HTML and hand-clean CSS — no framework runtime is injected into published pages.
 
 ---
 
@@ -99,7 +99,7 @@ The repo is organized by responsibility, not by feature. Every file has one reas
 | Render cache                 | `server/publish/renderCache.ts`       | Layer B: bounded LRU keyed by `(urlPath, queryString)`, where public page renders pass `canonicalRenderQuery(...)` rather than the raw URL search string. Each entry is versioned. Single-flight, `bumpPublishVersion()` invalidates lazily; version captured at render start so a publish landing mid-render discards the result rather than caching stale HTML. |
 | Server-island runtime        | `server/publish/holeRuntime.ts`       | Layer C: ~1.1 KB hand-written `IntersectionObserver` runtime served at `/_instatic/hole-runtime.js`. |
 | Hole endpoint                | `server/handlers/cms/hole.ts`         | `GET /_instatic/hole/<nodeId>?v=<publishVersion>&u=<page-url>` renders one node subtree with the originating page route/query; shared responses cache via Layer B, per-visitor holes bypass it with `Cache-Control: no-store`. |
-| Plugin SDK                   | `src/core/plugin-sdk/*`               | Author-facing API + `instatic-plugin` CLI                                  |
+| Plugin SDK                   | `src/core/plugin-sdk/*`               | Author-facing API + `ecobuilder-plugin` CLI                                  |
 | Plugin runtime (host)        | `src/core/plugins/*`                  | In-process plugin lifecycle: install/activate/uninstall              |
 | Plugin sandbox (worker)      | `server/plugins/*`                    | QuickJS-WASM execution of plugin server code + module packs          |
 | Image-variant worker         | `server/handlers/cms/imageVariant*`   | `Bun.Worker` pool running sharp + blurhash off the main thread       |
@@ -275,7 +275,7 @@ Key properties:
 
 ## Plugin system
 
-Plugins are zip packages containing a `plugin.json` manifest and bundled entrypoints. The CLI usually authors that zip from `instatic-plugin.config.ts`. Sandboxed plugin code runs through a per-plugin Bun worker that hosts **QuickJS-WASM**:
+Plugins are zip packages containing a `plugin.json` manifest and bundled entrypoints. The CLI usually authors that zip from `ecobuilder-plugin.config.ts`. Sandboxed plugin code runs through a per-plugin Bun worker that hosts **QuickJS-WASM**:
 
 - Server entrypoints load through `server/plugins/pluginWorker.ts`, `server/plugins/host/workerPool.ts`, and `server/plugins/quickjs/vm.ts`
 - Canvas module packs load as ESM in the browser editor and through `server/plugins/modulePackVm.ts` on the server
@@ -283,7 +283,7 @@ Plugins are zip packages containing a `plugin.json` manifest and bundled entrypo
 - Author-facing API lives in `src/core/plugin-sdk/`
 - Host-side runtime (install, activate, deactivate, uninstall) lives in `src/core/plugins/`
 
-The QuickJS sandbox has no Node, no Bun, no file system, no environment variables, and no network unless the plugin declares `network.outbound` permission and a `networkAllowedHosts` allowlist. The `instatic-plugin build` CLI emits the surface-specific bundle format, scans sandboxed bundles for forbidden literals (`'node:'`, `'bun:'`, `require(`, `process.binding`), and the install handler scans again as defense-in-depth.
+The QuickJS sandbox has no Node, no Bun, no file system, no environment variables, and no network unless the plugin declares `network.outbound` permission and a `networkAllowedHosts` allowlist. The `ecobuilder-plugin build` CLI emits the surface-specific bundle format, scans sandboxed bundles for forbidden literals (`'node:'`, `'bun:'`, `require(`, `process.binding`), and the install handler scans again as defense-in-depth.
 
 Sandbox invariants are gated by `src/__tests__/architecture/plugin-sandbox-invariants.test.ts`.
 

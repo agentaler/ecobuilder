@@ -3,7 +3,7 @@ services:
     name: instatic
     runtime: image
     image:
-      url: ghcr.io/corebunch/instatic:latest
+      url: ghcr.io/agentaler/ecobuilder:latest
     plan: starter
     numInstances: 1
     healthCheckPath: /health
@@ -19,9 +19,9 @@ services:
         value: /app/storage/uploads
       - key: STATIC_DIR
         value: /app/dist
-      # Render auto-injects RENDER_EXTERNAL_URL at runtime; Instatic uses it as
+      # Render auto-injects RENDER_EXTERNAL_URL at runtime; Ecobuilder uses it as
       # the CSRF public origin, so no proxy/origin config is needed here.
-      - key: INSTATIC_SECRET_KEY
+      - key: ECOBUILDER_SECRET_KEY
         generateValue: true
     disk:
       name: uploads

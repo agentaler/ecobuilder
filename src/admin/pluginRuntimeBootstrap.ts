@@ -122,7 +122,7 @@ async function doInstall(): Promise<void> {
     throw new Error(
       '[@instatic/runtime] Detected a second React instance during plugin runtime bootstrap. ' +
       `Host React: ${React.version}; existing React: ${globalThis.__instatic.React.version}. ` +
-      'Plugin authors must build with `instatic-plugin build` so React is externalized.',
+      'Plugin authors must build with `ecobuilder-plugin build` so React is externalized.',
     )
   }
 
