@@ -18,8 +18,7 @@ import { createUser, markEmailVerified, resetUserPassword, findUserByEmail } fro
 import {
   addTenantMember,
   createTenant,
-  getTenantBySlug,
-  normalizeTenantSlug,
+  uniqueTenantSlug,
 } from '../../repositories/tenants'
 import { seedTenantContent } from '../../repositories/tenantSeed'
 import { issueAuthToken, consumeAuthToken } from '../../repositories/authTokens'
@@ -46,28 +45,6 @@ const SignupBodySchema = Type.Object({
   displayName: Type.Optional(Type.String()),
   workspaceName: Type.Optional(Type.String()),
 })
-
-/** Derive a URL-safe, unique tenant slug from a base string. */
-async function uniqueTenantSlug(db: DbClient, base: string): Promise<string> {
-  const cleaned = base
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 40)
-  let candidate = cleaned.length >= 2 ? cleaned : `workspace-${nanoid(6).toLowerCase()}`
-  // Validate/normalize; on a reserved or malformed base fall back to a random one.
-  try {
-    candidate = normalizeTenantSlug(candidate)
-  } catch {
-    candidate = `workspace-${nanoid(6).toLowerCase()}`
-  }
-  if (!(await getTenantBySlug(db, candidate))) return candidate
-  for (let i = 0; i < 5; i++) {
-    const next = `${candidate.slice(0, 32)}-${nanoid(4).toLowerCase()}`
-    if (!(await getTenantBySlug(db, next))) return next
-  }
-  return `workspace-${nanoid(8).toLowerCase()}`
-}
 
 async function sendVerificationEmail(db: DbClient, userId: string, email: string): Promise<void> {
   const token = await issueAuthToken(db, userId, 'email_verify', VERIFY_TTL_MS)

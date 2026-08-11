@@ -112,6 +112,32 @@ export function normalizeTenantSlug(input: string): string {
   return slug
 }
 
+/**
+ * Derive a URL-safe, collision-free tenant slug from a free-text base (a
+ * workspace name). Shared by signup and the create-workspace endpoint. Falls
+ * back to a random slug when the base is empty, reserved, or malformed, and
+ * probes for uniqueness by appending a short random suffix.
+ */
+export async function uniqueTenantSlug(db: DbClient, base: string): Promise<string> {
+  const cleaned = base
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40)
+  let candidate = cleaned.length >= 2 ? cleaned : `workspace-${nanoid(6).toLowerCase()}`
+  try {
+    candidate = normalizeTenantSlug(candidate)
+  } catch {
+    candidate = `workspace-${nanoid(6).toLowerCase()}`
+  }
+  if (!(await getTenantBySlug(db, candidate))) return candidate
+  for (let i = 0; i < 5; i++) {
+    const next = `${candidate.slice(0, 32)}-${nanoid(4).toLowerCase()}`
+    if (!(await getTenantBySlug(db, next))) return next
+  }
+  return `workspace-${nanoid(8).toLowerCase()}`
+}
+
 export async function getTenantById(db: DbClient, id: string): Promise<Tenant | null> {
   const result = await db<TenantRow>`select * from tenants where id = ${id}`
   const row = result.rows[0]
@@ -223,6 +249,47 @@ export async function getTenantMembership(
   `
   const row = result.rows[0]
   return row ? rowToMembership(row) : null
+}
+
+/** One member of a tenant, joined to their user identity + role — the members page. */
+export interface TenantMemberDetail {
+  userId: string
+  email: string
+  displayName: string
+  roleId: string
+  roleName: string
+  status: TenantStatus
+  createdAt: string
+}
+
+/** List a tenant's members with their identity + role, for the members page. */
+export async function listTenantMembers(db: DbClient, tenantId: string): Promise<TenantMemberDetail[]> {
+  const result = await db<{
+    user_id: string
+    email: string
+    display_name: string
+    role_id: string
+    role_name: string
+    status: string
+    created_at: Date | string
+  }>`
+    select m.user_id, u.email, u.display_name, m.role_id, r.name as role_name,
+           m.status, m.created_at
+    from tenant_members m
+    join users u on u.id = m.user_id
+    join roles r on r.id = m.role_id
+    where m.tenant_id = ${tenantId} and u.deleted_at is null
+    order by m.created_at asc
+  `
+  return result.rows.map((row) => ({
+    userId: row.user_id,
+    email: row.email,
+    displayName: row.display_name,
+    roleId: row.role_id,
+    roleName: row.role_name,
+    status: asStatus(row.status),
+    createdAt: new Date(row.created_at).toISOString(),
+  }))
 }
 
 /** Every tenant the user belongs to, with their role in each — for the switcher. */

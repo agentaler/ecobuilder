@@ -125,3 +125,26 @@ ownership is set at signup and protected by the tenant last-owner guard.
 Re-inviting a still-pending address supersedes the prior invite (partial unique
 index on `(tenant_id, email_normalized) where status = 'pending'`), so there is
 at most one live link per (tenant, email).
+
+## D9 — Workspace switcher + membership API (E06-T07 backend)
+
+**Choice:** `server/handlers/cms/tenants.ts` exposes the caller-facing workspace
+surface. List / create / switch are authenticated-only (every user owns their
+workspaces); the members roster (list / change-role / remove) is
+`users.manage`-gated and scoped to the session's **active** tenant — the members
+routes never accept a tenant id from the client, so a workspace admin can't
+manage another workspace's roster. Switching writes `sessions.active_tenant_id`
+(`setSessionActiveTenant`); capabilities re-resolve through the new tenant on the
+next request via the existing `findUserBySessionHash` → `resolveTenantRole` path.
+
+**Owner protection:** owner is the only built-in role with `roles.manage`, so
+that capability is the proxy for "is an owner". Assigning the owner role, or
+changing/removing a member who holds it, requires the actor to have
+`roles.manage` — an admin (has `users.manage`, not `roles.manage`) can neither
+mint owners nor evict one. The repository's last-active-owner guard
+(`assertNotLastActiveOwner`) still blocks demoting/removing a workspace's final
+owner (409).
+
+**Shared slug derivation:** `uniqueTenantSlug` moved from `signup.ts` into the
+tenants repository so both signup and create-workspace derive collision-free
+slugs from one implementation.

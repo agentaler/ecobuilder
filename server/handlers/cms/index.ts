@@ -36,6 +36,7 @@ import { handleAuthRoutes } from './auth'
 import { handleMeRoutes } from './me'
 import { handleUserPreferencesRoutes } from './userPreferences'
 import { handleUsersRoutes } from './users'
+import { handleTenantsRoutes } from './tenants'
 import { handleInvitationsRoutes } from './invitations'
 import { handleRolesRoutes } from './roles'
 import { handleAuditRoutes } from './audit'
@@ -88,6 +89,9 @@ export async function handleCmsRequest(
     // account" surface. Routes mount under `/admin/api/cms/me/preferences/`.
     ?? (await handleUserPreferencesRoutes(req, db))
     ?? (await handleUsersRoutes(req, db))
+    // Workspaces — list/create/switch are authenticated; members management is
+    // `users.manage`-gated and scoped to the session's active tenant.
+    ?? (await handleTenantsRoutes(req, db))
     // Team invitations — invite/list/cancel are `users.manage`-gated and
     // scoped to the active tenant; accept is authenticated (the invitee joins).
     ?? (await handleInvitationsRoutes(req, db))

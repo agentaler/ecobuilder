@@ -301,3 +301,23 @@ export async function markSessionMfaPassed(
       and revoked_at is null
   `
 }
+
+/**
+ * Point a live session at a different tenant (the workspace switcher). The
+ * caller must have verified the user is an active member of `tenantId` first —
+ * this only writes the column. On the next authenticated request,
+ * `findUserBySessionHash` re-resolves the user's role and capabilities through
+ * the new tenant's membership.
+ */
+export async function setSessionActiveTenant(
+  db: DbClient,
+  idHash: string,
+  tenantId: string,
+): Promise<void> {
+  await db`
+    update sessions
+    set active_tenant_id = ${tenantId}
+    where id_hash = ${idHash}
+      and revoked_at is null
+  `
+}
