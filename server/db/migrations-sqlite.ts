@@ -1362,4 +1362,36 @@ export const sqliteMigrations: Migration[] = [
       create index if not exists auth_tokens_user_kind_idx on auth_tokens (user_id, kind);
     `,
   },
+  {
+    // Team invitations (E06-T07): invite by email with a role; the invitee
+    // accepts to become a tenant_member. The raw accept token lives only in the
+    // emailed link; only its hash is stored. One pending invite per (tenant,
+    // email) — a re-invite supersedes. Status walks pending → accepted /
+    // cancelled / expired.
+    id: '030_tenant_invitations',
+    sql: `
+      create table if not exists tenant_invitations (
+        id text primary key,
+        tenant_id text not null references tenants(id) on delete cascade,
+        email_normalized text not null,
+        role_id text not null references roles(id) on delete restrict,
+        invited_by_user_id text references users(id) on delete set null,
+        token_hash text not null,
+        status text not null default 'pending',
+        expires_at text not null,
+        created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        updated_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        constraint tenant_invitations_status_check
+          check (status in ('pending', 'accepted', 'cancelled', 'expired'))
+      );
+
+      create unique index if not exists tenant_invitations_token_idx
+        on tenant_invitations (token_hash);
+      create unique index if not exists tenant_invitations_pending_idx
+        on tenant_invitations (tenant_id, email_normalized)
+        where status = 'pending';
+      create index if not exists tenant_invitations_tenant_idx
+        on tenant_invitations (tenant_id, status);
+    `,
+  },
 ]

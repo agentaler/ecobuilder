@@ -102,3 +102,26 @@ signup or tests.
 
 **Placeholders:** `EMAIL_PROVIDER`, `EMAIL_FROM`, `RESEND_API_KEY` (or SMTP_*)
 in `.env.example`. Absent → console transport.
+
+## D8 — Team invitations (E06-T07 backend)
+
+**Choice:** An invite binds an email + role to a tenant in `tenant_invitations`
+(migration 030). Only the token **hash** is stored — the raw token lives solely
+in the emailed `/accept-invitation?token=…` link, exactly like the auth tokens.
+Acceptance is single-use and atomic: the `pending → accepted` UPDATE is the
+gate, and only on its success is the `tenant_member` written
+(`server/repositories/tenantInvitations.ts`).
+
+**Authorization:** invite / list / cancel are `users.manage`-gated and scoped to
+the actor's **active tenant**, resolved server-side from the session — an admin
+of one workspace cannot mint members into another. Accept is the one route that
+is *not* `users.manage`-gated (the invitee is joining a workspace they aren't
+yet in); its gate is possession of the token plus a server-side match of the
+signed-in email to the invited address. The owner role is never invitable —
+ownership is set at signup and protected by the tenant last-owner guard.
+
+**Handler:** `server/handlers/cms/invitations.ts` — `POST/GET/DELETE
+/admin/api/cms/invitations` (management) + `POST /admin/api/cms/invitations/accept`.
+Re-inviting a still-pending address supersedes the prior invite (partial unique
+index on `(tenant_id, email_normalized) where status = 'pending'`), so there is
+at most one live link per (tenant, email).

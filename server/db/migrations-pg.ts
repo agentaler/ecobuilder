@@ -1273,4 +1273,32 @@ export const pgMigrations: Migration[] = [
       create index if not exists auth_tokens_user_kind_idx on auth_tokens (user_id, kind);
     `,
   },
+  {
+    // Team invitations (E06-T07) — see migrations-sqlite.ts:030.
+    id: '030_tenant_invitations',
+    sql: `
+      create table if not exists tenant_invitations (
+        id text primary key,
+        tenant_id text not null references tenants(id) on delete cascade,
+        email_normalized text not null,
+        role_id text not null references roles(id) on delete restrict,
+        invited_by_user_id text references users(id) on delete set null,
+        token_hash text not null,
+        status text not null default 'pending',
+        expires_at timestamptz not null,
+        created_at timestamptz not null default now(),
+        updated_at timestamptz not null default now(),
+        constraint tenant_invitations_status_check
+          check (status in ('pending', 'accepted', 'cancelled', 'expired'))
+      );
+
+      create unique index if not exists tenant_invitations_token_idx
+        on tenant_invitations (token_hash);
+      create unique index if not exists tenant_invitations_pending_idx
+        on tenant_invitations (tenant_id, email_normalized)
+        where status = 'pending';
+      create index if not exists tenant_invitations_tenant_idx
+        on tenant_invitations (tenant_id, status);
+    `,
+  },
 ]

@@ -71,7 +71,7 @@ export async function listRoles(db: DbClient): Promise<Role[]> {
   return rows.map(rowToRole).sort(compareRolesByRank)
 }
 
-async function getRole(db: DbClient, roleId: string): Promise<Role | null> {
+export async function getRoleById(db: DbClient, roleId: string): Promise<Role | null> {
   const { rows } = await db<RoleRow>`
     select id, slug, name, description, is_system, capabilities_json, created_at, updated_at
     from roles
@@ -147,7 +147,7 @@ export async function updateRole(
     capabilities?: CoreCapability[]
   },
 ): Promise<Role | null> {
-  const current = await getRole(db, roleId)
+  const current = await getRoleById(db, roleId)
   if (!current) return null
   if (current.id === OWNER_ROLE_ID) {
     throw new RoleMutationError('The Owner role is locked and cannot be edited', 409)
@@ -180,7 +180,7 @@ export async function updateRole(
  * to edit a non-owner system role's name/capabilities instead.
  */
 export async function deleteCustomRole(db: DbClient, roleId: string): Promise<Role | null> {
-  const current = await getRole(db, roleId)
+  const current = await getRoleById(db, roleId)
   if (!current) return null
   if (current.isSystem) throw new RoleMutationError('System roles cannot be deleted', 409)
 
