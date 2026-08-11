@@ -1200,4 +1200,14 @@ export const pgMigrations: Migration[] = [
         on conflict (tenant_id, user_id) do nothing;
     `,
   },
+  {
+    // Retire the installation-wide single-active-owner rule (E06-T03) — see
+    // migrations-sqlite.ts:026. Ownership moves to per-tenant `tenant_members`;
+    // the "last active owner" rule becomes a repository guard. Dropping an
+    // index is non-destructive.
+    id: '026_retire_single_owner_index',
+    sql: `
+      drop index if exists users_single_active_owner_idx;
+    `,
+  },
 ]

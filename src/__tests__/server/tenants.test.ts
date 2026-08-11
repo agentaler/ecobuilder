@@ -25,6 +25,8 @@ import {
   getTenantMembership,
   listTenantsForUser,
   normalizeTenantSlug,
+  removeTenantMember,
+  setTenantMemberRole,
 } from '../../../server/repositories/tenants'
 import { createUser } from '../../../server/repositories/users'
 import { hashPassword } from '../../../server/auth/tokens'
@@ -163,5 +165,71 @@ describe('tenant repository', () => {
     // Case is normalized, not rejected.
     expect(normalizeTenantSlug('Acme-Co')).toBe('acme-co')
     expect(normalizeTenantSlug('UPPER')).toBe('upper')
+  })
+})
+
+describe('per-tenant owner rule (E06-T03)', () => {
+  async function seed(db: Parameters<typeof createTenant>[0]) {
+    const owner = await createUser(db, {
+      id: 'owner_x', email: 'owner@x.example', displayName: 'Owner',
+      passwordHash: await hashPassword('long-enough-password'), roleId: 'owner', allowOwnerRole: true,
+    })
+    const tenant = await createTenant(db, { slug: 'acme', name: 'Acme' })
+    await addTenantMember(db, { tenantId: tenant.id, userId: owner.id, roleId: 'owner' })
+    return { owner, tenant }
+  }
+
+  it('lets two tenants each have an owner (no installation-wide cap)', async () => {
+    const { db, cleanup } = await createTestDb()
+    try {
+      const a = await createUser(db, {
+        id: 'oa', email: 'a@x.example', displayName: 'A',
+        passwordHash: await hashPassword('long-enough-password'), roleId: 'owner', allowOwnerRole: true,
+      })
+      const b = await createUser(db, {
+        id: 'ob', email: 'b@x.example', displayName: 'B',
+        passwordHash: await hashPassword('long-enough-password'), roleId: 'owner', allowOwnerRole: true,
+      })
+      const t1 = await createTenant(db, { slug: 't-one', name: 'One' })
+      const t2 = await createTenant(db, { slug: 't-two', name: 'Two' })
+      await addTenantMember(db, { tenantId: t1.id, userId: a.id, roleId: 'owner' })
+      await addTenantMember(db, { tenantId: t2.id, userId: b.id, roleId: 'owner' })
+
+      expect(await countActiveTenantOwners(db, t1.id)).toBe(1)
+      expect(await countActiveTenantOwners(db, t2.id)).toBe(1)
+    } finally {
+      await cleanup()
+    }
+  })
+
+  it('refuses to remove or demote a tenant’s last active owner', async () => {
+    const { db, cleanup } = await createTestDb()
+    try {
+      const { owner, tenant } = await seed(db)
+      await expect(removeTenantMember(db, tenant.id, owner.id)).rejects.toMatchObject({ status: 409 })
+      await expect(setTenantMemberRole(db, tenant.id, owner.id, 'admin')).rejects.toMatchObject({ status: 409 })
+      // Still there, still owner.
+      expect((await getTenantMembership(db, tenant.id, owner.id))?.roleId).toBe('owner')
+    } finally {
+      await cleanup()
+    }
+  })
+
+  it('allows demoting an owner once a second owner exists', async () => {
+    const { db, cleanup } = await createTestDb()
+    try {
+      const { owner, tenant } = await seed(db)
+      const second = await createUser(db, {
+        id: 'owner_y', email: 'y@x.example', displayName: 'Y',
+        passwordHash: await hashPassword('long-enough-password'), roleId: 'owner', allowOwnerRole: true,
+      })
+      await addTenantMember(db, { tenantId: tenant.id, userId: second.id, roleId: 'owner' })
+
+      const demoted = await setTenantMemberRole(db, tenant.id, owner.id, 'admin')
+      expect(demoted?.roleId).toBe('admin')
+      expect(await countActiveTenantOwners(db, tenant.id)).toBe(1)
+    } finally {
+      await cleanup()
+    }
   })
 })

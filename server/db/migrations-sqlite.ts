@@ -1271,4 +1271,19 @@ export const sqliteMigrations: Migration[] = [
         on conflict (tenant_id, user_id) do nothing;
     `,
   },
+  {
+    // Retire the installation-wide single-active-owner rule (E06-T03). This
+    // unique index enforced AT MOST one active owner across the whole install —
+    // structurally impossible to have two tenants each with an owner. Ownership
+    // is now per-tenant on `tenant_members`, and "a tenant cannot lose its last
+    // active owner" is a minimum-one guard (can't be a unique index) enforced in
+    // the tenant repository. Dropping an index is non-destructive; no data
+    // changes. The app-level installation guard (countActiveOwners) is untouched
+    // and keeps protecting the legacy single-tenant user-management flow until
+    // E06-T08 makes that path membership-aware.
+    id: '026_retire_single_owner_index',
+    sql: `
+      drop index if exists users_single_active_owner_idx;
+    `,
+  },
 ]

@@ -194,9 +194,9 @@ export async function listTenantsForUser(db: DbClient, userId: string): Promise<
 }
 
 /**
- * Count active owners of a tenant. The last-active-owner guard (E06-T03) reads
- * this before allowing an owner to be removed or demoted, so a tenant can
- * never be orphaned.
+ * Count active owners of a tenant. The last-active-owner guard reads this
+ * before allowing an owner to be removed or demoted, so a tenant can never be
+ * orphaned.
  */
 export async function countActiveTenantOwners(db: DbClient, tenantId: string): Promise<number> {
   const result = await db<{ count: number }>`
@@ -204,4 +204,62 @@ export async function countActiveTenantOwners(db: DbClient, tenantId: string): P
     where tenant_id = ${tenantId} and role_id = 'owner' and status = 'active'
   `
   return Number(result.rows[0]?.count ?? 0)
+}
+
+/**
+ * Throw when a change to `member` would drop the tenant's active-owner count to
+ * zero. The rule the migration 026 index-drop hands off to: a tenant must keep
+ * at least one active owner, and unlike "at most one owner" that is a minimum,
+ * not something a DB unique index can express — so it lives here and every
+ * owner-affecting mutation routes through it.
+ */
+async function assertNotLastActiveOwner(
+  db: DbClient,
+  member: TenantMembership,
+  action: string,
+): Promise<void> {
+  const isActiveOwner = member.roleId === 'owner' && member.status === 'active'
+  if (!isActiveOwner) return
+  if ((await countActiveTenantOwners(db, member.tenantId)) <= 1) {
+    throw new TenantMutationError(`Cannot ${action} the last active owner of this workspace.`, 409)
+  }
+}
+
+/**
+ * Change a member's role. Refuses to demote the tenant's last active owner.
+ * Returns null when the user is not a member of the tenant.
+ */
+export async function setTenantMemberRole(
+  db: DbClient,
+  tenantId: string,
+  userId: string,
+  roleId: string,
+): Promise<TenantMembership | null> {
+  const member = await getTenantMembership(db, tenantId, userId)
+  if (!member) return null
+  if (roleId !== 'owner') await assertNotLastActiveOwner(db, member, 'demote')
+
+  const result = await db<TenantMemberRow>`
+    update tenant_members set role_id = ${roleId}, updated_at = current_timestamp
+    where tenant_id = ${tenantId} and user_id = ${userId}
+    returning *
+  `
+  return rowToMembership(result.rows[0])
+}
+
+/**
+ * Remove a member from a tenant. Refuses to remove the last active owner.
+ * Returns false when the user was not a member.
+ */
+export async function removeTenantMember(
+  db: DbClient,
+  tenantId: string,
+  userId: string,
+): Promise<boolean> {
+  const member = await getTenantMembership(db, tenantId, userId)
+  if (!member) return false
+  await assertNotLastActiveOwner(db, member, 'remove')
+
+  await db`delete from tenant_members where tenant_id = ${tenantId} and user_id = ${userId}`
+  return true
 }
