@@ -118,7 +118,11 @@ async function loadRowForAccess(
   user: AuthUser,
   check: (user: AuthUser, row: DataRow) => boolean,
 ): Promise<DataRow | Response> {
-  const row = await getDataRow(db, rowId)
+  // Tenant isolation (E07): the fetch is scoped to the caller's active tenant,
+  // so a row that belongs to another workspace reads as "not found" — access to
+  // it is indistinguishable from a non-existent id, never a 403 that would
+  // confirm it exists. Every single-row admin operation flows through here.
+  const row = await getDataRow(db, rowId, user.activeTenantId ?? undefined)
   if (!row) return rowNotFound()
   if (!check(user, row)) return forbidden()
   return row

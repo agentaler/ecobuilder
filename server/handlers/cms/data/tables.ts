@@ -301,7 +301,8 @@ async function handleTableRows(
 
   if (req.method === 'GET') {
     const visibility = canSeeAllDataRows(user) ? {} : { ownerUserId: user.id }
-    return jsonResponse({ rows: await listDataRows(db, tableId, visibility) })
+    // Tenant isolation (E07): only rows in the caller's active workspace.
+    return jsonResponse({ rows: await listDataRows(db, tableId, visibility, user.activeTenantId ?? undefined) })
   }
 
   if (req.method === 'POST') {
@@ -330,8 +331,9 @@ async function handleTableRows(
     // unique index raises a driver error that would otherwise surface as an
     // opaque 500 — leaving the caller (often a script or an MCP connector) to
     // guess whether it hit a bug or a duplicate. Name it instead.
+    const tenantId = user.activeTenantId ?? undefined
     if (slug) {
-      const clash = await getDataRowBySlug(db, tableId, slug)
+      const clash = await getDataRowBySlug(db, tableId, slug, tenantId)
       if (clash) {
         return jsonResponse(
           { error: `A row with slug "${slug}" already exists in this table.`, conflictRowId: clash.id },
@@ -340,7 +342,7 @@ async function handleTableRows(
       }
     }
 
-    const row = await createDataRow(db, { tableId, cells, slug }, user.id)
+    const row = await createDataRow(db, { tableId, tenantId, cells, slug }, user.id)
     await emitContentEntryCreated(db, row.id, { kind: 'user', userId: user.id })
     await createAuditEvent(db, {
       actorUserId: user.id,
