@@ -407,6 +407,12 @@ function makeFakeDb() {
         rowCount: 1,
       }
     }
+    // resolveDefaultTenantForUser (login seeds the session's active workspace):
+    // these fixtures have no memberships, so login lands with no active tenant
+    // and the user's global role stands — exactly the legacy single-user shape.
+    if (normalized.includes('from tenant_members') && normalized.includes('join tenants')) {
+      return { rows: [], rowCount: 0 }
+    }
     throw new Error(`Unhandled SQL: ${sql}`)
   }
 

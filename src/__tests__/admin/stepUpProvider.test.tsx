@@ -38,6 +38,7 @@ function makeUser(overrides: Partial<CmsCurrentUser> = {}): CmsCurrentUser {
     mfaRecoveryCodesRemaining: 0,
     stepUpAuthMode: 'required',
     stepUpWindowMinutes: 15,
+    activeTenantId: null,
     avatarMediaId: null,
     avatarUrl: null,
     gravatarHash: '',

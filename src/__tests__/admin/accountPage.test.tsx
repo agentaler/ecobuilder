@@ -56,6 +56,7 @@ function makeUser(overrides: Partial<CmsCurrentUser> = {}): CmsCurrentUser {
     mfaRecoveryCodesRemaining: 0,
     stepUpAuthMode: 'required',
     stepUpWindowMinutes: 15,
+    activeTenantId: null,
     avatarMediaId: null,
     avatarUrl: null,
     gravatarHash: '',
@@ -288,6 +289,7 @@ describe('AccountPage', () => {
           user: makeUser({
             stepUpAuthMode: 'disabled',
             stepUpWindowMinutes: 15,
+            activeTenantId: null,
           }),
         })
       }
@@ -326,6 +328,7 @@ describe('AccountPage', () => {
           user: makeUser({
             stepUpAuthMode: 'required',
             stepUpWindowMinutes: 30,
+            activeTenantId: null,
           }),
         })
       }

@@ -292,6 +292,24 @@ export async function listTenantMembers(db: DbClient, tenantId: string): Promise
   }))
 }
 
+/**
+ * The workspace a session should land in for a user — their first active
+ * membership (oldest join), or null when the account has no workspace yet.
+ * Login and signup use this to seed the session's active tenant; a null result
+ * routes the user to onboarding (create your first workspace).
+ */
+export async function resolveDefaultTenantForUser(db: DbClient, userId: string): Promise<string | null> {
+  const result = await db<{ tenant_id: string }>`
+    select m.tenant_id
+    from tenant_members m
+    join tenants t on t.id = m.tenant_id
+    where m.user_id = ${userId} and m.status = 'active' and t.status = 'active'
+    order by m.created_at asc
+    limit 1
+  `
+  return result.rows[0]?.tenant_id ?? null
+}
+
 /** Every tenant the user belongs to, with their role in each — for the switcher. */
 export async function listTenantsForUser(db: DbClient, userId: string): Promise<TenantWithRole[]> {
   const result = await db<TenantRow & { role_id: string; membership_status: string }>`

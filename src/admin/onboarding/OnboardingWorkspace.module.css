@@ -1,0 +1,14 @@
+.eyebrow {
+  margin-bottom: var(--space-xs);
+  color: var(--text-muted);
+  font-size: var(--text-s);
+  font-weight: 600;
+}
+
+.lede {
+  margin-top: var(--space-s);
+  margin-bottom: var(--space-2xl);
+  color: var(--text-muted);
+  font-size: var(--text-s);
+  line-height: 1.5;
+}

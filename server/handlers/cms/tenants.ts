@@ -90,6 +90,12 @@ async function handleCreateTenant(
         return tenant
       }),
     )
+    // Drop the creator straight into the new workspace: point their session at
+    // it so the next request resolves owner capabilities there. This is what
+    // makes onboarding (first workspace) land the user in their editor, and a
+    // later "New workspace" switch to it.
+    const idHash = await getSessionHash(req)
+    if (idHash) await setSessionActiveTenant(db, idHash, result.id)
     await createAuditEvent(db, {
       actorUserId: actor.id,
       action: 'tenant.create',
@@ -98,7 +104,7 @@ async function handleCreateTenant(
       metadata: { slug: result.slug },
       ...requestAuditContext(req),
     })
-    return jsonResponse({ tenant: result }, { status: 201 })
+    return jsonResponse({ tenant: result, activeTenantId: result.id }, { status: 201 })
   } catch (err) {
     return tenantMutationError(err)
   }

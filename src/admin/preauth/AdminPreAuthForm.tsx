@@ -73,7 +73,6 @@ export function AdminPreAuthForm({
   onAuthenticated,
 }: AdminPreAuthFormProps) {
   const [siteName, setSiteName] = useState('My Site')
-  const [workspaceName, setWorkspaceName] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -83,7 +82,6 @@ export function AdminPreAuthForm({
   const [error, setError] = useState<string | null>(initialError)
 
   const siteNameId = useId()
-  const workspaceNameId = useId()
   const displayNameId = useId()
   const emailId = useId()
   const passwordId = useId()
@@ -110,9 +108,10 @@ export function AdminPreAuthForm({
       return
     }
     await runAuthAction(async () => {
-      // Creates the user + their own workspace + owner membership and
-      // auto-signs them in; `/me` then hydrates the authenticated session.
-      await signupCms({ workspaceName, displayName, email, password })
+      // Creates the ACCOUNT and auto-signs in with no workspace yet; `/me` then
+      // hydrates the session and the app routes to onboarding (a null
+      // activeTenantId) to create the first workspace.
+      await signupCms({ displayName, email, password })
       onAuthenticated(await getCurrentCmsUser())
     }, 'Sign up failed', setSubmitting, setError)
   }
@@ -238,30 +237,16 @@ export function AdminPreAuthForm({
           )}
 
           {phase === 'signup' && (
-            <>
-              <label className={styles.field} htmlFor={workspaceNameId}>
-                <span>Workspace name</span>
-                <Input
-                  id={workspaceNameId}
-                  value={workspaceName}
-                  onChange={(event) => setWorkspaceName(event.target.value)}
-                  placeholder="Acme Studio"
-                  autoComplete="organization"
-                  data-testid="signup-workspace-name"
-                />
-              </label>
-
-              <label className={styles.field} htmlFor={displayNameId}>
-                <span>Your name <span className={styles.hint}>optional</span></span>
-                <Input
-                  id={displayNameId}
-                  value={displayName}
-                  onChange={(event) => setDisplayName(event.target.value)}
-                  autoComplete="name"
-                  data-testid="signup-display-name"
-                />
-              </label>
-            </>
+            <label className={styles.field} htmlFor={displayNameId}>
+              <span>Your name <span className={styles.hint}>optional</span></span>
+              <Input
+                id={displayNameId}
+                value={displayName}
+                onChange={(event) => setDisplayName(event.target.value)}
+                autoComplete="name"
+                data-testid="signup-display-name"
+              />
+            </label>
           )}
 
           {phase !== 'mfa' && (

@@ -149,6 +149,7 @@ function currentUser(capabilities: string[]): CmsCurrentUser {
     mfaRecoveryCodesRemaining: 0,
     stepUpAuthMode: 'required',
     stepUpWindowMinutes: 15,
+    activeTenantId: null,
     avatarMediaId: null,
     avatarUrl: null,
     gravatarHash: '',

@@ -47,6 +47,13 @@ interface CmsUser {
   avatarUrl: string | null
   /** SHA-256 hex of the normalized email — drives the Gravatar fallback URL. */
   gravatarHash: string
+  /**
+   * The workspace (tenant) this session is acting in, resolved through the
+   * session's membership (E06-T08). Null when the account has no workspace yet
+   * — the client routes that state to onboarding (create your first workspace).
+   * Also null for users hydrated outside a session (user listing, findUserById).
+   */
+  activeTenantId: string | null
   createdAt: string
   updatedAt: string
 }
@@ -55,13 +62,6 @@ export interface AuthUser extends CmsUser {
   passwordHash: string
   encryptedMfaTotpSecret: EncryptedTotpSecret | null
   mfaRecoveryCodeHashes: string[]
-  /**
-   * The tenant this session is acting in, when resolved through a session
-   * (E06-T08). `role` + `capabilities` above reflect this tenant's membership.
-   * Null for AuthUsers hydrated outside a session context (user listing,
-   * findUserById) where there is no active tenant.
-   */
-  activeTenantId: string | null
 }
 
 export interface JoinedUserRow extends UserRow {
@@ -248,6 +248,7 @@ export function toPublicUser(user: AuthUser): CmsUser {
     stepUpWindowMinutes: user.stepUpWindowMinutes,
     avatarUrl: user.avatarUrl,
     gravatarHash: user.gravatarHash,
+    activeTenantId: user.activeTenantId,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   }

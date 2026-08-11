@@ -77,17 +77,21 @@ export async function createSession(
      */
     stepUpExpiresAt?: Date | null
     /**
-     * The tenant this session acts in. Defaults to the bootstrap tenant, which
-     * is correct for single-tenant installs (every user is a 'default' member).
-     * Multi-tenant login (E06-T04) passes the chosen tenant explicitly.
+     * The tenant this session acts in. Three cases:
+     *   - `undefined` (legacy callers) → the bootstrap tenant, correct for
+     *     single-tenant self-hosted installs (every user is a 'default' member);
+     *   - an id → that workspace (multi-tenant login/signup resolves it);
+     *   - explicit `null` → NO workspace yet (a fresh SaaS signup), which the
+     *     client routes to onboarding.
      */
-    activeTenantId?: string
+    activeTenantId?: string | null
   },
 ): Promise<void> {
   const deviceLabel = input.deviceLabel ?? deriveDeviceLabel(input.userAgent)
+  const activeTenantId = input.activeTenantId === undefined ? BOOTSTRAP_TENANT_ID : input.activeTenantId
   await db`
     insert into sessions (id_hash, user_id, expires_at, ip_address, user_agent, device_label, mfa_passed_at, step_up_expires_at, active_tenant_id)
-    values (${input.idHash}, ${input.userId}, ${input.expiresAt}, ${input.ipAddress}, ${input.userAgent}, ${deviceLabel}, ${input.mfaPassedAt ?? null}, ${input.stepUpExpiresAt ?? null}, ${input.activeTenantId ?? BOOTSTRAP_TENANT_ID})
+    values (${input.idHash}, ${input.userId}, ${input.expiresAt}, ${input.ipAddress}, ${input.userAgent}, ${deviceLabel}, ${input.mfaPassedAt ?? null}, ${input.stepUpExpiresAt ?? null}, ${activeTenantId})
   `
 }
 
