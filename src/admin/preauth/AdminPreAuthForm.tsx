@@ -8,6 +8,7 @@ import {
   getCurrentCmsUser,
   loginCms,
   setupCms,
+  signupCms,
   verifyCmsMfa,
   type CmsCurrentUser,
   type CmsPublicSite,
@@ -19,7 +20,7 @@ import { getErrorMessage } from '@core/utils/errorMessage'
 // Phase the unauthenticated form can be in. 'mfa' is a sub-state reached
 // only after a login submit returns `mfaRequired: true` — never set by the
 // boot hook directly.
-export type PreAuthPhase = 'setup' | 'login' | 'mfa'
+export type PreAuthPhase = 'setup' | 'login' | 'signup' | 'mfa'
 
 interface AdminPreAuthFormProps {
   phase: PreAuthPhase
@@ -39,7 +40,8 @@ interface PhaseCopy {
 
 const PHASE_COPY: Record<PreAuthPhase, PhaseCopy> = {
   setup: { title: 'Set Up CMS', submit: 'Create Admin', submitPending: 'Setting up' },
-  login: { title: 'Admin Login', submit: 'Sign In', submitPending: 'Signing in' },
+  login: { title: 'Sign in', submit: 'Sign In', submitPending: 'Signing in' },
+  signup: { title: 'Create your workspace', submit: 'Create workspace', submitPending: 'Creating' },
   mfa: { title: 'Two-Factor Authentication', submit: 'Verify', submitPending: 'Verifying' },
 }
 
@@ -71,6 +73,7 @@ export function AdminPreAuthForm({
   onAuthenticated,
 }: AdminPreAuthFormProps) {
   const [siteName, setSiteName] = useState('My Site')
+  const [workspaceName, setWorkspaceName] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -80,6 +83,7 @@ export function AdminPreAuthForm({
   const [error, setError] = useState<string | null>(initialError)
 
   const siteNameId = useId()
+  const workspaceNameId = useId()
   const displayNameId = useId()
   const emailId = useId()
   const passwordId = useId()
@@ -97,6 +101,20 @@ export function AdminPreAuthForm({
       await loginCms({ email, password })
       onAuthenticated(await getCurrentCmsUser())
     }, 'Setup failed', setSubmitting, setError)
+  }
+
+  async function handleSignup(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`)
+      return
+    }
+    await runAuthAction(async () => {
+      // Creates the user + their own workspace + owner membership and
+      // auto-signs them in; `/me` then hydrates the authenticated session.
+      await signupCms({ workspaceName, displayName, email, password })
+      onAuthenticated(await getCurrentCmsUser())
+    }, 'Sign up failed', setSubmitting, setError)
   }
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
@@ -134,6 +152,7 @@ export function AdminPreAuthForm({
 
   const onSubmit =
     phase === 'setup' ? handleSetup :
+    phase === 'signup' ? handleSignup :
     phase === 'mfa' ? handleMfaVerify :
     handleLogin
 
@@ -218,6 +237,33 @@ export function AdminPreAuthForm({
             </>
           )}
 
+          {phase === 'signup' && (
+            <>
+              <label className={styles.field} htmlFor={workspaceNameId}>
+                <span>Workspace name</span>
+                <Input
+                  id={workspaceNameId}
+                  value={workspaceName}
+                  onChange={(event) => setWorkspaceName(event.target.value)}
+                  placeholder="Acme Studio"
+                  autoComplete="organization"
+                  data-testid="signup-workspace-name"
+                />
+              </label>
+
+              <label className={styles.field} htmlFor={displayNameId}>
+                <span>Your name <span className={styles.hint}>optional</span></span>
+                <Input
+                  id={displayNameId}
+                  value={displayName}
+                  onChange={(event) => setDisplayName(event.target.value)}
+                  autoComplete="name"
+                  data-testid="signup-display-name"
+                />
+              </label>
+            </>
+          )}
+
           {phase !== 'mfa' && (
             <>
               <label className={styles.field} htmlFor={emailId}>
@@ -239,9 +285,9 @@ export function AdminPreAuthForm({
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   required
-                  minLength={phase === 'setup' ? MIN_PASSWORD_LENGTH : undefined}
+                  minLength={phase === 'setup' || phase === 'signup' ? MIN_PASSWORD_LENGTH : undefined}
                   type="password"
-                  autoComplete={phase === 'setup' ? 'new-password' : 'current-password'}
+                  autoComplete={phase === 'setup' || phase === 'signup' ? 'new-password' : 'current-password'}
                 />
               </label>
             </>
@@ -267,6 +313,39 @@ export function AdminPreAuthForm({
             <span>{submitLabel}</span>
           </Button>
         </form>
+
+        {/* Login ↔ signup toggle — the self-service SaaS front door. Hidden
+            during setup (one-shot install bootstrap) and MFA (a sub-step of an
+            in-flight login). */}
+        {(phase === 'login' || phase === 'signup') && (
+          <p className={styles.altAction}>
+            {phase === 'login' ? (
+              <>
+                New to {brandLabel}?{' '}
+                <button
+                  type="button"
+                  className={styles.linkButton}
+                  onClick={() => { setError(null); onPhaseChange('signup') }}
+                  data-testid="switch-to-signup"
+                >
+                  Create a workspace
+                </button>
+              </>
+            ) : (
+              <>
+                Already have an account?{' '}
+                <button
+                  type="button"
+                  className={styles.linkButton}
+                  onClick={() => { setError(null); onPhaseChange('login') }}
+                  data-testid="switch-to-login"
+                >
+                  Sign in
+                </button>
+              </>
+            )}
+          </p>
+        )}
       </section>
     </main>
   )

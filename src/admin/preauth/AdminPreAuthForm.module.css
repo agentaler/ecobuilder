@@ -49,6 +49,32 @@
   font-weight: 400;
 }
 
+/* Login ↔ signup toggle row beneath the form. */
+.altAction {
+  margin-top: var(--space-xl);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--text-s);
+}
+
+/* Inline text link inside the toggle sentence — not an action button, so it
+   reads as prose (see §8.16 in button-primitive-usage.test.ts). */
+.linkButton {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.linkButton:hover {
+  color: var(--text-muted);
+}
+
 @keyframes instaticAdminSpin {
   to {
     transform: rotate(360deg);
