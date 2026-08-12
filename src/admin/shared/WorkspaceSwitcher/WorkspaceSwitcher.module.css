@@ -1,0 +1,77 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  max-width: 200px;
+  color: var(--text-muted);
+}
+
+.triggerIcon {
+  flex-shrink: 0;
+  color: var(--text-subtle);
+}
+
+.triggerLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.triggerChevron {
+  flex-shrink: 0;
+  color: var(--text-subtle);
+}
+
+.header {
+  padding: var(--space-xs) var(--space-s);
+  color: var(--text-subtle);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Fixed-width leading slot so workspace names line up whether or not a row
+   carries the active check / plus glyph. */
+.check {
+  display: inline-flex;
+  width: 14px;
+  flex-shrink: 0;
+  color: var(--text);
+}
+
+.wsName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ownerTag {
+  flex-shrink: 0;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-sm);
+  background: var(--overlay-10);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.empty {
+  padding: var(--space-xs) var(--space-s);
+  color: var(--text-subtle);
+  font-size: var(--text-s);
+}
+
+.createForm {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.createLabel {
+  color: var(--text-muted);
+  font-size: var(--text-s);
+  font-weight: 600;
+}

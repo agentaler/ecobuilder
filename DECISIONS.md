@@ -207,3 +207,31 @@ distinctly from `undefined` (legacy → bootstrap tenant, self-hosted compat).
 **Deferred:** social login (E06-T05, needs the provider OAuth apps), removing
 the self-hosted setup wizard on a fresh SaaS deploy, and the
 `admin.ecobuilder.ai` super-admin console.
+
+## D12 — Team UI: workspace switcher, members/invitations, accept-invitation (E06-T07)
+
+**Choice:** Three surfaces on top of the tenant/member/invitation backend:
+- **Workspace switcher** — a toolbar chip (`WorkspaceSwitcher`, beside the
+  account menu) listing the caller's workspaces, switching the active one, and
+  creating a new one. Switch/create do a hard `/admin` reload so the shell
+  re-resolves per-tenant capabilities.
+- **Team tab** on the Users page (`MembersTab`, `users.manage`-gated) — the
+  per-workspace roster with role change, remove, invite-by-email, and pending
+  invitations. Kept as a tab (not a new top-level route) to reuse the page's
+  gating + table/dialog patterns; Users stays the default tab so existing gate
+  tests hold.
+- **Accept-invitation** — `/admin/accept-invitation?token=…`, a self-contained
+  lazy route that redeems immediately for a signed-in visitor or shows the
+  pre-auth form (sign in / sign up) for a logged-out invitee, then redeems and
+  drops them into the joined workspace.
+
+**Client persistence:** `cmsWorkspaces.ts` (list/switch/create workspaces,
+members, invitations). `createWorkspaceCms` moved here from `cmsAuth.ts` — it's
+a workspace op, and keeping it out of `cmsAuth` matters for chunking.
+
+**Chunking:** the accept-invitation route is lazy so its workspace/invitation
+clients never sit in the cold login boot chunk. The remaining boot persistence
+client (auth + switcher/onboarding workspace calls) is one `persistence-*.js`
+chunk (~7.5 KB gzipped); the bundle budget tracks it under that name (was
+`cmsAuth-`). Onboarding stays an INLINE step after account-only signup (a
+separate route re-booted `/me` and raced the just-set session cookie).

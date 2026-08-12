@@ -76,9 +76,10 @@ export default function AdminEntry({ section = 'dashboard' }: AdminEntryProps) {
 
   if (livePhase === 'editor') {
     if (!liveUser) return <AppLoadingScreen />
-    // A signed-in account with no workspace yet (null activeTenantId) lands in
-    // onboarding to create its first workspace, not the editor. Creating one
-    // switches the session into it and refreshes the user, which re-renders
+    // Signup creates an ACCOUNT only, so a freshly signed-up user has no
+    // workspace yet (null activeTenantId). That state renders the separate
+    // onboarding step — "create your first workspace" — not the editor. Creating
+    // one switches the session into it and refreshes the user, which re-renders
     // here with a non-null activeTenantId → the editor.
     if (liveUser.activeTenantId === null) {
       return (

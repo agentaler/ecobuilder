@@ -18,6 +18,7 @@ import { AdminPageLayout } from '@admin/layouts/AdminPageLayout'
 import { hasCapability } from '@admin/access'
 import { useCurrentAdminUser } from '@admin/sessionContext'
 import { AuditTab } from './tabs/AuditTab'
+import { MembersTab } from './tabs/MembersTab'
 import { RolesTab } from './tabs/RolesTab'
 import { UsersTab } from './tabs/UsersTab'
 import { useUsersPageData } from './hooks/useUsersPageData'
@@ -38,6 +39,9 @@ export function UsersPage() {
 
   const availableTabs: UsersPageTab[] = []
   if (canManageUsers) availableTabs.push('users')
+  // Team = per-workspace members + invitations (where Users/Roles/Audit are
+  // install-level). Gated by the same users.manage capability.
+  if (canManageUsers) availableTabs.push('members')
   if (canManageRoles) availableTabs.push('roles')
   if (canReadAudit) availableTabs.push('audit')
 
@@ -93,6 +97,7 @@ export function UsersPage() {
         <div className={styles.body}>
           {data.error && <p className={styles.error} role="alert">{data.error}</p>}
 
+          <TabPanel value="members"><MembersTab /></TabPanel>
           <TabPanel value="users"><UsersTab data={data} canManageUsers={canManageUsers} /></TabPanel>
           <TabPanel value="roles"><RolesTab data={data} canManageRoles={canManageRoles} /></TabPanel>
           <TabPanel value="audit"><AuditTab data={data} /></TabPanel>

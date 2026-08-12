@@ -38,6 +38,7 @@ import { PackageSolidIcon } from 'pixel-art-icons/icons/package-solid'
 import { pluginRuntime } from '@core/plugins/runtime'
 import type { RegisteredPluginToolbarButton } from '@core/plugin-sdk'
 import { AccountMenuButton } from '@admin/shared/AccountMenuButton'
+import { WorkspaceSwitcher } from '@admin/shared/WorkspaceSwitcher'
 import { OpenLivePageButton } from '@admin/shared/OpenLivePageButton'
 import { SettingsButton } from './SettingsButton'
 import { Link } from '@admin/lib/routing'
@@ -255,6 +256,7 @@ export function Toolbar({
               they live in the toolbar shell, not in any layout's right slot. */}
           <SettingsButton />
           <OpenLivePageButton />
+          <WorkspaceSwitcher />
           <AccountMenuButton />
         </div>
       </header>

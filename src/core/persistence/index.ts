@@ -94,6 +94,7 @@ export type {
   CmsStepUpWindowMinutes,
 } from './cmsAuth'
 export {
+  createWorkspaceCms,
   listWorkspacesCms,
   switchWorkspaceCms,
   listWorkspaceMembersCms,
@@ -105,6 +106,7 @@ export {
   acceptInvitationCms,
 } from './cmsWorkspaces'
 export type {
+  CmsWorkspace,
   CmsWorkspaceWithRole,
   CmsWorkspaceMember,
   CmsInvitation,

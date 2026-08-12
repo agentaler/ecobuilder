@@ -37,6 +37,38 @@ export async function listWorkspacesCms(
   return { workspaces: body.tenants, activeTenantId: body.activeTenantId }
 }
 
+const CmsWorkspaceSchema = Type.Object({
+  id: Type.String(),
+  slug: Type.String(),
+  name: Type.String(),
+}, { additionalProperties: true })
+
+const CmsCreateWorkspaceResponseSchema = Type.Object(
+  { tenant: CmsWorkspaceSchema, activeTenantId: Type.Optional(Type.String()) },
+  { additionalProperties: true },
+)
+
+export type CmsWorkspace = Static<typeof CmsWorkspaceSchema>
+
+/**
+ * Create a workspace and switch the session into it — the onboarding step and
+ * the switcher's "New workspace" action both use this. On success the caller
+ * re-reads `/me` to pick up the now-active workspace.
+ */
+export async function createWorkspaceCms(
+  input: { name: string },
+  fetchImpl: FetchLike = globalThis.fetch.bind(globalThis),
+): Promise<CmsWorkspace> {
+  const body = await apiRequest(`${BASE}/tenants`, {
+    method: 'POST',
+    body: input,
+    schema: CmsCreateWorkspaceResponseSchema,
+    fetchImpl,
+    fallbackMessage: 'Could not create workspace',
+  })
+  return body.tenant
+}
+
 const SwitchEnvelope = Type.Object(
   { ok: Type.Boolean(), activeTenantId: Type.String() },
   { additionalProperties: true },

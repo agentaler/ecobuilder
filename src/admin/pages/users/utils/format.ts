@@ -30,5 +30,8 @@ export function formatCapabilitySummary(capabilities: string[]): string {
 }
 
 export function tabLabel(tab: Tab): string {
-  return tab === 'users' ? 'Users' : tab === 'roles' ? 'Roles' : 'Audit'
+  return tab === 'members' ? 'Team'
+    : tab === 'users' ? 'Users'
+      : tab === 'roles' ? 'Roles'
+        : 'Audit'
 }

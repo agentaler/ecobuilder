@@ -113,9 +113,14 @@ const BUDGETS: ChunkBudget[] = [
   },
 
   {
-    prefix: 'cmsAuth-',
-    maxBytes: 10_000,
-    rationale: 'narrow admin boot/auth client (current ~7 KB raw / 2 KB gzipped)',
+    // The admin boot persistence client: the auth stack (login/signup/setup/me)
+    // plus the workspace + invitation clients the switcher and onboarding need.
+    // The members/invitations client rides along (small: apiRequest wrappers +
+    // TypeBox schemas). Must NOT pull the heavier users/data/media clients —
+    // those stay in their own post-login chunks.
+    prefix: 'persistence-',
+    maxBytes: 40_000,
+    rationale: 'admin boot auth + workspace persistence client (current ~31 KB raw / ~7.5 KB gzipped)',
   },
 
   // Site editor — the route chunk must stay the real shell only. The heavy

@@ -128,3 +128,44 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Team (Members) tab — header row, invite dialog form, sub-sections. */
+.tabHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-m);
+  margin-bottom: var(--space-l);
+}
+
+.skeletonStack {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.subSection {
+  margin-top: var(--space-2xl);
+}
+
+.subHeading {
+  margin-bottom: var(--space-s);
+  color: var(--text-muted);
+  font-size: var(--text-s);
+  font-weight: 700;
+}
+
+.inviteForm {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.inviteLabel {
+  margin-top: var(--space-s);
+  color: var(--text-muted);
+  font-size: var(--text-s);
+  font-weight: 600;
+}
+
+.inviteLabel:first-child {
+  margin-top: 0;
+}

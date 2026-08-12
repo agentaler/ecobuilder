@@ -45,7 +45,7 @@ async function sendInvitationEmail(
 ): Promise<void> {
   const tenant = await getTenantById(db, input.tenantId)
   const workspace = tenant?.name ?? 'a workspace'
-  const link = `${publicAppOrigin()}/accept-invitation?token=${encodeURIComponent(input.token)}`
+  const link = `${publicAppOrigin()}/admin/accept-invitation?token=${encodeURIComponent(input.token)}`
   await sendEmail({
     to: input.email,
     subject: `You've been invited to ${workspace} on Ecobuilder`,

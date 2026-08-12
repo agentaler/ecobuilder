@@ -199,39 +199,6 @@ export async function signupCms(
   return { emailVerificationRequired: body.emailVerificationRequired === true }
 }
 
-const CmsWorkspaceSchema = Type.Object({
-  id: Type.String(),
-  slug: Type.String(),
-  name: Type.String(),
-}, { additionalProperties: true })
-
-const CmsCreateWorkspaceResponseSchema = Type.Object(
-  { tenant: CmsWorkspaceSchema, activeTenantId: Type.Optional(Type.String()) },
-  { additionalProperties: true },
-)
-
-export type CmsWorkspace = Static<typeof CmsWorkspaceSchema>
-
-/**
- * Create a workspace and switch the session into it — the onboarding step and
- * the "New workspace" action both use this. On success the caller re-reads
- * `/me` to pick up the now-active workspace.
- */
-export async function createWorkspaceCms(
-  input: { name: string },
-  fetchImpl: FetchLike = globalThis.fetch.bind(globalThis),
-  basePath = '/admin/api/cms',
-): Promise<CmsWorkspace> {
-  const body = await apiRequest(`${basePath}/tenants`, {
-    method: 'POST',
-    body: input,
-    schema: CmsCreateWorkspaceResponseSchema,
-    fetchImpl,
-    fallbackMessage: 'Could not create workspace',
-  })
-  return body.tenant
-}
-
 export async function loginCms(
   input: CmsLoginInput,
   fetchImpl: FetchLike = globalThis.fetch.bind(globalThis),
