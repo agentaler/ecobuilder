@@ -14,6 +14,7 @@
  * silently needed the editor's posted snapshot and returned nothing over MCP).
  */
 import { Type } from '@core/utils/typeboxHelpers'
+import { BOOTSTRAP_TENANT_ID } from '../../../repositories/tenants'
 import { isGeneratedClass, styleRuleSelector, type SiteDocument, type StyleRule } from '@core/page-tree'
 import { generateFontTokenVariablesCss } from '@core/fonts'
 import { generateClassCSS, generateFrameworkCss } from '@core/publisher'
@@ -66,7 +67,7 @@ export const styleMcpTools: AiTool[] = [
         className?: string
         includeTokens?: boolean
       }
-      const site = await getDraftSite(ctx.db)
+      const site = await getDraftSite(ctx.db, BOOTSTRAP_TENANT_ID)
       if (!site) return { ok: false, error: 'No site found.' }
 
       // Author-defined classes + ambient rules. Framework-generated utility
@@ -122,7 +123,7 @@ export const styleMcpTools: AiTool[] = [
     inputSchema: Type.Object({}, { additionalProperties: false }),
     requiredCapabilities: SITE_READ_CAPS,
     handler: async (_input, ctx: ToolContext) => {
-      const site = await getDraftSite(ctx.db)
+      const site = await getDraftSite(ctx.db, BOOTSTRAP_TENANT_ID)
       if (!site) return { ok: false, error: 'No site found.' }
       return {
         breakpoints: site.breakpoints.map((b, i) => ({

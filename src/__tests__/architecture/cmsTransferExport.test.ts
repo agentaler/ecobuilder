@@ -64,7 +64,7 @@ const TEST_SHELL: SiteShell = {
 // ---------------------------------------------------------------------------
 
 async function seedAuth(db: DbClient): Promise<string> {
-  await saveDraftSite(db, TEST_SHELL)
+  await saveDraftSite(db, 'default', TEST_SHELL)
   await createUser(db, {
     id: 'test-owner',
     email: 'owner@export.test',

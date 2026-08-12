@@ -59,8 +59,9 @@ export function notifyRowWrite(event: RowWriteEvent): void {
   }
 }
 
-/** The shell (site row) equivalent — same seam, no table id. */
-type ShellWriteListener = () => void
+/** The shell (site row) equivalent — same seam, carries the tenant whose
+ * shell was written so the relay resets that tenant's shell doc. */
+type ShellWriteListener = (tenantId: string) => void
 const shellListeners = new Set<ShellWriteListener>()
 
 export function registerShellWriteListener(listener: ShellWriteListener): () => void {
@@ -68,10 +69,10 @@ export function registerShellWriteListener(listener: ShellWriteListener): () => 
   return () => shellListeners.delete(listener)
 }
 
-export function notifyShellWrite(): void {
+export function notifyShellWrite(tenantId: string): void {
   for (const listener of shellListeners) {
     try {
-      listener()
+      listener(tenantId)
     } catch (err) {
       console.error('[rowWriteEvents] shell listener failed:', err)
     }

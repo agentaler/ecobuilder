@@ -160,13 +160,13 @@ function snapshotFromQueryRow(row: SnapshotQueryRow): PublishedPageSnapshot {
  * `pages` and `components` data rows. Returns `null` when no draft site
  * exists yet. Saved layouts are editor-only; publishing ignores them.
  */
-export async function getDraftSiteDocument(db: DbClient): Promise<SiteDocument | null> {
-  const shell = await getDraftSite(db)
+export async function getDraftSiteDocument(db: DbClient, tenantId: string): Promise<SiteDocument | null> {
+  const shell = await getDraftSite(db, tenantId)
   if (!shell) return null
 
   const [pageRows, vcRows] = await Promise.all([
-    listDataRows(db, 'pages'),
-    listDataRows(db, 'components'),
+    listDataRows(db, 'pages', {}, tenantId),
+    listDataRows(db, 'components', {}, tenantId),
   ])
   const visualComponents = validateVisualComponents(
     orderSiteDocumentRows(vcRows)
@@ -180,8 +180,8 @@ export async function getDraftSiteDocument(db: DbClient): Promise<SiteDocument |
   }
 }
 
-export async function getDraftPublishStatus(db: DbClient): Promise<DraftPublishStatus> {
-  const draftSite = await getDraftSiteDocument(db)
+export async function getDraftPublishStatus(db: DbClient, tenantId: string): Promise<DraftPublishStatus> {
+  const draftSite = await getDraftSiteDocument(db, tenantId)
   if (!draftSite) {
     return {
       hasPublishedVersion: false,
@@ -203,6 +203,7 @@ export async function getDraftPublishStatus(db: DbClient): Promise<DraftPublishS
     join data_row_versions on data_row_versions.id = data_rows.active_version_id
     join site_snapshots on site_snapshots.id = data_row_versions.site_snapshot_id
     where data_rows.table_id = 'pages'
+      and data_rows.tenant_id = ${tenantId}
       and data_rows.status = 'published'
       and data_rows.deleted_at is null
     order by data_rows.created_at asc

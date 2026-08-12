@@ -68,11 +68,19 @@ function readStoredShell(row: SiteRow): SiteShell {
   }
 }
 
-export async function getDraftSite(db: DbClient): Promise<SiteShell | null> {
+/**
+ * The site shell is per-tenant: one `site` row per tenant, keyed by the row's
+ * `id` column holding the tenant id (the bootstrap tenant's row already carries
+ * `id = 'default'`, matching `BOOTSTRAP_TENANT_ID`, so existing installs need no
+ * migration). A freshly created workspace has no shell row yet — `getDraftSite`
+ * returns null and the editor synthesizes a default shell whose first save mints
+ * the row via `saveDraftSite`.
+ */
+export async function getDraftSite(db: DbClient, tenantId: string): Promise<SiteShell | null> {
   const { rows } = await db<SiteRow>`
     select id, name, settings_json, created_at, updated_at
     from site
-    where id = 'default'
+    where id = ${tenantId}
     limit 1
   `
   const row = rows[0]
@@ -84,19 +92,20 @@ export async function getDraftSite(db: DbClient): Promise<SiteShell | null> {
 
 export async function saveDraftSite(
   db: DbClient,
+  tenantId: string,
   shell: SiteShell,
   _actorUserId: string | null = null,
   opts: { collabInternal?: boolean } = {},
 ): Promise<void> {
   if (!opts.collabInternal) {
     return serializeCollabAwareWrite(async () => {
-      await saveDraftSite(db, shell, _actorUserId, { collabInternal: true })
-      notifyShellWrite()
+      await saveDraftSite(db, tenantId, shell, _actorUserId, { collabInternal: true })
+      notifyShellWrite(tenantId)
     })
   }
   await db`
-    insert into site (id, name, settings_json)
-    values ('default', ${shell.name}, ${shellToStorage(shell)})
+    insert into site (id, tenant_id, name, settings_json)
+    values (${tenantId}, ${tenantId}, ${shell.name}, ${shellToStorage(shell)})
     on conflict (id) do update
       set name = excluded.name,
           settings_json = excluded.settings_json,
@@ -110,10 +119,10 @@ export async function saveDraftSite(
  * reads this inside the transaction for the shell conflict check; the GET
  * shell endpoint returns it so clients can seed their base seq.
  */
-export async function getDraftSiteSeq(db: DbClient): Promise<number> {
+export async function getDraftSiteSeq(db: DbClient, tenantId: string): Promise<number> {
   const { rows } = await db<{ seq: number }>`
     select seq from site
-    where id = 'default'
+    where id = ${tenantId}
     limit 1
   `
   return rows[0] ? Number(rows[0].seq) : 0
@@ -128,10 +137,10 @@ export async function getDraftSiteSeq(db: DbClient): Promise<number> {
  * conditional stamp keeps the shell seq an honest "shell content changed"
  * signal (see repositories/syncSequence.ts).
  */
-export async function stampDraftSiteSeq(db: DbClient, seq: number): Promise<void> {
+export async function stampDraftSiteSeq(db: DbClient, tenantId: string, seq: number): Promise<void> {
   await db`
     update site
     set seq = ${seq}
-    where id = 'default'
+    where id = ${tenantId}
   `
 }

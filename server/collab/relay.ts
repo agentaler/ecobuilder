@@ -431,6 +431,9 @@ export function createCollabRelay(
             persistence.sweepRosterDeletions(
               projected.rosters,
               invalidations.get(SITE_DOC_ID) ?? nextInvalidationVersion,
+              // The reset path operates on the bootstrap shell doc
+              // (`site:default`); its tenant is that doc id's row id.
+              parseCollabDocId(SITE_DOC_ID)?.rowId ?? 'default',
               new Set(affected),
             ),
           ),

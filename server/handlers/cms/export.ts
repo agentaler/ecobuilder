@@ -41,6 +41,7 @@ import { join } from 'node:path'
 import type { DbClient } from '../../db/client'
 import { requireCapability } from '../../auth/authz'
 import { getDraftSite } from '../../repositories/site'
+import { BOOTSTRAP_TENANT_ID } from '../../repositories/tenants'
 import { listDataTables } from '../../repositories/data/tables'
 import { listDataRows } from '../../repositories/data/rows'
 import { listExportableRedirects } from '../../repositories/data/publish'
@@ -123,6 +124,7 @@ export async function handleExportRoute(
 
   const user = await requireCapability(req, db, 'data.export')
   if (user instanceof Response) return user
+  const tenantId = user.activeTenantId ?? BOOTSTRAP_TENANT_ID
 
   // Summary — total counts of the non-table export categories, so the dialog
   // can label and disable categories independent of the current selection.
@@ -170,7 +172,7 @@ export async function handleExportRoute(
   }
 
   // Always load the site shell — needed for sourceSiteName even when includeSite=false
-  const shell = await getDraftSite(db)
+  const shell = await getDraftSite(db, tenantId)
   if (!shell) {
     return jsonResponse({ error: 'Site not initialised — run setup before exporting' }, { status: 404 })
   }
@@ -190,7 +192,7 @@ export async function handleExportRoute(
   const visibility = canSeeAllDataRows(user) ? {} : { ownerUserId: user.id }
   const rowsPerTable = await Promise.all(
     tables.map(async (table) => {
-      const all = await listDataRows(db, table.id, visibility)
+      const all = await listDataRows(db, table.id, visibility, tenantId)
       const sel = selectionByTable?.get(table.id)
       if (!sel?.rowIds) return all
       const want = new Set(sel.rowIds)

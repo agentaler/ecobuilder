@@ -11,6 +11,7 @@
  * come straight from the DB. No browser snapshot.
  */
 import { Type } from '@core/utils/typeboxHelpers'
+import { BOOTSTRAP_TENANT_ID } from '../../../repositories/tenants'
 import type { CoreCapability } from '@core/capabilities'
 import type { AiTool, ToolContext } from '../../runtime/types'
 import { getDraftSite } from '../../../repositories/site'
@@ -57,12 +58,12 @@ export const contextMcpTools: AiTool[] = [
     requiredCapabilities: CONTEXT_READ_CAPS,
     handler: async (input, ctx: ToolContext) => {
       const { entryId } = input as { entryId?: string }
-      const site = await getDraftSite(ctx.db)
+      const site = await getDraftSite(ctx.db, BOOTSTRAP_TENANT_ID)
 
       const { rows } = await ctx.db<PageRow>`
         select id, table_id, cells_json
         from data_rows
-        where table_id = 'pages' and deleted_at is null
+        where table_id = 'pages' and tenant_id = ${BOOTSTRAP_TENANT_ID} and deleted_at is null
       `
       const templates = rows
         .filter((r) => r.cells_json?.templateEnabled)

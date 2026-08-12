@@ -12,6 +12,7 @@ import { Type } from '@core/utils/typeboxHelpers'
 import type { AiTool, ToolContext } from '../../runtime/types'
 import { createAuditEvent } from '../../../repositories/audit'
 import { publishDraftSite } from '../../../publish/publishSite'
+import { BOOTSTRAP_TENANT_ID } from '../../../repositories/tenants'
 
 export interface McpPublishRuntime {
   connectorId: string
@@ -33,7 +34,7 @@ export function createPublishMcpTool(runtime?: McpPublishRuntime): AiTool {
         throw new Error('MCP publish runtime uploads directory is not configured.')
       }
 
-      const result = await publishDraftSite(ctx.db, ctx.userId, runtime.uploadsDir)
+      const result = await publishDraftSite(ctx.db, BOOTSTRAP_TENANT_ID, ctx.userId, runtime.uploadsDir)
       await createAuditEvent(ctx.db, {
         actorUserId: ctx.userId,
         action: 'publish',

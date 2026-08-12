@@ -54,10 +54,13 @@ function makeFakeDb() {
     }
     // saveDraftSite — insert into site
     if (normalized.includes('insert into site')) {
+      // Params: (id/tenantId, tenant_id, name, settings_json) — E07 keys the
+      // site row per tenant by its id column (bootstrap: 'default').
       siteRow = {
-        id: 'default',
-        name: values[0],
-        settings_json: values[1],
+        id: values[0],
+        tenant_id: values[1],
+        name: values[2],
+        settings_json: values[3],
         created_at: new Date('2026-01-01').toISOString(),
         updated_at: new Date('2026-01-02').toISOString(),
       }

@@ -175,7 +175,7 @@ export async function handleSetupRoutes(req: Request, db: DbClient): Promise<Res
         )
         return jsonResponse({ ok: true }, { status: 201 })
       })
-      notifyShellWrite()
+      notifyShellWrite(BOOTSTRAP_TENANT_ID)
       notifyRowWrite({ tableId: 'pages', rowIds: [homePageId, postTemplateId], kind: 'create' })
       return response
     })

@@ -26,10 +26,13 @@ function createPublishFakeDb() {
 
     // saveDraftSite — insert or update site row (NOT site_snapshots)
     if (sql.startsWith('insert into site (')) {
+      // Params: (id/tenantId, tenant_id, name, settings_json) — E07 keys the
+      // site row per tenant by its id column.
       state.site = {
-        id: 'default',
-        name: params[0],
-        settings_json: params[1],
+        id: params[0],
+        tenant_id: params[1],
+        name: params[2],
+        settings_json: params[3],
         created_at: new Date('2026-01-01').toISOString(),
         updated_at: new Date('2026-01-02').toISOString(),
       }
@@ -270,7 +273,7 @@ async function seedSiteAndPage(
   text: string,
 ) {
   const shell = makeSiteShell()
-  await saveDraftSite(db, shell)
+  await saveDraftSite(db, 'default', shell)
   const page = makeHomePage(text)
   await createDataRow(db, {
     id: page.id,
@@ -285,7 +288,7 @@ describe('CMS publishing', () => {
     const { state, db } = createPublishFakeDb()
     await seedSiteAndPage(db, 'Published headline')
 
-    const result = await publishDraftSite(db, 'admin_1')
+    const result = await publishDraftSite(db, 'default', 'admin_1')
     const published = await getPublishedPageBySlug(db, 'index')
 
     expect(result).toMatchObject({ publishedPages: 1 })
@@ -296,7 +299,7 @@ describe('CMS publishing', () => {
   it('does not expose later draft changes until another publish occurs', async () => {
     const { db } = createPublishFakeDb()
     await seedSiteAndPage(db, 'Public version')
-    await publishDraftSite(db, 'admin_1')
+    await publishDraftSite(db, 'default', 'admin_1')
 
     // Update the draft page text
     await saveDataRowDraft(db, 'page_home', {
@@ -311,9 +314,9 @@ describe('CMS publishing', () => {
   it('reports that the current draft matches the active published snapshots after publishing', async () => {
     const { db } = createPublishFakeDb()
     await seedSiteAndPage(db, 'Public version')
-    await publishDraftSite(db, 'admin_1')
+    await publishDraftSite(db, 'default', 'admin_1')
 
-    const status = await getDraftPublishStatus(db)
+    const status = await getDraftPublishStatus(db, 'default')
 
     expect(status).toMatchObject({
       hasPublishedVersion: true,
@@ -327,7 +330,7 @@ describe('CMS publishing', () => {
   it('keeps publish status matched when publishing changes the rows recency order', async () => {
     const { state, db } = createPublishFakeDb()
     const shell = makeSiteShell()
-    await saveDraftSite(db, shell)
+    await saveDraftSite(db, 'default', shell)
 
     const home = makeHomePage('Home')
     const layout = {
@@ -358,8 +361,8 @@ describe('CMS publishing', () => {
     layoutRow.created_at = new Date('2026-01-02').toISOString()
     layoutRow.updated_at = new Date('2026-01-01').toISOString()
 
-    await publishDraftSite(db, 'admin_1')
-    const status = await getDraftPublishStatus(db)
+    await publishDraftSite(db, 'default', 'admin_1')
+    const status = await getDraftPublishStatus(db, 'default')
 
     expect(status).toMatchObject({
       hasPublishedVersion: true,
@@ -372,7 +375,7 @@ describe('CMS publishing', () => {
   it('reports that the current draft no longer matches after a later draft save', async () => {
     const { db } = createPublishFakeDb()
     await seedSiteAndPage(db, 'Public version')
-    await publishDraftSite(db, 'admin_1')
+    await publishDraftSite(db, 'default', 'admin_1')
 
     // Update the draft to create mismatch
     await saveDataRowDraft(db, 'page_home', {
@@ -380,7 +383,7 @@ describe('CMS publishing', () => {
       slug: 'index',
     }, 'admin_1')
 
-    const status = await getDraftPublishStatus(db)
+    const status = await getDraftPublishStatus(db, 'default')
 
     expect(status).toMatchObject({
       hasPublishedVersion: true,
@@ -412,7 +415,7 @@ describe('CMS publishing', () => {
         },
       }),
     })
-    await saveDraftSite(db, shell)
+    await saveDraftSite(db, 'default', shell)
     const page = makeHomePage('Runtime page')
     await createDataRow(db, {
       id: page.id,
@@ -421,7 +424,7 @@ describe('CMS publishing', () => {
       slug: page.slug,
     }, 'admin_1')
 
-    await publishDraftSite(db, 'admin_1')
+    await publishDraftSite(db, 'default', 'admin_1')
     const published = await getPublishedPageBySlug(db, 'index')
 
     expect(state.runtimeAssets.length).toBeGreaterThan(0)
@@ -452,7 +455,7 @@ describe('CMS publishing', () => {
         },
       }),
     })
-    await saveDraftSite(db, shell)
+    await saveDraftSite(db, 'default', shell)
     const page = makeHomePage('Runtime page')
     await createDataRow(db, {
       id: page.id,
@@ -461,7 +464,7 @@ describe('CMS publishing', () => {
       slug: page.slug,
     }, 'admin_1')
 
-    await expect(publishDraftSite(db, 'admin_1')).rejects.toThrow(
+    await expect(publishDraftSite(db, 'default', 'admin_1')).rejects.toThrow(
       'Runtime script build failed for page "Home": src/scripts/forgotten-test.ts:1:',
     )
     expect(state.siteSnapshots).toEqual([])

@@ -211,7 +211,7 @@ describe('import/export round-trip — site shell', () => {
     // A separate fresh DB to confirm the null case without touching the seeded one
     const freshDb = createSqliteClient(':memory:')
     await runMigrations(freshDb, sqliteMigrations)
-    const shell = await getDraftSite(freshDb)
+    const shell = await getDraftSite(freshDb, 'default')
     expect(shell).toBeNull()
   })
 
@@ -249,8 +249,8 @@ describe('import/export round-trip — site shell', () => {
       updatedAt: Date.now(),
     }
 
-    await saveDraftSite(db, mockShell as Parameters<typeof saveDraftSite>[1])
-    const loaded = await getDraftSite(db)
+    await saveDraftSite(db, 'default', mockShell as Parameters<typeof saveDraftSite>[2])
+    const loaded = await getDraftSite(db, 'default')
     expect(loaded).not.toBeNull()
     expect(loaded!.name).toBe('Test Site')
     expect(loaded!.id).toBe('default')
@@ -284,7 +284,7 @@ const ROUNDTRIP_SHELL: SiteShell = {
  * Seed a site + owner user + session into `db`, return the auth cookie.
  */
 async function seedRoundtripAuth(db: DbClient, email: string): Promise<string> {
-  await saveDraftSite(db, ROUNDTRIP_SHELL)
+  await saveDraftSite(db, 'default', ROUNDTRIP_SHELL)
   await createUser(db, {
     id: `owner-${email}`,
     email,

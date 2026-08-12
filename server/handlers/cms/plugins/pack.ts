@@ -15,6 +15,7 @@ import type { DbClient } from '../../../db/client'
 import type { AuthUser } from '../../../repositories/users'
 import { createAuditEvent } from '../../../repositories/audit'
 import { getInstalledPlugin } from '../../../repositories/plugins'
+import { BOOTSTRAP_TENANT_ID } from '../../../repositories/tenants'
 import type { InstalledPlugin } from '@core/plugin-sdk'
 import {
   applyPluginPackToSite,
@@ -59,6 +60,7 @@ async function installPluginPackToSite(
   plugin: InstalledPlugin,
   uploadsDir: string,
   actorUserId: string,
+  tenantId: string,
   req: Request,
 ): Promise<PluginPackSummary | null> {
   if (!plugin.manifest.pack) return null
@@ -66,16 +68,16 @@ async function installPluginPackToSite(
   const raw = await loadPluginPackFile(uploadsDir, plugin.manifest.assetBasePath, plugin.manifest.pack.path)
   const pack = parsePluginPack(plugin.id, raw)
 
-  const shell = await getDraftSite(db)
+  const shell = await getDraftSite(db, tenantId)
   if (!shell) return null
 
   // Assemble a temporary SiteDocument for the pack merge function.
   // VCs and layouts are included so applyPluginPackToSite can detect
   // replaced ids.
   const [pageRows, vcRows, layoutRows] = await Promise.all([
-    listDataRows(db, 'pages'),
-    listDataRows(db, 'components'),
-    listDataRows(db, 'layouts'),
+    listDataRows(db, 'pages', {}, tenantId),
+    listDataRows(db, 'components', {}, tenantId),
+    listDataRows(db, 'layouts', {}, tenantId),
   ])
   const { visualComponentFromRow } = await import('../../../../src/core/data/componentFromRow')
   const existingVCs = vcRows.flatMap((r) => {
@@ -97,7 +99,7 @@ async function installPluginPackToSite(
 
   // Extract shell (strip pages, visualComponents, and layouts) and save
   const { pages: packPages, visualComponents: _vcs, layouts: _layouts, ...nextShell } = nextSiteDoc
-  await saveDraftSite(db, nextShell, actorUserId)
+  await saveDraftSite(db, tenantId, nextShell, actorUserId)
 
   // Upsert pack pages as data_rows
   const existingPagesById = new Map(pageRows.map((r) => [r.id, r]))
@@ -106,7 +108,7 @@ async function installPluginPackToSite(
     if (existingPagesById.has(page.id)) {
       await saveDataRowDraft(db, page.id, { cells, slug: page.slug }, actorUserId)
     } else {
-      await createDataRow(db, { id: page.id, tableId: 'pages', cells, slug: page.slug }, actorUserId)
+      await createDataRow(db, { id: page.id, tableId: 'pages', tenantId, cells, slug: page.slug }, actorUserId)
     }
   }
 
@@ -118,7 +120,7 @@ async function installPluginPackToSite(
     if (existingVCsById.has(vc.id)) {
       await saveDataRowDraft(db, vc.id, { cells, slug }, actorUserId)
     } else {
-      await createDataRow(db, { id: vc.id, tableId: 'components', cells, slug }, actorUserId)
+      await createDataRow(db, { id: vc.id, tableId: 'components', tenantId, cells, slug }, actorUserId)
     }
   }
 
@@ -130,7 +132,7 @@ async function installPluginPackToSite(
     if (existingLayoutRowsById.has(layout.id)) {
       await saveDataRowDraft(db, layout.id, { cells, slug }, actorUserId)
     } else {
-      await createDataRow(db, { id: layout.id, tableId: 'layouts', cells, slug }, actorUserId)
+      await createDataRow(db, { id: layout.id, tableId: 'layouts', tenantId, cells, slug }, actorUserId)
     }
   }
 
@@ -181,7 +183,7 @@ export async function maybeAutoInstallPluginPack(
   if (!plugin.grantedPermissions.includes('visualComponents.register')) return null
 
   try {
-    return await installPluginPackToSite(db, plugin, options.uploadsDir, user.id, req)
+    return await installPluginPackToSite(db, plugin, options.uploadsDir, user.id, user.activeTenantId ?? BOOTSTRAP_TENANT_ID, req)
   } catch (err) {
     console.error(`[plugins:${plugin.id}] auto pack install failed`, err)
     return null
@@ -228,7 +230,7 @@ export async function handlePluginPackInstall(
   }
 
   try {
-    const summary = await installPluginPackToSite(db, plugin, options.uploadsDir, user.id, req)
+    const summary = await installPluginPackToSite(db, plugin, options.uploadsDir, user.id, user.activeTenantId ?? BOOTSTRAP_TENANT_ID, req)
     if (!summary) {
       return badRequest('No draft site to install pack into; finish initial setup first.')
     }
