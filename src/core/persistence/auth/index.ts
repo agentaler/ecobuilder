@@ -1,5 +1,4 @@
 export {
-  createWorkspaceCms,
   getCmsPublicSite,
   getCmsSetupStatus,
   getCurrentCmsUser,
@@ -10,6 +9,5 @@ export {
 } from '../cmsAuth'
 export type {
   CmsCurrentUser,
-  CmsWorkspace,
 } from '../cmsAuth'
 export type { CmsPublicSite, CmsSetupStatus } from '../responseSchemas'

@@ -1,10 +1,17 @@
-import { Suspense } from 'react'
+import { lazy, Suspense } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 import { Navigate, Route, Routes } from './lib/routing'
 import { useLocation } from './lib/routing'
 import { ErrorBoundary } from '@ui/components/ErrorBoundary'
 import { AppLoadingScreen } from './AppLoadingScreen'
 import AdminEntry from './AdminEntry'
+
+// The accept-invitation flow is its own lazy route so it (and the workspace /
+// invitation persistence clients it pulls) never sits in the cold /admin login
+// boot chunk — it only downloads when the invite URL is actually visited.
+const AcceptInvitation = lazy(() =>
+  import('./accept-invitation/AcceptInvitation').then((m) => ({ default: m.AcceptInvitation })),
+)
 
 // AdminEntry is eager-imported (not behind `React.lazy`) so the cold load
 // path does not require Suspense resolution before the first contentful
@@ -63,6 +70,10 @@ export function AdminRoutes() {
       <Route path="/admin/ai" element={withRouteBoundary(<AdminEntry section="ai" />)} />
       <Route path="/admin/ai/oauth/authorize" element={withRouteBoundary(<AdminEntry section="ai" />)} />
       <Route path="/admin/account" element={withRouteBoundary(<AdminEntry section="account" />)} />
+      {/* Invitation redemption — its own screen (not an AdminEntry section): it
+          runs a self-contained accept flow that works signed-in OR signed-out
+          (shows the pre-auth form for a logged-out invitee, then redeems). */}
+      <Route path="/admin/accept-invitation" element={withRouteBoundary(<AcceptInvitation />)} />
       <Route
         path="/admin/plugins/:pluginId/:pageId"
         element={withRouteBoundary(<AdminEntry section="pluginPage" />)}

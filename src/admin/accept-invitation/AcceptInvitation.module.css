@@ -1,0 +1,25 @@
+.invited {
+  display: contents;
+}
+
+.banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  margin: 0;
+  padding: var(--space-m) var(--space-xl);
+  background: var(--overlay-10);
+  color: var(--text);
+  text-align: center;
+  font-size: var(--text-s);
+  line-height: 1.5;
+}
+
+.message {
+  margin-bottom: var(--space-2xl);
+  color: var(--text-muted);
+  font-size: var(--text-s);
+  line-height: 1.5;
+}

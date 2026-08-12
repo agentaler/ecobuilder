@@ -93,5 +93,23 @@ export type {
   CmsStepUpAuthMode,
   CmsStepUpWindowMinutes,
 } from './cmsAuth'
+export {
+  createWorkspaceCms,
+  listWorkspacesCms,
+  switchWorkspaceCms,
+  listWorkspaceMembersCms,
+  setWorkspaceMemberRoleCms,
+  removeWorkspaceMemberCms,
+  listInvitationsCms,
+  createInvitationCms,
+  cancelInvitationCms,
+  acceptInvitationCms,
+} from './cmsWorkspaces'
+export type {
+  CmsWorkspace,
+  CmsWorkspaceWithRole,
+  CmsWorkspaceMember,
+  CmsInvitation,
+} from './cmsWorkspaces'
 
 // usePersistence moved to src/editor/hooks/usePersistence.ts (Constraint #179 — no React in core)
