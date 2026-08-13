@@ -1321,4 +1321,19 @@ export const pgMigrations: Migration[] = [
         on media_folders (tenant_id, coalesce(parent_id, ''), slug);
     `,
   },
+  {
+    // Passwordless accounts (E06-T05). An account created by an emailed
+    // sign-in code or by Google/GitHub has no password at all, so
+    // `password_hash` stops being mandatory. Nothing writes a NULL yet — the
+    // endpoints that can create such an account land in later changes — so
+    // this migration is purely a relaxation and existing rows are untouched.
+    //
+    // Relaxing NOT NULL is one statement on Postgres; the SQLite mirror has
+    // to rebuild the table (see migrations-sqlite.ts) because SQLite cannot
+    // ALTER a column's nullability.
+    id: '032_nullable_password_hash',
+    sql: `
+      alter table users alter column password_hash drop not null;
+    `,
+  },
 ]
