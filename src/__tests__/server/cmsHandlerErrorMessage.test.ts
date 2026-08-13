@@ -55,7 +55,7 @@ describe('loadPublicSiteIdentity favicon resolution (boundary-parsed settings_js
         cmsSiteSchemaVersion: 1,
         site: { settings: { faviconUrl: 'https://cdn.test/favicon.png', shortcuts: {} } },
       })
-      expect(await readPublicSite(db)).toEqual({
+      expect(await readPublicSite(db)).toMatchObject({
         name: 'Brand Site',
         faviconUrl: 'https://cdn.test/favicon.png',
       })
@@ -74,7 +74,7 @@ describe('loadPublicSiteIdentity favicon resolution (boundary-parsed settings_js
       await createSite(db, 'No-Shortcuts Site', {
         site: { settings: { faviconUrl: 'https://x/f.png' } },
       })
-      expect(await readPublicSite(db)).toEqual({
+      expect(await readPublicSite(db)).toMatchObject({
         name: 'No-Shortcuts Site',
         faviconUrl: 'https://x/f.png',
       })
@@ -87,7 +87,7 @@ describe('loadPublicSiteIdentity favicon resolution (boundary-parsed settings_js
     const { db, cleanup } = await createTestDb()
     try {
       await createSite(db, 'Bare Site', {})
-      expect(await readPublicSite(db)).toEqual({ name: 'Bare Site', faviconUrl: null })
+      expect(await readPublicSite(db)).toMatchObject({ name: 'Bare Site', faviconUrl: null })
     } finally {
       await cleanup()
     }
@@ -102,7 +102,7 @@ describe('loadPublicSiteIdentity favicon resolution (boundary-parsed settings_js
       await createSite(db, 'Broken Site', {
         site: { settings: { faviconUrl: 42 } },
       })
-      expect(await readPublicSite(db)).toEqual({ name: 'Broken Site', faviconUrl: null })
+      expect(await readPublicSite(db)).toMatchObject({ name: 'Broken Site', faviconUrl: null })
     } finally {
       await cleanup()
     }

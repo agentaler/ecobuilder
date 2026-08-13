@@ -46,6 +46,7 @@ const RESULT_LABELS: Record<CmsLoginActivityResult, string> = {
   locked: 'Account locked',
   rate_limited: 'Rate-limited',
   mfa_failed: 'MFA failed',
+  bad_code: 'Wrong sign-in code',
 }
 
 function resultClass(result: CmsLoginActivityResult): string {

@@ -28,6 +28,12 @@ export type LoginAttemptResult =
   | 'locked'
   | 'rate_limited'
   | 'mfa_failed'
+  /**
+   * A wrong emailed sign-in / step-up code. Distinct from `bad_password` and
+   * `mfa_failed` so the sign-in history can still tell a password grind apart
+   * from a second-factor grind. Mirrored by the DB CHECK (migration 034).
+   */
+  | 'bad_code'
 
 interface LoginAttempt {
   id: string

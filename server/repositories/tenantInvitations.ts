@@ -91,7 +91,7 @@ export async function createInvitation(
 export async function listPendingInvitations(db: DbClient, tenantId: string): Promise<TenantInvitation[]> {
   const result = await db<InvitationRow>`
     select * from tenant_invitations
-    where tenant_id = ${tenantId} and status = 'pending' and expires_at > current_timestamp
+    where tenant_id = ${tenantId} and status = 'pending' and expires_at > ${new Date()}
     order by created_at desc
   `
   return result.rows.map(rowToInvitation)

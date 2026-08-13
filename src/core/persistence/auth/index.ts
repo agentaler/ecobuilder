@@ -3,8 +3,10 @@ export {
   getCmsSetupStatus,
   getCurrentCmsUser,
   loginCms,
+  requestCmsEmailCode,
   setupCms,
   signupCms,
+  verifyCmsEmailCode,
   verifyCmsMfa,
 } from '../cmsAuth'
 export type {

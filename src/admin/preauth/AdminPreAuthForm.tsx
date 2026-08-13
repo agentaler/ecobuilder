@@ -7,8 +7,10 @@ import { LoaderIcon } from 'pixel-art-icons/icons/loader'
 import {
   getCurrentCmsUser,
   loginCms,
+  requestCmsEmailCode,
   setupCms,
   signupCms,
+  verifyCmsEmailCode,
   verifyCmsMfa,
   type CmsCurrentUser,
   type CmsPublicSite,
@@ -20,7 +22,7 @@ import { getErrorMessage } from '@core/utils/errorMessage'
 // Phase the unauthenticated form can be in. 'mfa' is a sub-state reached
 // only after a login submit returns `mfaRequired: true` — never set by the
 // boot hook directly.
-export type PreAuthPhase = 'setup' | 'login' | 'signup' | 'mfa'
+export type PreAuthPhase = 'setup' | 'login' | 'signup' | 'email-code' | 'mfa'
 
 interface AdminPreAuthFormProps {
   phase: PreAuthPhase
@@ -46,6 +48,7 @@ const PHASE_COPY: Record<PreAuthPhase, PhaseCopy> = {
   // `activeTenantId: null`). The copy has to say so, or the two-step flow
   // reads as a bug.
   signup: { title: 'Create your account', submit: 'Create account', submitPending: 'Creating account' },
+  'email-code': { title: 'Check your email', submit: 'Continue', submitPending: 'Verifying' },
   mfa: { title: 'Two-Factor Authentication', submit: 'Verify', submitPending: 'Verifying' },
 }
 
@@ -84,13 +87,22 @@ export function AdminPreAuthForm({
   const [setupToken, setSetupToken] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(initialError)
+  // Scopes redemption to the request that issued the code — the server will not
+  // accept a code without it, so it must survive until the user types the code.
+  const [emailCodeRequestId, setEmailCodeRequestId] = useState('')
+  const [emailCode, setEmailCode] = useState('')
 
   const siteNameId = useId()
   const displayNameId = useId()
   const emailId = useId()
   const passwordId = useId()
   const mfaCodeId = useId()
+  const emailCodeId = useId()
   const setupTokenId = useId()
+
+  // Only offered when the server has a mail transport configured; otherwise the
+  // code would only ever reach a server log the user cannot read.
+  const emailCodeAvailable = publicSite.auth?.emailCodeEnabled === true
 
   async function handleSetup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -134,6 +146,32 @@ export function AdminPreAuthForm({
     }, 'Login failed', setSubmitting, setError)
   }
 
+  /** Ask for a code and move to the code screen. */
+  async function requestEmailCode() {
+    await runAuthAction(async () => {
+      const { requestId } = await requestCmsEmailCode({ email })
+      setEmailCodeRequestId(requestId)
+      setEmailCode('')
+      setPassword('')
+      onPhaseChange('email-code')
+    }, 'Could not send the sign-in code', setSubmitting, setError)
+  }
+
+  async function handleEmailCodeVerify(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    await runAuthAction(async () => {
+      const result = await verifyCmsEmailCode({ requestId: emailCodeRequestId, code: emailCode })
+      if (result.mfaRequired) {
+        setEmailCode('')
+        setMfaCode('')
+        onPhaseChange('mfa')
+        return
+      }
+      setEmailCode('')
+      onAuthenticated(await getCurrentCmsUser())
+    }, 'That code is invalid or has expired.', setSubmitting, setError)
+  }
+
   async function handleMfaVerify(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     await runAuthAction(async () => {
@@ -157,6 +195,7 @@ export function AdminPreAuthForm({
     phase === 'setup' ? handleSetup :
     phase === 'signup' ? handleSignup :
     phase === 'mfa' ? handleMfaVerify :
+    phase === 'email-code' ? handleEmailCodeVerify :
     handleLogin
 
   return (
@@ -185,8 +224,29 @@ export function AdminPreAuthForm({
           <p className={styles.lede}>You&rsquo;ll create your workspace next.</p>
         )}
 
+        {phase === 'email-code' && (
+          <p className={styles.lede}>
+            We sent a 6-digit code to {email || 'your email'}. Enter it here to continue.
+          </p>
+        )}
+
         <form className={styles.form} onSubmit={onSubmit}>
-          {phase === 'mfa' ? (
+          {phase === 'email-code' ? (
+            <label className={styles.field} htmlFor={emailCodeId}>
+              <span>Sign-in code</span>
+              <Input
+                id={emailCodeId}
+                value={emailCode}
+                onChange={(event) => setEmailCode(event.target.value)}
+                required
+                autoFocus
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                data-testid="admin-email-code"
+              />
+            </label>
+          ) : phase === 'mfa' ? (
             <label className={styles.field} htmlFor={mfaCodeId}>
               <span>Authentication code</span>
               <Input
@@ -257,7 +317,7 @@ export function AdminPreAuthForm({
             </label>
           )}
 
-          {phase !== 'mfa' && (
+          {phase !== 'mfa' && phase !== 'email-code' && (
             <>
               <label className={styles.field} htmlFor={emailId}>
                 <span>Email</span>
@@ -306,6 +366,38 @@ export function AdminPreAuthForm({
             <span>{submitLabel}</span>
           </Button>
         </form>
+
+        {/* Passwordless alternative. Offered only from the login screen and
+            only when mail actually leaves the server — the email field is
+            already filled in there, so no extra step is needed to request it. */}
+        {phase === 'login' && emailCodeAvailable && (
+          <p className={styles.altAction}>
+            <button
+              type="button"
+              className={styles.linkButton}
+              onClick={() => { setError(null); void requestEmailCode() }}
+              disabled={submitting || !email.trim()}
+              data-testid="request-email-code"
+            >
+              Email me a sign-in code
+            </button>
+          </p>
+        )}
+
+        {/* Escape hatch from the code screen: the code is bound to the request
+            that issued it, so changing address means starting over. */}
+        {phase === 'email-code' && (
+          <p className={styles.altAction}>
+            <button
+              type="button"
+              className={styles.linkButton}
+              onClick={() => { setError(null); setEmailCode(''); onPhaseChange('login') }}
+              data-testid="email-code-back"
+            >
+              Use a different email
+            </button>
+          </p>
+        )}
 
         {/* Login ↔ signup toggle — the self-service SaaS front door. Hidden
             during setup (one-shot install bootstrap) and MFA (a sub-step of an

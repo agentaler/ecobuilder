@@ -219,6 +219,60 @@ export async function loginCms(
   return { mfaRequired: body.mfaRequired === true }
 }
 
+const CmsEmailCodeRequestResponseSchema = Type.Object({
+  ok: Type.Optional(Type.Boolean()),
+  requestId: Type.String(),
+  expiresInSeconds: Type.Optional(Type.Number()),
+}, { additionalProperties: true })
+
+const CmsEmailCodeVerifyResponseSchema = Type.Object({
+  ok: Type.Optional(Type.Boolean()),
+  mfaRequired: Type.Optional(Type.Boolean()),
+  createdAccount: Type.Optional(Type.Boolean()),
+}, { additionalProperties: true })
+
+/**
+ * Ask for an emailed sign-in code. Answers the same way whether or not the
+ * address has an account — redemption creates one when it doesn't — so the
+ * caller must not treat this as an existence check.
+ *
+ * The returned `requestId` scopes redemption to this request and must be kept
+ * for the verify call.
+ */
+export async function requestCmsEmailCode(
+  input: { email: string },
+  fetchImpl: FetchLike = globalThis.fetch.bind(globalThis),
+  basePath = '/admin/api/cms',
+): Promise<{ requestId: string; expiresInSeconds: number }> {
+  const body = await apiRequest(`${basePath}/auth/email-code/request`, {
+    method: 'POST',
+    body: input,
+    schema: CmsEmailCodeRequestResponseSchema,
+    fetchImpl,
+    fallbackMessage: 'Could not send the sign-in code',
+  })
+  return { requestId: body.requestId, expiresInSeconds: body.expiresInSeconds ?? 600 }
+}
+
+/** Redeem an emailed code for a session. `mfaRequired` behaves as for login. */
+export async function verifyCmsEmailCode(
+  input: { requestId: string; code: string },
+  fetchImpl: FetchLike = globalThis.fetch.bind(globalThis),
+  basePath = '/admin/api/cms',
+): Promise<{ mfaRequired: boolean; createdAccount: boolean }> {
+  const body = await apiRequest(`${basePath}/auth/email-code/verify`, {
+    method: 'POST',
+    body: input,
+    schema: CmsEmailCodeVerifyResponseSchema,
+    fetchImpl,
+    fallbackMessage: 'That code is invalid or has expired.',
+  })
+  return {
+    mfaRequired: body.mfaRequired === true,
+    createdAccount: body.createdAccount === true,
+  }
+}
+
 export async function verifyCmsMfa(
   input: CmsMfaVerifyInput,
   fetchImpl: FetchLike = globalThis.fetch.bind(globalThis),
@@ -562,6 +616,7 @@ const CmsLoginActivityResultSchema = Type.Union([
   Type.Literal('locked'),
   Type.Literal('rate_limited'),
   Type.Literal('mfa_failed'),
+  Type.Literal('bad_code'),
 ])
 
 const CmsLoginActivityEventSchema = Type.Object({

@@ -178,3 +178,49 @@ export const mfaRateLimit = new RateLimiter({
   limit: 10,
   windowMs: 10 * 60 * 1000,
 })
+
+/**
+ * Emailed sign-in codes get their own buckets rather than sharing the password
+ * login ones: otherwise asking for a code would eat a password attempt (and
+ * vice-versa), so a user locked out of one method would silently be locked out
+ * of the other.
+ *
+ * Requesting a code, per (ip, email) — bounds how often one address can be
+ * mailed, which is both an abuse control and a deliverability one (a flooded
+ * mailbox marks us as spam).
+ */
+export const emailCodeRequestRateLimit = new RateLimiter({
+  limit: 3,
+  windowMs: 15 * 60 * 1000,
+})
+
+/**
+ * Requesting a code, per IP — stops one host spraying codes at many addresses,
+ * which costs real money per send and burns sender reputation.
+ */
+export const emailCodeRequestPerIpRateLimit = new RateLimiter({
+  limit: 10,
+  windowMs: 60 * 60 * 1000,
+})
+
+/**
+ * Redeeming a code, per IP. The per-code attempt counter in
+ * `email_login_codes` is the real cap on guessing ONE code; this bounds how
+ * many different codes a single host may take shots at.
+ */
+export const emailCodeVerifyRateLimit = new RateLimiter({
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+})
+
+/**
+ * Signup / password-reset requests, per IP. These endpoints had no limiter at
+ * all, which mattered less while `/signup`'s duplicate-email 409 was one oracle
+ * among many — but the code endpoints above are deliberately uniform for known
+ * and unknown addresses, which leaves signup as the cheapest way to test
+ * whether an address has an account.
+ */
+export const signupRateLimit = new RateLimiter({
+  limit: 5,
+  windowMs: 60 * 60 * 1000,
+})

@@ -1336,4 +1336,55 @@ export const pgMigrations: Migration[] = [
       alter table users alter column password_hash drop not null;
     `,
   },
+  {
+    // Emailed sign-in codes (E06-T05). A short numeric code proves control of
+    // a mailbox, which both signs in an existing account and creates a new one.
+    //
+    // Not `auth_tokens`: that table requires a `user_id` FK, and a code sent to
+    // an address with no account yet has no user to point at. It also has a
+    // globally-unique token hash and no attempt counter, both wrong for a
+    // 6-digit secret.
+    //
+    // The row id IS the requestId handed back to the client, and redemption
+    // looks the row up by it — never by scanning for a matching code hash. That
+    // keeps a blind guess a 1-in-a-million shot against ONE code (capped by
+    // `attempts`) instead of a shot against every live code at once, which
+    // would otherwise get easier as the product grows. `code_hash` is salted
+    // with the row id so one rainbow table cannot reverse the whole column.
+    id: '033_email_login_codes',
+    sql: `
+      create table if not exists email_login_codes (
+        id text primary key,
+        email_normalized text not null,
+        user_id text references users(id) on delete cascade,
+        purpose text not null default 'login',
+        code_hash text not null,
+        attempts integer not null default 0,
+        max_attempts integer not null default 5,
+        expires_at timestamptz not null,
+        consumed_at timestamptz,
+        ip_address text,
+        user_agent text,
+        created_at timestamptz not null default now(),
+        constraint email_login_codes_purpose_check check (purpose in ('login', 'step_up'))
+      );
+
+      create index if not exists email_login_codes_email_idx
+        on email_login_codes (email_normalized, created_at desc);
+      create index if not exists email_login_codes_expiry_idx
+        on email_login_codes (expires_at);
+    `,
+  },
+  {
+    // A failed sign-in code is neither a bad password nor a failed second
+    // factor. Recording it as either would corrupt the one signal the sign-in
+    // history exists to give an operator: telling a password grind apart from a
+    // second-factor grind.
+    id: '034_login_attempt_bad_code',
+    sql: `
+      alter table login_attempts drop constraint if exists login_attempts_result_check;
+      alter table login_attempts add constraint login_attempts_result_check
+        check (result in ('success', 'bad_password', 'no_user', 'account_disabled', 'locked', 'rate_limited', 'mfa_failed', 'bad_code'));
+    `,
+  },
 ]

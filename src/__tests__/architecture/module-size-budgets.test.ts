@@ -95,7 +95,9 @@ const GRANDFATHERED: Record<string, number> = {
   // server/repositories/media.ts graduated: the row ↔ asset mapping unit was
   // extracted into server/repositories/mediaAssetMapping.ts, dropping media.ts
   // to 583 lines — under CEILING, so it's now held by the normal ceiling rule.
-  'server/handlers/cms/auth.ts': 854,
+  // Ratcheted 854 → 819 when the shared session-issuance path moved out to
+  // handlers/cms/loginSession.ts (every login method now terminates there).
+  'server/handlers/cms/auth.ts': 819,
   // src/core/loops/sources/dataRows.ts graduated: the 12 per-order-branch SQL
   // copies collapsed into one query + a whitelisted ORDER BY column map,
   // dropping the file to 540 lines — under CEILING, so it's now held by the

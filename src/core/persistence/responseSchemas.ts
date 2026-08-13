@@ -76,6 +76,14 @@ export type CmsSetupStatus = Static<typeof CmsSetupStatusSchema>
 export const CmsPublicSiteSchema = Type.Object({
   name: Type.Union([Type.String(), Type.Null()]),
   faviconUrl: Type.Union([Type.String(), Type.Null()]),
+  /**
+   * Which sign-in methods the pre-auth screen may offer. Optional so a client
+   * newer than its server still validates; treat a missing block as "password
+   * only".
+   */
+  auth: Type.Optional(Type.Object({
+    emailCodeEnabled: Type.Optional(Type.Boolean()),
+  }, { additionalProperties: true })),
 })
 
 export type CmsPublicSite = Static<typeof CmsPublicSiteSchema>
