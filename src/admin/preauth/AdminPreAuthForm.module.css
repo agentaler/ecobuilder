@@ -30,6 +30,17 @@
   user-select: none;
 }
 
+/* Sits between the title and the form to name the NEXT step, so account-only
+   signup doesn't read as a missing workspace field. Mirrors the onboarding
+   screen's `.lede` so the two steps read as one flow. */
+.lede {
+  margin-top: var(--space-s);
+  margin-bottom: var(--space-2xl);
+  color: var(--text-muted);
+  font-size: var(--text-s);
+  line-height: 1.5;
+}
+
 .form {
   display: grid;
   gap: var(--space-xl);

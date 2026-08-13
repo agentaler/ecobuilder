@@ -41,7 +41,11 @@ interface PhaseCopy {
 const PHASE_COPY: Record<PreAuthPhase, PhaseCopy> = {
   setup: { title: 'Set Up CMS', submit: 'Create Admin', submitPending: 'Setting up' },
   login: { title: 'Sign in', submit: 'Sign In', submitPending: 'Signing in' },
-  signup: { title: 'Create your workspace', submit: 'Create workspace', submitPending: 'Creating' },
+  // Signup creates the ACCOUNT only — the workspace is created on the next
+  // screen (`OnboardingWorkspace`, reached because the new session carries
+  // `activeTenantId: null`). The copy has to say so, or the two-step flow
+  // reads as a bug.
+  signup: { title: 'Create your account', submit: 'Create account', submitPending: 'Creating account' },
   mfa: { title: 'Two-Factor Authentication', submit: 'Verify', submitPending: 'Verifying' },
 }
 
@@ -176,6 +180,10 @@ export function AdminPreAuthForm({
         </div>
 
         <h1 id="admin-entry-title" className={panelStyles.title}>{copy.title}</h1>
+
+        {phase === 'signup' && (
+          <p className={styles.lede}>You&rsquo;ll create your workspace next.</p>
+        )}
 
         <form className={styles.form} onSubmit={onSubmit}>
           {phase === 'mfa' ? (
@@ -313,7 +321,7 @@ export function AdminPreAuthForm({
                   onClick={() => { setError(null); onPhaseChange('signup') }}
                   data-testid="switch-to-signup"
                 >
-                  Create a workspace
+                  Create an account
                 </button>
               </>
             ) : (
