@@ -360,6 +360,14 @@ export function applySitePatchesToDocs(
   nextSite: SiteDocument,
   docs: CollabDocSet,
   origin: unknown,
+  /**
+   * The shell doc id to write shell/roster ops into. Per-tenant
+   * (`site:<tenantId>`); defaults to the bootstrap shell so single-tenant
+   * callers and tests are unaffected. The caller MUST pass the same id its
+   * provider binding uses, or shell edits land in an orphan doc that never
+   * persists.
+   */
+  shellDocId: string = SITE_DOC_ID,
 ): string[] {
   const touchedDocs: string[] = []
   const touch = (docId: string): void => {
@@ -395,8 +403,8 @@ export function applySitePatchesToDocs(
   }
 
   if (shellHeads.size > 0 || shellEntryTargets.size > 0 || collectionsWithMembershipOps.length > 0) {
-    const siteDoc = docs.ensure(SITE_DOC_ID)
-    touch(SITE_DOC_ID)
+    const siteDoc = docs.ensure(shellDocId)
+    touch(shellDocId)
     siteDoc.transact(() => {
       const shell = shellMap(siteDoc)
       for (const head of shellHeads) {

@@ -167,7 +167,10 @@ export function AdminCanvasLayout() {
   }
   // Boot the document lifecycle: HTTP load for first paint, then the collab
   // provider — every edit streams live and the server relay persists.
-  const persistence = usePersistence('default', cmsAdapter, { enabled: true })
+  const persistence = usePersistence('default', cmsAdapter, {
+    enabled: true,
+    tenantId: currentUser?.activeTenantId ?? null,
+  })
   const runtimeValidation = useRuntimeScriptDiagnostics()
   // Keep the open page in lockstep with the URL: consume `?page=<slug>` on
   // load, and mirror the active page's slug back into the address bar so it's

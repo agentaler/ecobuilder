@@ -112,6 +112,13 @@ const GRANDFATHERED: Record<string, number> = {
   'src/admin/pages/site/panels/TypographyPanel/FontsSection/AddGoogleFontDialog.tsx': 751,
   'src/core/markdown/markdownDocument.ts': 748,
   'src/admin/pages/dashboard/DashboardPage.tsx': 732,
+  // server/collab/relay.ts was exactly at CEILING before E07 tenant scoping
+  // added per-tenant shell reset handling (a reset batch spanning multiple
+  // `site:<tenantId>` docs, plus roster reverse-index resolution for the
+  // out-of-relay write listeners). Graduate it by splitting the reset +
+  // write-listener machinery (queueResetDocs / resetDocs / the two listeners)
+  // into its own module.
+  'server/collab/relay.ts': 707,
 }
 
 // ---------------------------------------------------------------------------
