@@ -25,7 +25,8 @@ export interface UserRow {
   email: string
   email_normalized: string
   display_name: string
-  password_hash: string
+  /** Null for passwordless accounts (emailed sign-in code / social login). */
+  password_hash: string | null
   status: UserStatus
   role_id: string
   last_login_at: Date | string | null

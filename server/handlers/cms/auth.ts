@@ -765,7 +765,9 @@ async function handleStepUp(req: Request, db: DbClient): Promise<Response> {
   const body = await readValidatedBody(req, StepUpBodySchema)
   const password = (body?.password ?? '').trim()
   const mfaCode = (body?.mfaCode ?? '').trim()
-  const passwordOk = await verifyPassword(password, user.passwordHash)
+  // Passwordless accounts (emailed code / social) have no password to re-enter,
+  // so they fail closed here until the email-code step-up factor lands.
+  const passwordOk = user.passwordHash !== null && await verifyPassword(password, user.passwordHash)
   if (!passwordOk) {
     return recordStepUpPasswordFailure(db, req, user, ip)
   }

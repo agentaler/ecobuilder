@@ -157,7 +157,11 @@ export async function handleMeRoutes(
     if (stepUp) return stepUp
     const body = await readValidatedBody(req, ChangePasswordBodySchema)
     if (!body) return badRequest('Password must be at least 12 characters')
-    if (await verifyPassword(body.newPassword, user.passwordHash)) {
+    // "Pick something new" only makes sense when there IS an old password —
+    // for a passwordless account (emailed code / social sign-in) this endpoint
+    // sets the first one, so the comparison is skipped rather than run against
+    // a null hash.
+    if (user.passwordHash !== null && await verifyPassword(body.newPassword, user.passwordHash)) {
       return badRequest('Choose a different password')
     }
 

@@ -75,6 +75,11 @@ export const CmsCurrentUserSchema = Type.Object({
   failedLoginCount: Type.Number(),
   lockedUntil: Type.Union([Type.String(), Type.Null()]),
   passwordUpdatedAt: Type.Union([Type.String(), Type.Null()]),
+  /**
+   * False for accounts created by an emailed sign-in code or a social provider.
+   * Optional so a client build newer than its server still validates.
+   */
+  hasPassword: Type.Optional(Type.Boolean()),
   mfaEnabled: Type.Boolean(),
   mfaEnabledAt: Type.Union([Type.String(), Type.Null()]),
   mfaRecoveryCodesRemaining: Type.Number(),

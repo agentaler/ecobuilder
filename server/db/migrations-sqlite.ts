@@ -1414,4 +1414,84 @@ export const sqliteMigrations: Migration[] = [
         on media_folders (tenant_id, coalesce(parent_id, ''), slug);
     `,
   },
+  {
+    // Passwordless accounts (E06-T05) — SQLite mirror of PG 032. An account
+    // created by an emailed sign-in code or by Google/GitHub has no password,
+    // so `password_hash` stops being mandatory. Nothing writes a NULL yet;
+    // this is purely a relaxation.
+    //
+    // SQLite cannot ALTER a column's nullability, so the table is rebuilt
+    // (same dance as migrations 012/017): copy into a relaxed twin, drop the
+    // original, rename the twin into place, re-create the index.
+    //
+    // FK enforcement MUST be off for this one. `users` is the parent of ~8
+    // `on delete cascade` children (sessions, tenant_members, auth_tokens,
+    // ai_mcp_connectors, …), and with `foreign_keys = on` a `drop table`
+    // performs an implicit DELETE that FIRES those cascades — silently wiping
+    // every session and workspace membership in the database.
+    // `defer_foreign_keys` does NOT help: it defers constraint *checks*, not
+    // referential *actions*. The runner toggles the pragma around this
+    // migration's transaction and proves integrity with `foreign_key_check`
+    // before re-enabling (see runMigrations.ts).
+    id: '032_nullable_password_hash',
+    disableForeignKeys: true,
+    sql: `
+      create table users__migr032 (
+        id text primary key,
+        email text not null,
+        email_normalized text not null,
+        display_name text not null,
+        password_hash text,
+        status text not null default 'active',
+        role_id text not null references roles(id) on delete restrict,
+        last_login_at text,
+        failed_login_count integer not null default 0,
+        locked_until text,
+        password_updated_at text,
+        mfa_enabled integer not null default 0,
+        mfa_enabled_at text,
+        mfa_totp_secret_ciphertext blob,
+        mfa_totp_secret_iv blob,
+        mfa_totp_secret_key_fingerprint text,
+        mfa_recovery_code_hashes_json text not null default '[]',
+        created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        updated_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        deleted_at text,
+        avatar_media_id text references media_assets(id) on delete set null,
+        step_up_auth_mode text not null default 'required'
+          check (step_up_auth_mode in ('required', 'disabled')),
+        step_up_window_minutes integer not null default 15
+          check (step_up_window_minutes in (5, 15, 30, 60)),
+        email_verified_at text,
+        constraint users_status_check check (status in ('active', 'suspended'))
+      );
+
+      insert into users__migr032 (
+        id, email, email_normalized, display_name, password_hash, status, role_id,
+        last_login_at, failed_login_count, locked_until, password_updated_at,
+        mfa_enabled, mfa_enabled_at, mfa_totp_secret_ciphertext, mfa_totp_secret_iv,
+        mfa_totp_secret_key_fingerprint, mfa_recovery_code_hashes_json,
+        created_at, updated_at, deleted_at, avatar_media_id,
+        step_up_auth_mode, step_up_window_minutes, email_verified_at
+      )
+      select
+        id, email, email_normalized, display_name, password_hash, status, role_id,
+        last_login_at, failed_login_count, locked_until, password_updated_at,
+        mfa_enabled, mfa_enabled_at, mfa_totp_secret_ciphertext, mfa_totp_secret_iv,
+        mfa_totp_secret_key_fingerprint, mfa_recovery_code_hashes_json,
+        created_at, updated_at, deleted_at, avatar_media_id,
+        step_up_auth_mode, step_up_window_minutes, email_verified_at
+      from users;
+
+      drop table users;
+      alter table users__migr032 rename to users;
+
+      -- Only this index survives at migration 031. users_single_active_owner_idx
+      -- was dropped by 026_retire_single_owner_index on purpose (a user may own
+      -- more than one workspace) — do NOT re-create it here.
+      create unique index if not exists users_email_normalized_active_idx
+        on users (email_normalized)
+        where deleted_at is null;
+    `,
+  },
 ]

@@ -212,12 +212,25 @@ describe('public rendering', () => {
     expect(await res.text()).toBe('console.log("runtime")')
   })
 
-  it('returns 404 when there is no active published snapshot', async () => {
-    const res = await handleServerRequest(new Request('http://localhost/'), {
+  it('returns 404 for an unpublished route when there is no active snapshot', async () => {
+    const res = await handleServerRequest(new Request('http://localhost/some-page'), {
       db: makeFakeDb(null),
     })
 
     expect(res.status).toBe(404)
+  })
+
+  it('bounces the bare root into the admin app when nothing published claims it', async () => {
+    // The root is the one path that must never surface a raw JSON 404 — on the
+    // hosted app origin there is no published homepage (tenant sites live on
+    // their own domains), so `/` is the product's front door. A published
+    // homepage or a designed 404 page still wins; see `tryServeRootRedirect`.
+    const res = await handleServerRequest(new Request('http://localhost/'), {
+      db: makeFakeDb(null),
+    })
+
+    expect(res.status).toBe(302)
+    expect(res.headers.get('location')).toBe('/admin')
   })
 
   it('emits external CSS <link> tags pointing at the per-site bundle', async () => {

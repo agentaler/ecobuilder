@@ -93,8 +93,10 @@ const routes: readonly RouteHandler[] = [
   tryServeAdminApp,
   tryServePublicRoute,
   trySetupRedirect,
-  tryServeRootRedirect,
   tryServeNotFoundPage,
+  // Last resort for the bare root only: a published homepage, a designed 404
+  // page, and the setup redirect all get first refusal above.
+  tryServeRootRedirect,
 ]
 
 export async function handleServerRequest(
@@ -507,9 +509,11 @@ async function trySetupRedirect(req: Request, runtime: ServerRuntime, _url: URL,
  * raw `{"error":"Not found"}` JSON, send the visitor into the app (login /
  * signup when signed out, dashboard when signed in).
  *
- * Runs AFTER `tryServePublicRoute`, so a self-hosted install that HAS published
- * a homepage still serves it at `/` — this only catches the root when nothing
- * published claims it.
+ * Deliberately the LAST route: a published homepage (`tryServePublicRoute`),
+ * the fresh-install setup bounce, and a site's designed 404 page all get first
+ * refusal. So this only fires for a root that nothing else claims — where the
+ * alternative is a bare JSON 404. Non-root unmatched paths are untouched and
+ * still 404.
  */
 function tryServeRootRedirect(req: Request, _runtime: ServerRuntime, _url: URL, pathname: string): Response | null {
   if (req.method !== 'GET') return null

@@ -38,6 +38,13 @@ interface CmsUser {
   lockedUntil: string | null
   avatarMediaId: string | null
   passwordUpdatedAt: string | null
+  /**
+   * False for accounts created by an emailed sign-in code or a social provider.
+   * The client branches on it: such accounts are offered "Set a password"
+   * rather than "Change password", and re-authenticate with an emailed code
+   * instead of a password field.
+   */
+  hasPassword: boolean
   mfaEnabled: boolean
   mfaEnabledAt: string | null
   mfaRecoveryCodesRemaining: number
@@ -59,7 +66,14 @@ interface CmsUser {
 }
 
 export interface AuthUser extends CmsUser {
-  passwordHash: string
+  /**
+   * Null for passwordless accounts — created by an emailed sign-in code or by
+   * a social provider, they never had a password. Password verification must
+   * therefore never pass this straight to `verifyPassword`: compare against
+   * `getDummyPasswordHash()` instead so the timing stays constant and
+   * `Bun.password.verify` is never handed a non-hash.
+   */
+  passwordHash: string | null
   encryptedMfaTotpSecret: EncryptedTotpSecret | null
   mfaRecoveryCodeHashes: string[]
 }
@@ -208,6 +222,7 @@ export function rowToUser(row: JoinedUserRow): AuthUser {
     lockedUntil: isoDateOrNull(row.locked_until),
     avatarMediaId: row.avatar_media_id ?? null,
     passwordUpdatedAt: isoDateOrNull(row.password_updated_at),
+    hasPassword: row.password_hash !== null,
     mfaEnabled: Boolean(row.mfa_enabled),
     mfaEnabledAt: isoDateOrNull(row.mfa_enabled_at),
     encryptedMfaTotpSecret: encryptedTotpSecretFromParts(
@@ -241,6 +256,7 @@ export function toPublicUser(user: AuthUser): CmsUser {
     lockedUntil: user.lockedUntil,
     avatarMediaId: user.avatarMediaId,
     passwordUpdatedAt: user.passwordUpdatedAt,
+    hasPassword: user.hasPassword,
     mfaEnabled: user.mfaEnabled,
     mfaEnabledAt: user.mfaEnabledAt,
     mfaRecoveryCodesRemaining: user.mfaRecoveryCodesRemaining,
@@ -286,7 +302,8 @@ export async function createUser(
     id?: string
     email: string
     displayName: string
-    passwordHash: string
+    /** Null creates a passwordless account (emailed code / social sign-in). */
+    passwordHash: string | null
     roleId: string
     status?: UserStatus
     allowOwnerRole?: boolean
@@ -363,7 +380,8 @@ export async function updateUser(
   input: {
     email?: string
     displayName?: string
-    passwordHash?: string
+    /** `null` clears the password (passwordless account); omit to keep it. */
+    passwordHash?: string | null
     status?: UserStatus
     roleId?: string
   },
@@ -380,7 +398,9 @@ export async function updateUser(
     : input.displayName.trim()
   const status = input.status ?? current.status
   const roleId = input.roleId ?? current.role.id
-  const passwordHash = input.passwordHash ?? current.passwordHash
+  // `=== undefined`, not `??`: an explicit null means "clear the password",
+  // which `??` would silently turn back into the current hash.
+  const passwordHash = input.passwordHash === undefined ? current.passwordHash : input.passwordHash
   const passwordUpdatedAt = input.passwordHash === undefined ? current.passwordUpdatedAt : new Date()
 
   const result = await db`
