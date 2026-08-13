@@ -27,11 +27,9 @@ import type { DbClient } from '../../db/client'
 import {
   createSessionToken,
   hashSessionToken,
-  sessionExpiry,
   verifyPassword,
 } from '../../auth/tokens'
 import {
-  createSession,
   findUserByPendingMfaSessionHash,
   rotateSessionToken,
   revokeSessionByHash,
@@ -50,7 +48,6 @@ import {
   requireAuthenticatedUser,
   getSessionHash,
 } from '../../auth/authz'
-import { resolveDefaultTenantForUser } from '../../repositories/tenants'
 import { stepUpWindowMs } from '../../auth/stepUpPolicy'
 import { createAuditEvent } from '../../repositories/audit'
 import {
@@ -68,6 +65,9 @@ import { jsonResponse, readValidatedBody, setCookieHeader } from '../../http'
 import { Type } from '@core/utils/typeboxHelpers'
 import { CMS_API_PREFIX, requestAuditContext } from './shared'
 import { clearLegacySessionCookie, clearSessionCookie, getDummyPasswordHash, sessionCookie } from './session'
+import { issueLoginSession } from './loginSession'
+import { consumeEmailLoginCode } from '../../repositories/emailLoginCodes'
+import { EMAIL_CODE_ROUTES } from './emailCode'
 import { runRouteTable, type Route } from './routeTable'
 
 /**
@@ -93,18 +93,6 @@ function accountLockedResponse(retryAfterMs: number): Response {
       headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) },
     },
   )
-}
-
-/**
- * True when the user row carried any prior lockout signal — either an active
- * `locked_until` timestamp (we already let the legitimate user through after
- * the window elapsed but before a successful login cleared the column) or a
- * non-zero failed-login counter. Drives the `login.unlocked` audit event so
- * operators see when an account recovers from a lock.
- */
-function previouslyLocked(user: AuthUser): boolean {
-  if (user.failedLoginCount > 0) return true
-  return user.lockedUntil !== null
 }
 
 async function verifyUserTotpCode(user: AuthUser, code: string): Promise<boolean | Response> {
@@ -291,10 +279,9 @@ async function respondLoginFailure(
 }
 
 /**
- * Success path: mints a session row, returns the session cookie. When MFA is
- * enabled the session is created with `mfaPassedAt: null` and the response
- * carries `mfaRequired: true` — the client then follows up with
- * `POST /auth/mfa/verify`. Without MFA the session is immediately valid.
+ * Password login's success path: release this method's rate-limit buckets, then
+ * hand off to the shared session issuer (see ./loginSession.ts), which every
+ * login method terminates in.
  */
 async function respondLoginSuccess(
   db: DbClient,
@@ -309,62 +296,7 @@ async function respondLoginSuccess(
   loginRateLimit.reset(rateLimitKey)
   if (ip) loginPerIpRateLimit.reset(ip)
 
-  const wasPreviouslyLocked = previouslyLocked(user)
-
-  const token = createSessionToken()
-  const expiresAt = sessionExpiry()
-  // Seed the session with the user's workspace (their oldest active membership),
-  // or null when they have none yet — the client routes null to onboarding.
-  const activeTenantId = await resolveDefaultTenantForUser(db, user.id)
-  await createSession(db, {
-    idHash: await hashSessionToken(token),
-    userId: user.id,
-    expiresAt,
-    mfaPassedAt: user.mfaEnabled ? null : new Date(),
-    activeTenantId,
-    ...requestAuditContext(req),
-  })
-
-  if (user.mfaEnabled) {
-    return setCookieHeader(
-      jsonResponse({ ok: true, mfaRequired: true }),
-      sessionCookie(req, token, expiresAt),
-    )
-  }
-
-  await recordLoginAttempt(db, {
-    emailNorm: email || null,
-    ipAddress: ip,
-    userAgent: req.headers.get('user-agent'),
-    userId: user.id,
-    result: 'success',
-  })
-  await markUserLoggedIn(db, user.id)
-
-  if (wasPreviouslyLocked) {
-    await createAuditEvent(db, {
-      actorUserId: user.id,
-      action: 'login.unlocked',
-      targetType: 'user',
-      targetId: user.id,
-      metadata: { email },
-      ...requestAuditContext(req),
-    })
-  }
-
-  await createAuditEvent(db, {
-    actorUserId: user.id,
-    action: 'login.success',
-    targetType: 'user',
-    targetId: user.id,
-    metadata: {},
-    ...requestAuditContext(req),
-  })
-
-  return setCookieHeader(
-    jsonResponse({ ok: true, mfaRequired: false }),
-    sessionCookie(req, token, expiresAt),
-  )
+  return issueLoginSession(db, req, user, email, ip, 'password')
 }
 
 const LoginBodySchema = Type.Object({ email: Type.String(), password: Type.String() })
@@ -589,18 +521,25 @@ async function recordStepUpRateLimit(
   )
 }
 
-async function recordStepUpPasswordFailure(
+/**
+ * A rejected step-up primary factor. `result` distinguishes a wrong password
+ * from a wrong emailed code so the sign-in history stays honest about which
+ * kind of grind an operator is looking at; both feed the same lockout counter.
+ */
+async function recordStepUpFactorFailure(
   db: DbClient,
   req: Request,
   user: AuthUser,
   ip: string | null,
+  result: 'bad_password' | 'bad_code',
+  message: string,
 ): Promise<Response> {
   await recordLoginAttempt(db, {
     emailNorm: user.email.toLowerCase(),
     ipAddress: ip,
     userAgent: req.headers.get('user-agent'),
     userId: user.id,
-    result: 'bad_password',
+    result,
   })
 
   const lockout = evaluateFailedAttempt(user.failedLoginCount)
@@ -636,7 +575,7 @@ async function recordStepUpPasswordFailure(
     return accountLockedResponse(retryAfterMs)
   }
 
-  return jsonResponse({ error: 'Invalid password' }, { status: 401 })
+  return jsonResponse({ error: message }, { status: 401 })
 }
 
 /**
@@ -761,15 +700,39 @@ async function handleStepUp(req: Request, db: DbClient): Promise<Response> {
     return recordStepUpRateLimit(db, req, user, ip, 'tuple', decision.retryAfterMs)
   }
 
-  const StepUpBodySchema = Type.Object({ password: Type.String(), mfaCode: Type.Optional(Type.String()) })
+  const StepUpBodySchema = Type.Object({
+    password: Type.Optional(Type.String()),
+    emailCodeRequestId: Type.Optional(Type.String()),
+    emailCode: Type.Optional(Type.String()),
+    mfaCode: Type.Optional(Type.String()),
+  })
   const body = await readValidatedBody(req, StepUpBodySchema)
-  const password = (body?.password ?? '').trim()
   const mfaCode = (body?.mfaCode ?? '').trim()
-  // Passwordless accounts (emailed code / social) have no password to re-enter,
-  // so they fail closed here until the email-code step-up factor lands.
-  const passwordOk = user.passwordHash !== null && await verifyPassword(password, user.passwordHash)
-  if (!passwordOk) {
-    return recordStepUpPasswordFailure(db, req, user, ip)
+
+  // Primary factor. The branch is on whether the account HAS a password, never
+  // on which credential the client chose to send: if an emailed code could
+  // stand in for a known password, mailbox access would become a universal
+  // password bypass on every account. An account without a password (emailed
+  // code / social sign-in) proves control of its address instead.
+  if (user.passwordHash !== null) {
+    const password = (body?.password ?? '').trim()
+    if (!await verifyPassword(password, user.passwordHash)) {
+      return recordStepUpFactorFailure(db, req, user, ip, 'bad_password', 'Invalid password')
+    }
+  } else {
+    const requestId = (body?.emailCodeRequestId ?? '').trim()
+    const code = (body?.emailCode ?? '').trim()
+    // `purpose: 'step_up'` keeps sign-in codes and step-up codes from standing
+    // in for each other, and the owner check stops a code minted for one
+    // account being redeemed inside another's session.
+    const redeemed = requestId && code
+      ? await consumeEmailLoginCode(db, requestId, code, 'step_up')
+      : null
+    if (!redeemed || redeemed.userId !== user.id) {
+      return recordStepUpFactorFailure(
+        db, req, user, ip, 'bad_code', 'That code is invalid or has expired.',
+      )
+    }
   }
   loginRateLimit.reset(rateLimitKey)
 
@@ -846,6 +809,9 @@ const AUTH_ROUTES: readonly Route<[]>[] = [
   { method: 'POST', pattern: `${CMS_API_PREFIX}/auth/step-up`, handler: handleStepUp },
   { method: 'GET', pattern: `${CMS_API_PREFIX}/auth/activity`, handler: handleActivity },
   { method: 'POST', pattern: `${CMS_API_PREFIX}/auth/logout-all`, handler: handleLogoutAll },
+  // Emailed sign-in / step-up codes — defined in ./emailCode.ts so this file
+  // stays the password + session surface.
+  ...EMAIL_CODE_ROUTES,
 ]
 
 export async function handleAuthRoutes(req: Request, db: DbClient): Promise<Response | null> {

@@ -19,6 +19,7 @@
  * so it adds no new information leak.
  */
 import { nanoid } from 'nanoid'
+import { emailDeliveryConfigured } from '../../email'
 import type { DbClient } from '../../db/client'
 import { hashPassword } from '../../auth/tokens'
 import { createSite, getSetupStatus } from '../../repositories/setup'
@@ -58,7 +59,13 @@ export async function handleSetupRoutes(req: Request, db: DbClient): Promise<Res
 
   if (url.pathname === `${CMS_API_PREFIX}/public-site`) {
     if (req.method !== 'GET') return methodNotAllowed()
-    return jsonResponse(await loadPublicSiteIdentity(db))
+    // Which sign-in methods the pre-auth screen may offer. Emailed codes are
+    // hidden when no mail transport is configured, so nobody is offered a
+    // method whose code would only ever reach a server log.
+    return jsonResponse({
+      ...await loadPublicSiteIdentity(db),
+      auth: { emailCodeEnabled: emailDeliveryConfigured() },
+    })
   }
 
   if (url.pathname === `${CMS_API_PREFIX}/setup`) {

@@ -79,6 +79,24 @@ export async function sendEmail(message: EmailMessage): Promise<boolean> {
   }
 }
 
+/**
+ * Whether a real transport is configured, i.e. whether mail actually leaves the
+ * process. With none, `sendEmail` logs to the console and reports success —
+ * fine for a verification link (the user can retry later), unacceptable for a
+ * sign-in code, which is the only way into the account.
+ *
+ * The pre-auth screen reads this (through `/public-site`) so it never offers a
+ * sign-in method whose codes would land in a server log the user cannot see.
+ * Outside production the console transport is a legitimate way to develop and
+ * test the flow, so the method stays available there.
+ */
+export function emailDeliveryConfigured(): boolean {
+  const provider = process.env.EMAIL_PROVIDER?.trim().toLowerCase()
+  const resendKey = process.env.RESEND_API_KEY?.trim()
+  if (provider === 'resend' && resendKey) return true
+  return process.env.NODE_ENV !== 'production'
+}
+
 /** The public origin used to build links in emails (first PUBLIC_ORIGIN entry). */
 export function publicAppOrigin(): string {
   const configured = process.env.PUBLIC_ORIGIN?.split(',')[0]?.trim()

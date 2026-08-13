@@ -1494,4 +1494,67 @@ export const sqliteMigrations: Migration[] = [
         where deleted_at is null;
     `,
   },
+  {
+    // Emailed sign-in codes (E06-T05) — SQLite mirror of PG 033. See that file
+    // for why this is not `auth_tokens` and why redemption is keyed by the row
+    // id rather than by the code hash.
+    id: '033_email_login_codes',
+    sql: `
+      create table if not exists email_login_codes (
+        id text primary key,
+        email_normalized text not null,
+        user_id text references users(id) on delete cascade,
+        purpose text not null default 'login',
+        code_hash text not null,
+        attempts integer not null default 0,
+        max_attempts integer not null default 5,
+        expires_at text not null,
+        consumed_at text,
+        ip_address text,
+        user_agent text,
+        created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        constraint email_login_codes_purpose_check check (purpose in ('login', 'step_up'))
+      );
+
+      create index if not exists email_login_codes_email_idx
+        on email_login_codes (email_normalized, created_at desc);
+      create index if not exists email_login_codes_expiry_idx
+        on email_login_codes (expires_at);
+    `,
+  },
+  {
+    // SQLite mirror of PG 034 — widen the result enum with 'bad_code'. SQLite
+    // cannot ALTER a CHECK, so the table is rebuilt. Unlike the `users` rebuild
+    // in 032 this one needs no `disableForeignKeys`: `login_attempts` is a pure
+    // child (nothing references it), so dropping it cascades to nothing.
+    id: '034_login_attempt_bad_code',
+    sql: `
+      create table login_attempts__migr034 (
+        id text primary key,
+        attempted_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        email_norm text,
+        ip_address text,
+        user_agent text,
+        user_id text references users(id) on delete set null,
+        result text not null
+          constraint login_attempts_result_check
+          check (result in ('success', 'bad_password', 'no_user', 'account_disabled', 'locked', 'rate_limited', 'mfa_failed', 'bad_code'))
+      );
+
+      insert into login_attempts__migr034 (
+        id, attempted_at, email_norm, ip_address, user_agent, user_id, result
+      )
+      select id, attempted_at, email_norm, ip_address, user_agent, user_id, result
+      from login_attempts;
+
+      drop table login_attempts;
+      alter table login_attempts__migr034 rename to login_attempts;
+
+      create index if not exists login_attempts_ip_idx
+        on login_attempts (ip_address, attempted_at desc);
+      create index if not exists login_attempts_email_idx
+        on login_attempts (email_norm, attempted_at desc)
+        where email_norm is not null;
+    `,
+  },
 ]

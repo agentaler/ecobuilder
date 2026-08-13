@@ -53,12 +53,17 @@ export async function consumeAuthToken(
   kind: AuthTokenKind,
 ): Promise<string | null> {
   const tokenHash = hashToken(raw)
+  // Expiry compares against a BOUND timestamp, never SQLite's
+  // `current_timestamp`: `expires_at` holds ISO text (`…T11:43:26.028Z`) while
+  // `current_timestamp` renders `… 11:43:27`, and 'T' sorts above ' ', so every
+  // same-day expiry compared as still in the future — a reset link stayed live
+  // until the next UTC day instead of the hour it promises.
   const result = await db<{ user_id: string }>`
     update auth_tokens set used_at = current_timestamp
     where token_hash = ${tokenHash}
       and kind = ${kind}
       and used_at is null
-      and expires_at > current_timestamp
+      and expires_at > ${new Date()}
     returning user_id
   `
   return result.rows[0]?.user_id ?? null

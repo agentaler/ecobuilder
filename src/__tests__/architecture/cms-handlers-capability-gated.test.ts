@@ -56,6 +56,11 @@ const ALLOWLIST: ReadonlyMap<string, string> = new Map([
   // exports. No request handlers live here.
   ['shared.ts', 'Shared request helpers; no handlers.'],
   ['session.ts', 'Session lookup helper; called from auth.ts which gates.'],
+  // Shared session issuance — the one path every login method (password,
+  // emailed code, social) terminates in. It runs AFTER a credential has already
+  // been verified by its caller, so a capability gate here would be nonsense:
+  // the whole point is that the user is not yet authenticated.
+  ['loginSession.ts', 'Post-credential session minting; callers verify the credential.'],
   // Media upload helpers — `acceptUploadedMedia`, `readUploadedFile`,
   // file-magic sniffing. Always called by an already-gated parent
   // handler (`/me/avatar`, `/media`).
