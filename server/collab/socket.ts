@@ -47,6 +47,7 @@ import {
   type ResetReason,
 } from '@core/collab'
 import { requireCapability, userHasCapability } from '../auth/authz'
+import { BOOTSTRAP_TENANT_ID } from '../repositories/tenants'
 import { safeParseValue, Type } from '@core/utils/typeboxHelpers'
 import type { CoreCapability } from '@core/capabilities'
 import { validateGuardedUpdate } from './updateGuard'
@@ -153,6 +154,13 @@ function reviewAwarenessUpdate(
 
 export interface CollabSocketData {
   userId: string
+  /**
+   * The workspace (tenant) this connection is editing, from the session's
+   * active tenant. A connection may only bind its own tenant's shell doc
+   * (`site:<activeTenantId>`) — the isolation gate that stops a client
+   * authenticated for one workspace from opening another's site shell.
+   */
+  activeTenantId: string
   /** The session identity this connection may publish over presence. */
   identity: CollabPresenceIdentity
   /**
@@ -204,6 +212,7 @@ export async function handleCollabSocketUpgrade(
   const upgraded = server.upgrade(req, {
     data: {
       userId: user.id,
+      activeTenantId: user.activeTenantId ?? BOOTSTRAP_TENANT_ID,
       identity: {
         id: user.id,
         name: user.displayName,
@@ -314,7 +323,20 @@ export function createCollabSocketLayer(relay: CollabRelay) {
       }
 
       if (frame.frameType !== FRAME_SYNC) return
-      if (!parseCollabDocId(frame.docId)) return
+      const parsedDoc = parseCollabDocId(frame.docId)
+      if (!parsedDoc) return
+      // Tenant isolation gate: a connection may only bind its OWN workspace's
+      // shell doc (`site:<activeTenantId>`). A frame for another tenant's shell
+      // is refused outright — this is the load-bearing cross-tenant check for
+      // the live editor. (Row docs carry unguessable global ids and are read
+      // and persisted only within their owning tenant's roster context.)
+      if (parsedDoc.kind === 'site' && parsedDoc.rowId !== ws.data.activeTenantId) {
+        console.warn(
+          `[collab] refused cross-tenant shell ${frame.docId} from ${ws.data.userId} (tenant ${ws.data.activeTenantId})`,
+        )
+        sendReset(ws, frame.docId, 'refused')
+        return
+      }
       if (frame.payload.byteLength > MAX_SYNC_PAYLOAD_BYTES) {
         console.warn(
           `[collab] oversize ${frame.docId} frame (${frame.payload.byteLength}B) from ${ws.data.userId}`,

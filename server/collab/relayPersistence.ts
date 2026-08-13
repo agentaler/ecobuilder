@@ -35,6 +35,7 @@ import {
   upsertDataRowDraft,
 } from '../repositories/data'
 import { getDraftSite, saveDraftSite } from '../repositories/site'
+import { BOOTSTRAP_TENANT_ID } from '../repositories/tenants'
 import { getCollabDocumentState } from '../repositories/collabDocuments'
 import { serializeCollabAwareWrite } from '../repositories/rowWriteEvents'
 import { bumpPublishVersionSerialized } from '../publish/publishState'
@@ -58,7 +59,9 @@ interface RelayPersistenceHooks {
 export interface RelayPersistence {
   hasRosterSnapshot(): boolean
   rosterContains(docId: string): boolean
-  observeSiteRoster(doc: Y.Doc): void
+  /** The tenant that currently rosters this row doc, or undefined if none does. */
+  tenantOf(docId: string): string | undefined
+  observeSiteRoster(doc: Y.Doc, tenantId: string): void
   noteOpenedRow(docId: string, state: { stored: boolean; seeded: boolean }): void
   markRowEstablished(docId: string): void
   isUnrosteredEstablishedDoc(docId: string): boolean
@@ -83,17 +86,28 @@ export function createRelayPersistence(
   db: DbClient,
   hooks: RelayPersistenceHooks,
 ): RelayPersistence {
-  // Last roster set the site-doc persist actually swept, so shell-field-only
-  // persists skip the three full-table scans. Reset when the site doc resets.
-  let lastSweptRostersKey: string | null = null
+  // Last roster set the site-doc persist actually swept, PER TENANT, so
+  // shell-field-only persists skip the three full-table scans. One entry per
+  // tenant so two workspaces' shell persists don't clobber each other's
+  // sweep-skip key. Cleared wholesale when any site doc resets.
+  const lastSweptRostersKey = new Map<string, string>()
   /**
    * The site roster is authoritative for an established row doc. A freshly
    * created client doc may arrive before its roster frame, so it remains
    * provisional until either the roster names it or its first derived row is
    * written. Once established, removing it from the roster defers all later
    * row writes instead of letting a dirty editor resurrect the deletion.
+   *
+   * Per-tenant: `rosterByTenant` holds each tenant's current row-doc roster;
+   * `rowDocTenant` is the reverse index (a row id is globally unique, so a row
+   * doc belongs to exactly one tenant) and is the source of truth for which
+   * tenant a newly-created collab row is stamped with. Both track only the
+   * CURRENT roster — an id removed from a tenant's roster is dropped from
+   * `rowDocTenant`, matching the single-site `rosterDocIds` semantics this
+   * replaces (so "is currently rostered" checks stay correct).
    */
-  let rosterDocIds: Set<string> | null = null
+  const rosterByTenant = new Map<string, Set<string>>()
+  const rowDocTenant = new Map<string, string>()
   const knownRowDocIds = new Set<string>()
   const provisionalRowDocIds = new Set<string>()
   const pendingRosterRecoveries = new Map<string, Promise<void>>()
@@ -112,17 +126,31 @@ export function createRelayPersistence(
     ])
   }
 
-  function observeSiteRoster(doc: Y.Doc): void {
-    const previous = rosterDocIds
+  /** True when this row doc is in its tenant's CURRENT roster. */
+  function currentlyRostered(docId: string): boolean {
+    return rowDocTenant.has(docId)
+  }
+
+  function observeSiteRoster(doc: Y.Doc, tenantId: string): void {
+    const hadPrevious = rosterByTenant.has(tenantId)
+    const previous = rosterByTenant.get(tenantId) ?? new Set<string>()
     const next = projectedRosterDocIds(doc)
-    rosterDocIds = next
+    rosterByTenant.set(tenantId, next)
+    // Rows dropped from this tenant's roster lose their reverse mapping, so
+    // "is currently rostered" stays honest (a de-rostered row must not be
+    // treated as live by the sweep guard or recovery).
+    if (hadPrevious) {
+      for (const docId of previous) if (!next.has(docId)) rowDocTenant.delete(docId)
+    }
     for (const docId of next) {
       knownRowDocIds.add(docId)
       provisionalRowDocIds.delete(docId)
+      rowDocTenant.set(docId, tenantId)
       // Re-adding the same id is undo-of-delete. Its row was soft-deleted by
       // the sweep, so recover even when its row doc is no longer resident and
-      // no page-local edit accompanied the roster change.
-      if (previous && !previous.has(docId)) scheduleRosterRecovery(docId)
+      // no page-local edit accompanied the roster change. Skip on a tenant's
+      // FIRST observe (no prior snapshot to diff against).
+      if (hadPrevious && !previous.has(docId)) scheduleRosterRecovery(docId)
     }
   }
 
@@ -137,9 +165,9 @@ export function createRelayPersistence(
       // Collaborative deletion keeps the row blob as an undo tombstone. Only
       // a stored lineage can be revived; never mint an empty page here.
       const stored = await getCollabDocumentState(db, docId)
-      if (!stored || !rosterDocIds?.has(docId)) return
+      if (!stored || !currentlyRostered(docId)) return
       await hooks.openDoc(docId)
-      if (rosterDocIds?.has(docId)) hooks.schedulePersist(docId)
+      if (currentlyRostered(docId)) hooks.schedulePersist(docId)
     })()
     pendingRosterRecoveries.set(docId, recovery)
     void recovery.catch((err) => {
@@ -171,7 +199,7 @@ export function createRelayPersistence(
   }
 
   function isUnrosteredEstablishedDoc(docId: string): boolean {
-    return rosterDocIds !== null && knownRowDocIds.has(docId) && !rosterDocIds.has(docId)
+    return rosterByTenant.size > 0 && knownRowDocIds.has(docId) && !currentlyRostered(docId)
   }
 
   async function seedFromJson(docId: string, doc: Y.Doc): Promise<boolean> {
@@ -234,7 +262,7 @@ export function createRelayPersistence(
         // a later collaborative deletion.
         if (
           keep.has(row.id) ||
-          rosterDocIds?.has(rowDocId) ||
+          currentlyRostered(rowDocId) ||
           hooks.invalidationVersion(rowDocId) > invalidationCutoff ||
           protectedDocIds.has(rowDocId)
         ) continue
@@ -280,9 +308,9 @@ export function createRelayPersistence(
         projected.rosters.pages.join(',') + '|' +
         projected.rosters.components.join(',') + '|' +
         projected.rosters.layouts.join(',')
-      if (rostersKey === lastSweptRostersKey) return 'written'
+      if (rostersKey === lastSweptRostersKey.get(tenantId)) return 'written'
       await sweepRosterDeletions(projected.rosters, invalidationCutoff, tenantId)
-      lastSweptRostersKey = rostersKey
+      lastSweptRostersKey.set(tenantId, rostersKey)
       return 'written'
     }
 
@@ -310,9 +338,20 @@ export function createRelayPersistence(
       slug = layoutSlugFromName(layout.name)
     }
 
+    // A newly-created collab row is stamped with the tenant that owns it,
+    // resolved from the owning shell's roster (reverse index). The shell frame
+    // that rosters a new row is observed synchronously on receipt, before this
+    // row's debounced persist fires, so the tenant is known by now in the
+    // normal flow. A row that is persisted with NO roster at all (the
+    // provisional client-created-row flow, or a legacy single-tenant caller)
+    // falls back to the bootstrap tenant — exactly the pre-multi-tenant
+    // behavior. (For an EXISTING row the upsert takes the update path, which
+    // never touches tenant_id, so the resolved tenant is irrelevant there.)
+    const tenantId = rowDocTenant.get(docId) ?? BOOTSTRAP_TENANT_ID
+
     await upsertDataRowDraft(
       db,
-      { id: parsed.rowId, tableId: table, cells, slug },
+      { id: parsed.rowId, tableId: table, tenantId, cells, slug },
       null,
       { collabInternal: true },
     )
@@ -322,7 +361,7 @@ export function createRelayPersistence(
 
   async function drainRecoveries(throwOnFailure: boolean): Promise<void> {
     for (const docId of [...failedRosterRecoveries]) {
-      if (rosterDocIds?.has(docId)) scheduleRosterRecovery(docId)
+      if (currentlyRostered(docId)) scheduleRosterRecovery(docId)
       else failedRosterRecoveries.delete(docId)
     }
     while (pendingRosterRecoveries.size > 0) {
@@ -341,8 +380,9 @@ export function createRelayPersistence(
   }
 
   return {
-    hasRosterSnapshot: () => rosterDocIds !== null,
-    rosterContains: (docId) => rosterDocIds?.has(docId) ?? false,
+    hasRosterSnapshot: () => rosterByTenant.size > 0,
+    rosterContains: (docId) => currentlyRostered(docId),
+    tenantOf: (docId) => rowDocTenant.get(docId),
     observeSiteRoster,
     noteOpenedRow,
     markRowEstablished,
@@ -351,7 +391,7 @@ export function createRelayPersistence(
     serializeMutation,
     sweepRosterDeletions,
     persistDerivedJson,
-    invalidateRosterSweep: () => { lastSweptRostersKey = null },
+    invalidateRosterSweep: () => { lastSweptRostersKey.clear() },
     drainRecoveries,
   }
 }

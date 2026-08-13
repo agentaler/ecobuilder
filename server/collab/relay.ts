@@ -267,7 +267,7 @@ export function createCollabRelay(
       }
       const updateHandler = (update: Uint8Array, origin: unknown) => {
         for (const listener of updateListeners) listener(docId, update, origin, generation)
-        if (docId === SITE_DOC_ID) persistence.observeSiteRoster(doc)
+        if (parsed?.kind === 'site') persistence.observeSiteRoster(doc, parsed.rowId)
         schedulePersist(docId)
       }
       doc.on('update', updateHandler)
@@ -286,7 +286,7 @@ export function createCollabRelay(
       // subsequent retain/release operations update one logical ref count.
       if (heldRefs > 0) heldResetRefs.delete(docId)
       if (parsed?.kind === 'site') {
-        persistence.observeSiteRoster(doc)
+        persistence.observeSiteRoster(doc, parsed.rowId)
       } else if (parsed) {
         persistence.noteOpenedRow(docId, { stored: stored !== null, seeded })
       }
@@ -361,10 +361,10 @@ export function createCollabRelay(
   }
 
   function orderedEntryDocIds(): string[] {
+    // Every shell doc (`site:<tenantId>`) flushes before its rows.
     const docIds = [...entries.keys()]
-    return entries.has(SITE_DOC_ID)
-      ? [SITE_DOC_ID, ...docIds.filter((docId) => docId !== SITE_DOC_ID)]
-      : docIds
+    const isShell = (docId: string): boolean => parseCollabDocId(docId)?.kind === 'site'
+    return [...docIds.filter(isShell), ...docIds.filter((docId) => !isShell(docId))]
   }
 
   async function resetDocs(
@@ -412,9 +412,11 @@ export function createCollabRelay(
       // phase for this id, including when that write is a deletion.
       persistence.markRowEstablished(docId)
     }
-    const resetsSite = affected.includes(SITE_DOC_ID)
-    if (resetsSite) {
-      const siteEntry = entries.get(SITE_DOC_ID)
+    // A reset batch may span multiple tenants' shell docs; sweep each one's
+    // authoritative deletion roster under its own tenant.
+    const affectedShells = affected.filter((docId) => parseCollabDocId(docId)?.kind === 'site')
+    for (const shellDocId of affectedShells) {
+      const siteEntry = entries.get(shellDocId)
       if (siteEntry) {
         // The shell write that triggered this reset must win, so do not persist
         // the stale collaborative shell. Apply only its authoritative deletion
@@ -426,14 +428,13 @@ export function createCollabRelay(
           siteEntry.persistTimer = null
         }
         const projected = projectSiteDoc(siteEntry.doc)
+        const tenantId = parseCollabDocId(shellDocId)?.rowId ?? 'default'
         const sweep = siteEntry.persistChain.then(() =>
           persistence.serializeMutation(() =>
             persistence.sweepRosterDeletions(
               projected.rosters,
-              invalidations.get(SITE_DOC_ID) ?? nextInvalidationVersion,
-              // The reset path operates on the bootstrap shell doc
-              // (`site:default`); its tenant is that doc id's row id.
-              parseCollabDocId(SITE_DOC_ID)?.rowId ?? 'default',
+              invalidations.get(shellDocId) ?? nextInvalidationVersion,
+              tenantId,
               new Set(affected),
             ),
           ),
@@ -443,10 +444,10 @@ export function createCollabRelay(
         siteEntry.persistChain = sweep.then(() => undefined, () => undefined)
         await sweep
       }
-      // The site doc reseeds from the DB on next bind. Its first later persist
-      // must run a full sweep even if the old and replacement keys compare equal.
-      persistence.invalidateRosterSweep()
     }
+    // Each reset shell reseeds from the DB on next bind; force its first later
+    // persist to run a full sweep even if the roster keys compare equal.
+    if (affectedShells.length > 0) persistence.invalidateRosterSweep()
 
     // Flush the docs we are NOT resetting first. The site doc reseeds its
     // rosters from `listDataRowIdSlugs`, so a page whose row-doc JSON is still
@@ -488,11 +489,10 @@ export function createCollabRelay(
       for (const docId of affected) settling.delete(docId)
     }
 
-    if (resetsSite) {
-      // Keep the old authority through eviction/deletion, then replace it in
-      // one step by observing the freshly seeded site doc. There is never a
-      // null-authority window in which a dirty deleted row can pass its guard.
-      await openDoc(SITE_DOC_ID, true)
+    // Replace the old authority in one step by re-observing each freshly
+    // seeded shell doc — no null-authority window a dirty deleted row can slip.
+    for (const shellDocId of affectedShells) {
+      await openDoc(shellDocId, true)
     }
 
     // Re-register the ref counts the eviction dropped. Without this the next
@@ -561,18 +561,25 @@ export function createCollabRelay(
     const kind = TABLE_KIND[event.tableId]
     if (!kind) return
     const docIds = event.rowIds.map((rowId) => encodeCollabDocId({ kind, rowId }))
-    // The site-document batch API reports creations in its changed-id group as
-    // `update`. An id absent from the observed roster therefore also means
-    // membership may have changed and site authority must reseed.
+    // A creation or membership change must also reseed the OWNING tenant's
+    // shell. Resolve each affected row's tenant from the roster reverse index;
+    // fall back to the bootstrap shell for rows no resident roster claims.
     if (
       event.kind !== 'update' ||
       !persistence.hasRosterSnapshot() ||
       docIds.some((docId) => !persistence.rosterContains(docId))
-    ) docIds.push(SITE_DOC_ID)
+    ) {
+      const shellDocIds = new Set<string>()
+      for (const docId of docIds) {
+        const tenantId = persistence.tenantOf(docId)
+        shellDocIds.add(tenantId ? encodeCollabDocId({ kind: 'site', rowId: tenantId }) : SITE_DOC_ID)
+      }
+      docIds.push(...shellDocIds)
+    }
     queueResetDocs(docIds)
   })
-  const detachShellListener = registerShellWriteListener(() => {
-    queueResetDocs([SITE_DOC_ID])
+  const detachShellListener = registerShellWriteListener((tenantId) => {
+    queueResetDocs([encodeCollabDocId({ kind: 'site', rowId: tenantId })])
   })
 
   async function drainResetQueue(throwOnFailure = true): Promise<void> {

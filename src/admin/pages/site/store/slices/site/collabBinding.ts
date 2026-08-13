@@ -84,6 +84,10 @@ interface ManagedDoc {
 let storeApi: EditorStoreApi | null = null
 let docs: CollabDocSet = createCollabDocSet()
 let managed = new Map<string, ManagedDoc>()
+let shellDocId: string = SITE_DOC_ID // active workspace shell doc; set via setCollabTenant before connect
+export function setCollabTenant(tenantId: string | null): void {
+  shellDocId = tenantId ? encodeCollabDocId({ kind: 'site', rowId: tenantId }) : SITE_DOC_ID
+}
 /**
  * Undo routing — one entry per undoable STEP, holding every docId whose
  * UndoManager captured a new stack item during that step. Single-doc
@@ -147,7 +151,7 @@ export function onCollabProviderChange(listener: () => void): () => void {
 // ---------------------------------------------------------------------------
 
 function undoScopesFor(docId: string, doc: Y.Doc): Y.Map<unknown>[] {
-  return docId === SITE_DOC_ID
+  return docId === shellDocId
     ? [shellMap(doc), rostersMap(doc)]
     : [treeMap(doc), metaMap(doc), dataMap(doc)]
 }
@@ -277,7 +281,7 @@ export function applyLocalSitePatches(
   const before = new Map<string, number>()
   for (const [docId, entry] of managed) before.set(docId, entry.manager.undoStack.length)
 
-  const touched = applySitePatchesToDocs(patches, preSite, nextSite, decidingDocSet, LOCAL_ORIGIN)
+  const touched = applySitePatchesToDocs(patches, preSite, nextSite, decidingDocSet, LOCAL_ORIGIN, shellDocId)
   alignedSiteRef = nextSite
   if (touched.length === 0) return { accepted: true }
 
@@ -392,7 +396,7 @@ function flushProjections(): void {
   const batch = [...pendingProjections]
   pendingProjections.clear()
   // Site doc last — it assembles rows the row projections just refreshed.
-  batch.sort((a, b) => (a === SITE_DOC_ID ? 1 : 0) - (b === SITE_DOC_ID ? 1 : 0))
+  batch.sort((a, b) => (a === shellDocId ? 1 : 0) - (b === shellDocId ? 1 : 0))
   for (const id of batch) projectDocIntoStore(id)
 }
 
@@ -550,7 +554,7 @@ function projectDocIntoStore(docId: string): void {
 
 function allDocIdsForSite(site: SiteDocument): string[] {
   return [
-    SITE_DOC_ID,
+    shellDocId,
     ...site.pages.map((p) => encodeCollabDocId({ kind: 'page', rowId: p.id })),
     ...site.visualComponents.map((vc) => encodeCollabDocId({ kind: 'component', rowId: vc.id })),
     ...site.layouts.map((l) => encodeCollabDocId({ kind: 'layout', rowId: l.id })),
@@ -590,9 +594,9 @@ export function resetCollabDocsFromSite(site: SiteDocument | null): void {
 }
 
 function seedDetachedDocs(site: SiteDocument): void {
-  const siteDoc = docs.ensure(SITE_DOC_ID)
+  const siteDoc = docs.ensure(shellDocId)
   seedSiteDoc(siteDoc, site)
-  ensureManaged(SITE_DOC_ID, siteDoc)
+  ensureManaged(shellDocId, siteDoc)
   for (const page of site.pages) {
     const docId = encodeCollabDocId({ kind: 'page', rowId: page.id })
     const doc = docs.ensure(docId)
@@ -626,7 +630,7 @@ function bindDocThroughProvider(docId: string): void {
     // A row doc bound on demand (a peer created the row) re-assembles the
     // site once its content arrives — the roster projection skipped it
     // while it was empty.
-    if (docId !== SITE_DOC_ID) scheduleProjection(SITE_DOC_ID)
+    if (docId !== shellDocId) scheduleProjection(shellDocId)
   })
 }
 

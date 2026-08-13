@@ -35,6 +35,7 @@ import type { CollabProvider } from '@site/collab/collabProvider'
 import {
   connectCollabProvider,
   disconnectCollabProvider,
+  setCollabTenant,
 } from '@site/store/slices/site/collabBinding'
 import {
   consumePendingCmsSiteReload,
@@ -86,8 +87,9 @@ function applyDefaultBreakpointPreference(
 export function usePersistence(
   requestedSiteId = 'default',
   adapter: IPersistenceAdapter = cmsAdapter,
-  options: { enabled?: boolean } = {},
+  options: { enabled?: boolean; tenantId?: string | null } = {},
 ): PersistenceController {
+  const tenantId = options.tenantId ?? null
   const enabled = options.enabled ?? true
   const [loadState, setLoadState] = useState<{ phase: 'loading' | 'ready' | 'error'; message?: string }>(
     enabled ? { phase: 'loading' } : { phase: 'ready' },
@@ -105,6 +107,11 @@ export function usePersistence(
 
     let cancelled = false
     let connected = false
+
+    // Point the collab binding at THIS workspace's shell doc (`site:<tenantId>`)
+    // before any doc is seeded or the provider connects, so shell edits address
+    // the right per-tenant shell rather than the global bootstrap constant.
+    setCollabTenant(tenantId)
 
     async function load(): Promise<void> {
       // Read actions point-in-time — no React subscription needed.
@@ -241,7 +248,7 @@ export function usePersistence(
         provider?.destroy()
       }
     }
-  }, [enabled, requestedSiteId])
+  }, [enabled, requestedSiteId, tenantId])
 
   const saveStatus: PersistenceSaveStatus =
     loadState.phase === 'loading'

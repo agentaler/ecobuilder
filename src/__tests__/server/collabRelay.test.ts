@@ -7,6 +7,7 @@
 import { afterEach, describe, expect, it, spyOn } from 'bun:test'
 import * as Y from 'yjs'
 import {
+  encodeCollabDocId,
   LOCAL_ORIGIN,
   projectPageDoc,
   rostersMap,
@@ -14,6 +15,7 @@ import {
   SITE_DOC_ID,
   treeMap,
 } from '@core/collab'
+import { createTenant } from '../../../server/repositories/tenants'
 import { createCollabRelay, type CollabRelay } from '../../../server/collab/relay'
 import type { DbClient } from '../../../server/db'
 import { getCollabDocumentState } from '../../../server/repositories/collabDocuments'
@@ -1573,5 +1575,46 @@ describe('collab relay', () => {
     const { doc: reseeded } = await relay.openDoc(SITE_DOC_ID)
     const pages = rostersMap(reseeded).get('pages') as Y.Map<unknown>
     expect([...pages.keys()]).toContain(rowId)
+  })
+
+  it('isolates a second workspace: a page rostered under its shell persists to ITS tenant', async () => {
+    // Bootstrap tenant `default` is seeded by the harness (home page, slug
+    // `index`). Add a second workspace and prove its editor's writes land in
+    // its OWN tenant — including a page at the SAME slug, which the per-tenant
+    // composite unique must permit.
+    const { harness, relay } = await setup()
+    const TENANT_B = 'tenant-b'
+    await createTenant(harness.db, { id: TENANT_B, slug: 'studio-b', name: 'Studio B' })
+
+    // Tenant B's shell doc is `site:tenant-b`; opening + updating it drives the
+    // relay's per-tenant roster observation (rowDocTenant), which is what
+    // stamps a newly-created collab row with the owning tenant.
+    const shellBDocId = encodeCollabDocId({ kind: 'site', rowId: TENANT_B })
+    const { doc: shellB } = await relay.openDoc(shellBDocId)
+    const pageBId = 'page-b-1'
+    shellB.transact(() => {
+      const rosters = rostersMap(shellB)
+      let pages = rosters.get('pages') as Y.Map<unknown> | undefined
+      if (!pages) { pages = new Y.Map<unknown>(); rosters.set('pages', pages) }
+      pages.set(pageBId, true)
+    }, LOCAL_ORIGIN)
+
+    const { doc: pageB } = await relay.openDoc(encodeCollabDocId({ kind: 'page', rowId: pageBId }))
+    populateFreshPage(pageB, 'B Home', 'index')
+    await relay.flushAll()
+
+    // The row exists and belongs to TENANT B — not the bootstrap tenant — even
+    // though it shares the slug `index` with bootstrap's home page.
+    const { rows } = await harness.db<{ tenant_id: string; slug: string }>`
+      select tenant_id, slug from data_rows where id = ${pageBId}
+    `
+    expect(rows[0]?.tenant_id).toBe(TENANT_B)
+    expect(rows[0]?.slug).toBe('index')
+
+    // Cross-tenant isolation: tenant B's page never appears in tenant default's
+    // scoped row list, and bootstrap's own `index` page is untouched.
+    const defaultPages = await listDataRows(harness.db, 'pages', {}, 'default')
+    expect(defaultPages.some((r) => r.id === pageBId)).toBe(false)
+    expect(defaultPages.some((r) => r.slug === 'index')).toBe(true)
   })
 })
