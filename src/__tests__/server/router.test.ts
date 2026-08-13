@@ -68,6 +68,17 @@ describe('server router', () => {
     expect(res.status).toBe(404)
   })
 
+  it('redirects the bare root to /admin once setup is complete (no raw JSON 404 at the front door)', async () => {
+    // The app host has no published homepage (tenant sites live on their own
+    // domains), so `/` must land the visitor in the app, not a JSON 404.
+    const res = await handleServerRequest(
+      new Request('http://localhost/'),
+      { db: makeFakeDb({ site: 1, owners: 1 }) },
+    )
+    expect(res.status).toBe(302)
+    expect(res.headers.get('location')).toBe('/admin')
+  })
+
   it('explains where the admin UI lives when /admin is hit on the cms port without a build', async () => {
     const res = await handleServerRequest(
       new Request('http://localhost/admin'),

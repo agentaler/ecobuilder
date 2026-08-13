@@ -93,6 +93,7 @@ const routes: readonly RouteHandler[] = [
   tryServeAdminApp,
   tryServePublicRoute,
   trySetupRedirect,
+  tryServeRootRedirect,
   tryServeNotFoundPage,
 ]
 
@@ -497,6 +498,23 @@ async function trySetupRedirect(req: Request, runtime: ServerRuntime, _url: URL,
   return setupStatus.needsSetup
     ? new Response(null, { status: 302, headers: { location: '/admin' } })
     : null
+}
+
+/**
+ * The bare root `/` of the app host resolves to no published page — on the
+ * hosted SaaS, published tenant sites live on their own domains, and the app
+ * origin's job is the admin app. Rather than fall through to the dispatcher's
+ * raw `{"error":"Not found"}` JSON, send the visitor into the app (login /
+ * signup when signed out, dashboard when signed in).
+ *
+ * Runs AFTER `tryServePublicRoute`, so a self-hosted install that HAS published
+ * a homepage still serves it at `/` — this only catches the root when nothing
+ * published claims it.
+ */
+function tryServeRootRedirect(req: Request, _runtime: ServerRuntime, _url: URL, pathname: string): Response | null {
+  if (req.method !== 'GET') return null
+  if (pathname !== '/' && pathname !== '/index.html') return null
+  return new Response(null, { status: 302, headers: { location: '/admin' } })
 }
 
 /**
