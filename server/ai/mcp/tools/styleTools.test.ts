@@ -18,7 +18,7 @@ describe('MCP site_read_styles', () => {
 
   it('includes Core Framework font-token variables in token-inclusive reads', async () => {
     const base = makeSite()
-    await saveDraftSite(harness.db, {
+    await saveDraftSite(harness.db, 'default', {
       ...base,
       settings: {
         ...base.settings,

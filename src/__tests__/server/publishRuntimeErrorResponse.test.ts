@@ -68,7 +68,7 @@ describe('publish runtime validation response', () => {
       expect(siteResponse.status).toBe(200)
       const { site } = await readJson<{ site: SiteShell }>(siteResponse)
 
-      await saveDraftSite(harness.db, {
+      await saveDraftSite(harness.db, 'default', {
         ...site,
         files: [
           ...site.files,

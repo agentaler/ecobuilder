@@ -67,6 +67,7 @@ export interface RelayPersistence {
   sweepRosterDeletions(
     rosters: SiteRosters,
     invalidationCutoff: number,
+    tenantId: string,
     protectedDocIds?: ReadonlySet<string>,
   ): Promise<void>
   persistDerivedJson(
@@ -177,12 +178,16 @@ export function createRelayPersistence(
     const parsed = parseCollabDocId(docId)
     if (!parsed) return false
     if (parsed.kind === 'site') {
-      const shell = await getDraftSite(db)
+      // The shell doc id is `site:<tenantId>` (bootstrap: `site:default`), so
+      // the tenant this shell belongs to IS its row id — no connection state
+      // needed. Row docs stay `<kind>:<globally-unique rowId>`.
+      const tenantId = parsed.rowId
+      const shell = await getDraftSite(db, tenantId)
       if (!shell) return false // pre-setup — nothing to seed
       const [pages, components, layouts] = await Promise.all([
-        listDataRowIdSlugs(db, 'pages'),
-        listDataRowIdSlugs(db, 'components'),
-        listDataRowIdSlugs(db, 'layouts'),
+        listDataRowIdSlugs(db, 'pages', tenantId),
+        listDataRowIdSlugs(db, 'components', tenantId),
+        listDataRowIdSlugs(db, 'layouts', tenantId),
       ])
       seedSiteDocFromParts(doc, shell as unknown as Record<string, unknown>, {
         pages: pages.map((row) => row.id),
@@ -210,6 +215,7 @@ export function createRelayPersistence(
   async function sweepRosterDeletions(
     rosters: SiteRosters,
     invalidationCutoff: number,
+    tenantId: string,
     protectedDocIds: ReadonlySet<string> = new Set(),
   ): Promise<void> {
     let deletedPublished = false
@@ -218,7 +224,7 @@ export function createRelayPersistence(
       ['component', 'components', rosters.components],
       ['layout', 'layouts', rosters.layouts],
     ] as const) {
-      const live = await listDataRowIdSlugs(db, table)
+      const live = await listDataRowIdSlugs(db, table, tenantId)
       const keep = new Set(ids)
       for (const row of live) {
         const rowDocId = encodeCollabDocId({ kind, rowId: row.id })
@@ -247,15 +253,18 @@ export function createRelayPersistence(
     const parsed = parseCollabDocId(docId)
     if (!parsed) return 'incomplete'
     if (parsed.kind === 'site') {
+      // Shell doc id `site:<tenantId>` → this shell's tenant is its row id.
+      const tenantId = parsed.rowId
       const projected = projectSiteDoc(doc)
       if (Object.keys(projected.shell).length === 0) return 'incomplete'
       let shell: SiteShell
       try {
         // `id` and `updatedAt` are deliberately NOT collaborative (fixed row /
-        // per-mutation noise) — inject them at the persistence boundary.
+        // per-mutation noise) — inject them at the persistence boundary. The
+        // shell row is keyed by tenant, so `id` is the tenant id.
         shell = validateSite({
           ...projected.shell,
-          id: 'default',
+          id: tenantId,
           updatedAt:
             typeof projected.shell.updatedAt === 'number' ? projected.shell.updatedAt : Date.now(),
         })
@@ -265,14 +274,14 @@ export function createRelayPersistence(
         console.error('[collab] projected shell failed validation — JSON write skipped:', err)
         return 'invalid'
       }
-      await saveDraftSite(db, shell, null, { collabInternal: true })
+      await saveDraftSite(db, tenantId, shell, null, { collabInternal: true })
 
       const rostersKey =
         projected.rosters.pages.join(',') + '|' +
         projected.rosters.components.join(',') + '|' +
         projected.rosters.layouts.join(',')
       if (rostersKey === lastSweptRostersKey) return 'written'
-      await sweepRosterDeletions(projected.rosters, invalidationCutoff)
+      await sweepRosterDeletions(projected.rosters, invalidationCutoff, tenantId)
       lastSweptRostersKey = rostersKey
       return 'written'
     }

@@ -72,7 +72,7 @@ const BUNDLE_SHELL: SiteShell = {
 // ---------------------------------------------------------------------------
 
 async function seedAuth(db: DbClient): Promise<string> {
-  await saveDraftSite(db, TEST_SHELL)
+  await saveDraftSite(db, 'default', TEST_SHELL)
   await createUser(db, {
     id: 'test-owner',
     email: 'owner@import.test',
@@ -251,7 +251,7 @@ describe('handleImportRoute — strategy: replace', () => {
   })
 
   test('site shell is overwritten from the bundle', async () => {
-    const shell = await getDraftSite(db)
+    const shell = await getDraftSite(db, 'default')
     expect(shell).not.toBeNull()
     expect(shell!.name).toBe('Bundle Site Name')
   })
@@ -335,7 +335,7 @@ describe('handleImportRoute — strategy: merge-add', () => {
   })
 
   test('site shell is NOT overwritten by merge-add', async () => {
-    const shell = await getDraftSite(db)
+    const shell = await getDraftSite(db, 'default')
     expect(shell).not.toBeNull()
     // Local shell name, not the bundle's shell name
     expect(shell!.name).toBe('Import Test Site')
@@ -427,7 +427,7 @@ describe('handleImportRoute — strategy: merge-overwrite', () => {
   })
 
   test('site shell IS overwritten by merge-overwrite when bundle has one', async () => {
-    const shell = await getDraftSite(db)
+    const shell = await getDraftSite(db, 'default')
     expect(shell).not.toBeNull()
     expect(shell!.name).toBe('Bundle Site Name')
   })

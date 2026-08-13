@@ -63,6 +63,7 @@ import {
   stampDraftSiteSeq,
 } from '../../repositories/site'
 import { allocateSiteSeq } from '../../repositories/syncSequence'
+import { BOOTSTRAP_TENANT_ID } from '../../repositories/tenants'
 import { pageFromRow, pageToCells } from '../../../src/core/data/pageFromRow'
 import { visualComponentFromRow, visualComponentToCells } from '../../../src/core/data/componentFromRow'
 import { savedLayoutFromRow, savedLayoutToCells } from '../../../src/core/data/layoutFromRow'
@@ -187,6 +188,7 @@ export async function handleSiteDocumentRoutes(req: Request, db: DbClient): Prom
 
   const user = await requireAnyCapability(req, db, SITE_WRITE_CAPABILITIES)
   if (user instanceof Response) return user
+  const tenantId = user.activeTenantId ?? BOOTSTRAP_TENANT_ID
 
   const body = await readValidatedBody(req, SiteDocumentBodySchema)
   if (!body) return badRequest('Invalid request body')
@@ -206,7 +208,7 @@ export async function handleSiteDocumentRoutes(req: Request, db: DbClient): Prom
     // cheap (id, slug) page projection plus the component roster it needs
     // for ref validation — never all three hydrated collections.
 
-    const previousShell = await getDraftSite(db)
+    const previousShell = await getDraftSite(db, tenantId)
     const shell = validateSite(body.site)
     validateSiteWriteDiff(previousShell, shell, user.capabilities)
 
@@ -232,7 +234,7 @@ export async function handleSiteDocumentRoutes(req: Request, db: DbClient): Prom
       body.changedPages.length > 0 ||
       body.mode === 'replace'
     const existingVCs: VisualComponent[] = needsComponentRoster
-      ? (await listDataRows(db, 'components')).flatMap((r) => {
+      ? (await listDataRows(db, 'components', {}, tenantId)).flatMap((r) => {
           const vc = visualComponentFromRow(r)
           return vc ? [vc] : []
         })
@@ -262,7 +264,7 @@ export async function handleSiteDocumentRoutes(req: Request, db: DbClient): Prom
     const needsLayoutRoster =
       body.changedLayouts.length > 0 || body.deletedLayoutIds.length > 0 || body.mode === 'replace'
     const existingLayouts: SavedLayout[] = needsLayoutRoster
-      ? (await listDataRows(db, 'layouts')).flatMap((r) => {
+      ? (await listDataRows(db, 'layouts', {}, tenantId)).flatMap((r) => {
           const layout = savedLayoutFromRow(r)
           return layout ? [layout] : []
         })
@@ -296,7 +298,7 @@ export async function handleSiteDocumentRoutes(req: Request, db: DbClient): Prom
     // loaded only for the per-category diff, which callers holding all three
     // site-write capabilities skip entirely (its fast path).
     const needsPageSlugs = body.changedPages.length > 0 || body.mode === 'replace'
-    const existingPageSlugs = needsPageSlugs ? await listDataRowIdSlugs(db, 'pages') : []
+    const existingPageSlugs = needsPageSlugs ? await listDataRowIdSlugs(db, 'pages', tenantId) : []
     const changedPageIdsRaw = new Set(
       body.changedPages
         .map((p) => (p && typeof p === 'object' ? (p as { id?: unknown }).id : undefined))
@@ -321,7 +323,7 @@ export async function handleSiteDocumentRoutes(req: Request, db: DbClient): Prom
         : []
     const previousPages: Page[] =
       pages.length > 0 && !hasAllSiteCaps
-        ? (await listDataRows(db, 'pages')).map(pageFromRow)
+        ? (await listDataRows(db, 'pages', {}, tenantId)).map(pageFromRow)
         : []
     validatePageWriteDiff({
       previousPages,
@@ -365,7 +367,7 @@ export async function handleSiteDocumentRoutes(req: Request, db: DbClient): Prom
       if (body.mode === 'incremental') {
         const conflicts: SaveConflict[] = []
         if (shellChanged) {
-          const storedShellSeq = await getDraftSiteSeq(tx)
+          const storedShellSeq = await getDraftSiteSeq(tx, tenantId)
           if (storedShellSeq > body.shellBaseSeq) {
             conflicts.push({ table: 'site', rowId: 'default', seq: storedShellSeq })
           }
@@ -393,26 +395,26 @@ export async function handleSiteDocumentRoutes(req: Request, db: DbClient): Prom
       // — see the shellChanged comment in phase 1.
       if (shellChanged) {
         // In-transaction — collab listeners are notified post-commit below.
-        await saveDraftSite(tx, shell, user.id, { collabInternal: true })
-        await stampDraftSiteSeq(tx, seq)
+        await saveDraftSite(tx, tenantId, shell, user.id, { collabInternal: true })
+        await stampDraftSiteSeq(tx, tenantId, seq)
       }
       // Empty change sets skip their table entirely — a shell-only save
       // issues no row queries inside the transaction.
       if (componentWrites.length > 0 || componentDeleteIds.size > 0) {
         await applyDataRowChangesInTx(tx, {
-          tableId: 'components', writes: componentWrites, deleteIds: componentDeleteIds,
+          tenantId, tableId: 'components', writes: componentWrites, deleteIds: componentDeleteIds,
           actorUserId: user.id, seq,
         })
       }
       if (layoutWrites.length > 0 || layoutDeleteIds.size > 0) {
         await applyDataRowChangesInTx(tx, {
-          tableId: 'layouts', writes: layoutWrites, deleteIds: layoutDeleteIds,
+          tenantId, tableId: 'layouts', writes: layoutWrites, deleteIds: layoutDeleteIds,
           actorUserId: user.id, seq,
         })
       }
       if (pageWrites.length > 0 || pageDeleteIds.size > 0) {
         const pagesResult = await applyDataRowChangesInTx(tx, {
-          tableId: 'pages', writes: pageWrites, deleteIds: pageDeleteIds,
+          tenantId, tableId: 'pages', writes: pageWrites, deleteIds: pageDeleteIds,
           actorUserId: user.id, seq,
         })
         deletedPublishedPage = pagesResult.deletedPublished
@@ -422,7 +424,7 @@ export async function handleSiteDocumentRoutes(req: Request, db: DbClient): Prom
       // Collab invalidation — this save wrote rows/shell OUTSIDE the relay, so
       // affected CRDT documents must reset while this ordered write still owns
       // the lane (post-commit; see rowWriteEvents).
-      if (shellChanged) notifyShellWrite()
+      if (shellChanged) notifyShellWrite(tenantId)
       const writtenGroups: Array<[string, Iterable<string>, RowWriteKind]> = [
         ['pages', changedPageIdsRaw, 'update'],
         ['pages', pageDeleteIds, 'delete'],

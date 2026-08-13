@@ -67,10 +67,12 @@ interface DataRowIdSlug {
 export async function listDataRowIdSlugs(
   db: DbClient,
   tableId: string,
+  tenantId: string,
 ): Promise<DataRowIdSlug[]> {
   const { rows } = await db<DataRowIdSlug>`
     select id, slug from data_rows
     where table_id = ${tableId}
+      and tenant_id = ${tenantId}
       and deleted_at is null
   `
   return rows
@@ -85,10 +87,12 @@ export async function listDataRowIdSlugs(
 export async function listSoftDeletedDataRowIds(
   db: DbClient,
   tableId: string,
+  tenantId: string,
 ): Promise<string[]> {
   const { rows } = await db<{ id: string }>`
     select id from data_rows
     where table_id = ${tableId}
+      and tenant_id = ${tenantId}
       and deleted_at is not null
   `
   return rows.map((r) => r.id)

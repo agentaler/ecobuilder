@@ -14,6 +14,7 @@
 import type { DbClient } from '../../db/client'
 import { requireCapability } from '../../auth/authz'
 import { getDraftSite, getDraftSiteSeq } from '../../repositories/site'
+import { BOOTSTRAP_TENANT_ID } from '../../repositories/tenants'
 import { jsonResponse, methodNotAllowed } from '../../http'
 
 export async function handleSiteRoutes(req: Request, db: DbClient): Promise<Response | null> {
@@ -23,8 +24,9 @@ export async function handleSiteRoutes(req: Request, db: DbClient): Promise<Resp
 
   const user = await requireCapability(req, db, 'site.read')
   if (user instanceof Response) return user
+  const tenantId = user.activeTenantId ?? BOOTSTRAP_TENANT_ID
 
-  const shell = await getDraftSite(db)
+  const shell = await getDraftSite(db, tenantId)
   if (!shell) return jsonResponse({ error: 'draft site not found' }, { status: 404 })
-  return jsonResponse({ site: shell, seq: await getDraftSiteSeq(db) })
+  return jsonResponse({ site: shell, seq: await getDraftSiteSeq(db, tenantId) })
 }

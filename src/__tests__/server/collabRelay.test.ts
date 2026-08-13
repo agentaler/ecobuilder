@@ -867,10 +867,10 @@ describe('collab relay', () => {
       if (resetIds.has(SITE_DOC_ID) && resetIds.has(pageDocId)) finishResets()
     })
 
-    const externalShell = await getDraftSite(harness.db)
+    const externalShell = await getDraftSite(harness.db, 'default')
     expect(externalShell).not.toBeNull()
     gated.arm()
-    await saveDraftSite(gated.db, {
+    await saveDraftSite(gated.db, 'default', {
       ...externalShell!,
       name: 'Authoritative external shell',
     })
@@ -893,7 +893,7 @@ describe('collab relay', () => {
     await resetsDone
     unsubscribe()
 
-    expect((await getDraftSite(harness.db))?.name).toBe('Authoritative external shell')
+    expect((await getDraftSite(harness.db, 'default'))?.name).toBe('Authoritative external shell')
     const { rows: persisted } = await harness.db<{ cells_json: Record<string, unknown> }>`
       select cells_json from data_rows where id = ${page.id}
     `
@@ -1024,7 +1024,7 @@ describe('collab relay', () => {
     cleanups.push(() => harness.cleanup())
     const cookie = await harness.setupOwner()
     const [existingPage] = await listDataRows(harness.db, 'pages')
-    const storedShell = await getDraftSite(harness.db)
+    const storedShell = await getDraftSite(harness.db, 'default')
     expect(storedShell).not.toBeNull()
 
     const relay = createCollabRelay(harness.db, { persistDebounceMs: 60_000 })
@@ -1059,7 +1059,7 @@ describe('collab relay', () => {
       rootNodeId: string
     }
     expect(body.nodes[body.rootNodeId]?.label).toBe('Dirty row survives skipped import')
-    expect((await getDraftSite(harness.db))?.name)
+    expect((await getDraftSite(harness.db, 'default'))?.name)
       .toBe('Dirty shell survives skipped import')
   })
 

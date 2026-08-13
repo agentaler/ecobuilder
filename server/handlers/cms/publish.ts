@@ -24,6 +24,7 @@ import { createAuditEvent } from '../../repositories/audit'
 import { getDraftPublishStatus } from '../../repositories/publish'
 import { publishDraftSite } from '../../publish/publishSite'
 import { RuntimeScriptBuildError } from '../../publish/runtime/buildError'
+import { BOOTSTRAP_TENANT_ID } from '../../repositories/tenants'
 import { jsonResponse, methodNotAllowed } from '../../http'
 import type { CmsHandlerOptions } from './shared'
 import { requestAuditContext } from './shared'
@@ -41,12 +42,13 @@ export async function handlePublishRoutes(
     if (req.method !== 'POST') return methodNotAllowed()
     const stepUp = await requireStepUp(req, db, user)
     if (stepUp) return stepUp
+    const tenantId = user.activeTenantId ?? BOOTSTRAP_TENANT_ID
 
     // publishDraftSite flushes the collab relay itself (see publishFlush.ts),
     // so the snapshot includes edits still inside the debounce window.
     let result: Awaited<ReturnType<typeof publishDraftSite>>
     try {
-      result = await publishDraftSite(db, user.id, options.uploadsDir)
+      result = await publishDraftSite(db, tenantId, user.id, options.uploadsDir)
     } catch (err) {
       if (err instanceof RuntimeScriptBuildError) {
         return jsonResponse({ error: err.message }, { status: 422 })
@@ -68,8 +70,9 @@ export async function handlePublishRoutes(
     const user = await requireCapability(req, db, 'site.read')
     if (user instanceof Response) return user
     if (req.method !== 'GET') return methodNotAllowed()
+    const tenantId = user.activeTenantId ?? BOOTSTRAP_TENANT_ID
 
-    return jsonResponse(await getDraftPublishStatus(db))
+    return jsonResponse(await getDraftPublishStatus(db, tenantId))
   }
 
   return null

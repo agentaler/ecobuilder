@@ -36,6 +36,7 @@ import {
 } from './importMediaValidation'
 import { requireCapability, requireStepUp, userHasCapability } from '../../auth/authz'
 import { saveDraftSite } from '../../repositories/site'
+import { BOOTSTRAP_TENANT_ID } from '../../repositories/tenants'
 import {
   listDataTables,
   createDataTable,
@@ -118,6 +119,7 @@ export async function handleImportRoute(
   // Base gate — any import requires `data.import`.
   const user = await requireCapability(req, db, 'data.import')
   if (user instanceof Response) return user
+  const tenantId = user.activeTenantId ?? BOOTSTRAP_TENANT_ID
 
   // Parse strategy from query string (default: replace)
   const strategyParam = url.searchParams.get('strategy') ?? 'replace'
@@ -278,7 +280,7 @@ export async function handleImportRoute(
 
       // 6. Replace the site shell (only when the bundle carries one)
       if (bundle.site) {
-        await saveDraftSite(tx, bundle.site, null, { collabInternal: true })
+        await saveDraftSite(tx, tenantId, bundle.site, null, { collabInternal: true })
         shellWasWritten = true
       }
 
@@ -418,13 +420,13 @@ export async function handleImportRoute(
 
       // Site shell: overwrite if the bundle carries one
       if (bundle.site) {
-        await saveDraftSite(tx, bundle.site, null, { collabInternal: true })
+        await saveDraftSite(tx, tenantId, bundle.site, null, { collabInternal: true })
         shellWasWritten = true
       }
     })
   }
 
-    if (shellWasWritten) notifyShellWrite()
+    if (shellWasWritten) notifyShellWrite(tenantId)
     if (strategy === 'merge-overwrite') {
       for (const [tableId, ids] of affectedCollabRows) {
         if (ids.size > 0) notifyRowWrite({ tableId, rowIds: [...ids], kind: 'update' })
