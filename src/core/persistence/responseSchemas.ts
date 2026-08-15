@@ -83,6 +83,10 @@ export const CmsPublicSiteSchema = Type.Object({
    */
   auth: Type.Optional(Type.Object({
     emailCodeEnabled: Type.Optional(Type.Boolean()),
+    /** Configured social providers, in display order. Missing → none. */
+    socialProviders: Type.Optional(Type.Array(
+      Type.Union([Type.Literal('google'), Type.Literal('github')]),
+    )),
   }, { additionalProperties: true })),
 })
 

@@ -103,6 +103,9 @@ export function AcceptInvitation() {
         setupTokenRequired={phase.setupTokenRequired}
         publicSite={phase.publicSite}
         initialError={null}
+        // OAuth is a hard navigation away — it could never come back here to
+        // redeem the invitation token, so social stays off on this screen.
+        socialEnabled={false}
         onPhaseChange={setAuthPhase}
         onAuthenticated={() => void redeem()}
       />

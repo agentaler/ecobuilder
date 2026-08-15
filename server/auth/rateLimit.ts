@@ -224,3 +224,13 @@ export const signupRateLimit = new RateLimiter({
   limit: 5,
   windowMs: 60 * 60 * 1000,
 })
+
+/**
+ * Starting an OAuth flow, per IP. Each start writes a state row, so an
+ * unauthenticated endpoint that inserts must be bounded; legitimate users
+ * rarely bounce to a provider more than a handful of times in a row.
+ */
+export const oauthStartRateLimit = new RateLimiter({
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+})

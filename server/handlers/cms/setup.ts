@@ -20,6 +20,7 @@
  */
 import { nanoid } from 'nanoid'
 import { emailDeliveryConfigured } from '../../email'
+import { configuredOAuthProviders } from '../../auth/oauthProviders'
 import type { DbClient } from '../../db/client'
 import { hashPassword } from '../../auth/tokens'
 import { createSite, getSetupStatus } from '../../repositories/setup'
@@ -64,7 +65,10 @@ export async function handleSetupRoutes(req: Request, db: DbClient): Promise<Res
     // method whose code would only ever reach a server log.
     return jsonResponse({
       ...await loadPublicSiteIdentity(db),
-      auth: { emailCodeEnabled: emailDeliveryConfigured() },
+      auth: {
+        emailCodeEnabled: emailDeliveryConfigured(),
+        socialProviders: configuredOAuthProviders().map((p) => p.id),
+      },
     })
   }
 

@@ -74,6 +74,14 @@ export interface AuthUser extends CmsUser {
    * `Bun.password.verify` is never handed a non-hash.
    */
   passwordHash: string | null
+  /**
+   * When the account proved control of its address (signup verification link,
+   * emailed sign-in code, or a verified social identity) — null while pending.
+   * Load-bearing for social-login auto-linking: a provider identity may only
+   * auto-link onto a VERIFIED local account, or an attacker who signs up with
+   * a victim's address (unverified) could capture their future social sign-in.
+   */
+  emailVerifiedAt: string | null
   encryptedMfaTotpSecret: EncryptedTotpSecret | null
   mfaRecoveryCodeHashes: string[]
 }
@@ -116,6 +124,7 @@ export const USER_JOINED_COLUMNS = `users.id,
        users.mfa_recovery_code_hashes_json,
        users.step_up_auth_mode,
        users.step_up_window_minutes,
+       users.email_verified_at,
        users.created_at,
        users.updated_at,
        users.deleted_at,
@@ -234,6 +243,7 @@ export function rowToUser(row: JoinedUserRow): AuthUser {
     mfaRecoveryCodesRemaining: mfaRecoveryCodeHashes.length,
     stepUpAuthMode: normalizeStepUpAuthMode(row.step_up_auth_mode),
     stepUpWindowMinutes: normalizeStepUpWindowMinutes(row.step_up_window_minutes),
+    emailVerifiedAt: isoDateOrNull(row.email_verified_at),
     avatarUrl: row.avatar_public_path ?? null,
     gravatarHash: computeGravatarHash(row.email),
     createdAt: isoDateOrNull(row.created_at)!,

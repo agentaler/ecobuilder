@@ -45,6 +45,11 @@ const ALLOWLIST: ReadonlyMap<string, string> = new Map([
   // uniform responses (no account oracle), and the CSRF Origin check in
   // index.ts — not a capability gate.
   ['signup.ts', 'Public signup / email-verify / password-reset — pre-auth by design.'],
+  // OAuth start/callback are the front door for social sign-in — pre-auth by
+  // definition. Their protection is the state discipline (browser-bound nonce
+  // cookie + single-use DB row) plus verified-email-only auto-linking, not a
+  // capability gate.
+  ['oauth.ts', 'Social sign-in start/callback — pre-auth by design; state + verified-email linking protect it.'],
   // Dispatcher / index — composes the per-resource handlers and runs
   // the CSRF Origin check. Per-handler files apply the actual auth gates.
   ['index.ts', 'Top-level dispatcher; per-handler files own the auth gates.'],

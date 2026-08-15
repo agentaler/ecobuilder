@@ -1387,4 +1387,54 @@ export const pgMigrations: Migration[] = [
         check (result in ('success', 'bad_password', 'no_user', 'account_disabled', 'locked', 'rate_limited', 'mfa_failed', 'bad_code'));
     `,
   },
+  {
+    // Social sign-in identities (E06-T05): which provider account maps to
+    // which local user. The (provider, provider_user_id) pair is the durable
+    // key — the provider's email is recorded only as a linking-time audit
+    // trail, never used for lookup after the link exists.
+    //
+    // Deliberately NO CHECK on `provider` (the auth_tokens.kind lesson: a CHECK
+    // makes adding Apple later a table rebuild on SQLite). Validity is enforced
+    // in code — an unknown provider id never reaches the repository.
+    id: '035_user_identities',
+    sql: `
+      create table if not exists user_identities (
+        id text primary key,
+        user_id text not null references users(id) on delete cascade,
+        provider text not null,
+        provider_user_id text not null,
+        email_at_link text,
+        created_at timestamptz not null default now(),
+        last_login_at timestamptz
+      );
+
+      create unique index if not exists user_identities_provider_subject_idx
+        on user_identities (provider, provider_user_id);
+      create index if not exists user_identities_user_idx
+        on user_identities (user_id);
+    `,
+  },
+  {
+    // OAuth login flow state (E06-T05). One row per started flow, keyed by the
+    // SHA-256 of the browser's state nonce — a DB read never yields a live
+    // credential (the sessions/auth_tokens discipline). The row carries the
+    // PKCE code_verifier and enforces single use via consumed_at; the nonce
+    // cookie binds the flow to the browser that started it.
+    id: '036_oauth_login_states',
+    sql: `
+      create table if not exists oauth_login_states (
+        state_hash text primary key,
+        provider text not null,
+        code_verifier text not null,
+        link_user_id text references users(id) on delete cascade,
+        redirect_after text not null default '/admin',
+        created_at timestamptz not null default now(),
+        expires_at timestamptz not null,
+        consumed_at timestamptz
+      );
+
+      create index if not exists oauth_login_states_expiry_idx
+        on oauth_login_states (expires_at);
+    `,
+  },
 ]

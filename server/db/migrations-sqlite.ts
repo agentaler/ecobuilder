@@ -1557,4 +1557,44 @@ export const sqliteMigrations: Migration[] = [
         where email_norm is not null;
     `,
   },
+  {
+    // Social sign-in identities (E06-T05) — SQLite mirror of PG 035. See that
+    // file for why `provider` deliberately carries no CHECK.
+    id: '035_user_identities',
+    sql: `
+      create table if not exists user_identities (
+        id text primary key,
+        user_id text not null references users(id) on delete cascade,
+        provider text not null,
+        provider_user_id text not null,
+        email_at_link text,
+        created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        last_login_at text
+      );
+
+      create unique index if not exists user_identities_provider_subject_idx
+        on user_identities (provider, provider_user_id);
+      create index if not exists user_identities_user_idx
+        on user_identities (user_id);
+    `,
+  },
+  {
+    // OAuth login flow state (E06-T05) — SQLite mirror of PG 036.
+    id: '036_oauth_login_states',
+    sql: `
+      create table if not exists oauth_login_states (
+        state_hash text primary key,
+        provider text not null,
+        code_verifier text not null,
+        link_user_id text references users(id) on delete cascade,
+        redirect_after text not null default '/admin',
+        created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        expires_at text not null,
+        consumed_at text
+      );
+
+      create index if not exists oauth_login_states_expiry_idx
+        on oauth_login_states (expires_at);
+    `,
+  },
 ]

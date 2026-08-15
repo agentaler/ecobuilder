@@ -1,0 +1,23 @@
+.socialBlock {
+  display: grid;
+  gap: var(--space-m);
+  margin-top: var(--space-xl);
+}
+
+/* "─── or ───" between the credential form and the provider buttons. */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  color: var(--text-subtle);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--border-subtle);
+}

@@ -33,6 +33,7 @@ import type { CmsHandlerOptions } from './shared'
 import { handleSetupRoutes } from './setup'
 import { handleSignupRoutes } from './signup'
 import { handleAuthRoutes } from './auth'
+import { handleOAuthRoutes } from './oauth'
 import { handleMeRoutes } from './me'
 import { handleUserPreferencesRoutes } from './userPreferences'
 import { handleUsersRoutes } from './users'
@@ -84,6 +85,8 @@ export async function handleCmsRequest(
     ?? (await handleSignupRoutes(req, db))
     ?? (await handleMeRoutes(req, db, options))
     ?? (await handleAuthRoutes(req, db))
+    // Social sign-in start/callback — pre-auth GET redirects (see oauth.ts).
+    ?? (await handleOAuthRoutes(req, db))
     // User preferences sit next to /me/* because they share the same
     // self-targeted "anything an authenticated user can do to their own
     // account" surface. Routes mount under `/admin/api/cms/me/preferences/`.
