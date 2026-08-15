@@ -16,7 +16,7 @@ interface RequireStepUpOptions {
   policy?: 'user' | 'always'
 }
 
-function readCookie(req: Request, name: string): string {
+export function readCookie(req: Request, name: string): string {
   const cookie = req.headers.get('cookie') ?? ''
   for (const part of cookie.split(';')) {
     const [rawKey, ...rawValue] = part.trim().split('=')

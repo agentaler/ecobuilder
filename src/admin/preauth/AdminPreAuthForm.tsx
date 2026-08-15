@@ -15,6 +15,7 @@ import {
   type CmsCurrentUser,
   type CmsPublicSite,
 } from '@core/persistence/auth'
+import { SocialSignInButtons } from './SocialSignInButtons'
 import panelStyles from '../AdminEntry.module.css'
 import styles from './AdminPreAuthForm.module.css'
 import { getErrorMessage } from '@core/utils/errorMessage'
@@ -30,6 +31,12 @@ interface AdminPreAuthFormProps {
   setupTokenRequired: boolean
   publicSite: CmsPublicSite
   initialError: string | null
+  /**
+   * Offer social sign-in (when the server advertises providers). The
+   * accept-invitation screen passes false: OAuth is a hard navigation away, so
+   * it could never come back to redeem the invitation token.
+   */
+  socialEnabled?: boolean
   onPhaseChange: (phase: PreAuthPhase) => void
   onAuthenticated: (user: CmsCurrentUser) => void
 }
@@ -76,6 +83,7 @@ export function AdminPreAuthForm({
   setupTokenRequired,
   publicSite,
   initialError,
+  socialEnabled = true,
   onPhaseChange,
   onAuthenticated,
 }: AdminPreAuthFormProps) {
@@ -366,6 +374,13 @@ export function AdminPreAuthForm({
             <span>{submitLabel}</span>
           </Button>
         </form>
+
+        {/* Social sign-in — below the credential form so the primary action
+            stays the primary action. Providers only appear when the server
+            advertises them (credentials configured). */}
+        {socialEnabled && (phase === 'login' || phase === 'signup') && (
+          <SocialSignInButtons publicSite={publicSite} disabled={submitting} />
+        )}
 
         {/* Passwordless alternative. Offered only from the login screen and
             only when mail actually leaves the server — the email field is

@@ -39,10 +39,52 @@ function readPreflightedBootPromises(): PreflightedBootPromises | null {
 }
 
 // Phase the admin shell can be in after the boot effect has resolved. The
-// 'mfa' phase is owned by the pre-auth form (it's a sub-state of 'login' that
-// only the login submit handler can enter), so it never appears here — the
-// bootstrap can only land us in setup / login / editor.
-type AdminBootPhase = 'setup' | 'login' | 'editor'
+// 'mfa' phase is normally owned by the pre-auth form (a sub-state of 'login'
+// that the login submit enters), with ONE boot-time exception: an OAuth
+// callback that minted a pending-MFA session redirects to `/admin?mfa=1` —
+// the session cookie exists but authenticates nothing until the second factor
+// clears, so without the hint the boot would land on a login form that has no
+// idea a code entry is one step away.
+type AdminBootPhase = 'setup' | 'login' | 'mfa' | 'editor'
+
+/**
+ * Copy for the OAuth callback's `authError` refusal codes. The server redirects
+ * with a CODE, never provider detail — the detail is in the server log.
+ */
+const AUTH_ERROR_COPY: Record<string, string> = {
+  link_required:
+    'An account with this email already exists but has not verified its address. '
+    + 'Sign in with your password or an emailed code first — after that, social sign-in links automatically.',
+  email_unverified:
+    "That social account's email address isn't verified with the provider, so it can't be used here.",
+  account_disabled: 'This account is suspended.',
+  oauth_failed: 'Social sign-in failed. Try again.',
+  oauth_denied: 'Social sign-in was cancelled.',
+}
+
+/**
+ * Read-and-strip the OAuth handoff params. Stripping via `history.replaceState`
+ * means a refresh doesn't re-show a stale error or re-enter the MFA screen.
+ */
+function consumeAuthRedirectParams(): { mfaPending: boolean; errorMessage: string | null } {
+  if (typeof window === 'undefined') return { mfaPending: false, errorMessage: null }
+  const params = new URLSearchParams(window.location.search)
+  const mfaPending = params.get('mfa') === '1'
+  const errorCode = params.get('authError')
+  if (!mfaPending && !errorCode) return { mfaPending: false, errorMessage: null }
+  params.delete('mfa')
+  params.delete('authError')
+  const query = params.toString()
+  window.history.replaceState(
+    window.history.state,
+    '',
+    `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`,
+  )
+  return {
+    mfaPending,
+    errorMessage: errorCode ? AUTH_ERROR_COPY[errorCode] ?? 'Sign-in failed. Try again.' : null,
+  }
+}
 
 interface AdminBootResult {
   status: 'loading' | 'ready'
@@ -142,9 +184,15 @@ export function useAdminBoot(): AdminBootResult {
             setStatus('ready')
           })
         } else {
+          // The OAuth callback hands off through URL params: `?mfa=1` means a
+          // pending-MFA session cookie is already set (open on the MFA screen),
+          // `?authError=…` is a refusal to surface. Both are read-and-stripped
+          // so a refresh doesn't replay them.
+          const handoff = consumeAuthRedirectParams()
           flushSync(() => {
             setCurrentUser(null)
-            setPhase('login')
+            if (handoff.errorMessage) setInitialError(handoff.errorMessage)
+            setPhase(handoff.mfaPending ? 'mfa' : 'login')
             setStatus('ready')
           })
         }

@@ -22,7 +22,7 @@ import {
   consumeEmailLoginCode,
   issueEmailLoginCode,
 } from '../../repositories/emailLoginCodes'
-import { createUser, findUserByEmail, normalizeEmail } from '../../repositories/users'
+import { createUser, findUserByEmail, markEmailVerified, normalizeEmail } from '../../repositories/users'
 import { recordLoginAttempt } from '../../repositories/loginAttempts'
 import { createAuditEvent } from '../../repositories/audit'
 import { evaluateLockState } from '../../auth/lockout'
@@ -194,6 +194,14 @@ async function handleEmailCodeVerify(req: Request, db: DbClient): Promise<Respon
       result: 'account_disabled',
     })
     return jsonResponse({ error: 'That code is invalid or has expired.' }, { status: 401 })
+  }
+
+  // Redeeming a code IS proof of mailbox control — the very thing the signup
+  // verification link proves — so an existing still-unverified account becomes
+  // verified here. This also unblocks social-login auto-linking, which only
+  // links onto verified accounts.
+  if (!createdAccount && user.emailVerifiedAt === null) {
+    await markEmailVerified(db, user.id)
   }
 
   const lock = evaluateLockState(user.lockedUntil)
